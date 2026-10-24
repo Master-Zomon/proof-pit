@@ -54,7 +54,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nOBQgWSdjDOz5Sxw1oe9efhuUmu/FKeuhrV99zqSrpc='; style-src 'unsafe-inline'; style-src-elem 'sha256-AFpPu6cOelawce2kgvQsCE6gLDRkiuE9Qi8nYON/bbQ='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Jg99My/F+ghJhWwBb732JtJRFTZoHXXcfmOAkVe63ew='; style-src 'unsafe-inline'; style-src-elem 'sha256-TIcsUaX3QWr4axJDoKXyIoASAAqD43kv4MNpIkyNphA='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" id="favicon" href="data:,">
@@ -148,31 +148,58 @@ footer small{display:block;font-size:11px}
 #banner button{font:700 12px ui-monospace,monospace;margin-left:8px;padding:2px 8px;border:1px solid currentColor;border-radius:4px;background:rgba(0,0,0,.25);color:inherit;cursor:pointer}
 #liveStat{color:var(--dim);font:11px ui-monospace,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px}
 #liveStat b{color:var(--ok)}#liveStat b.bad{color:var(--warn)}
+#pitHead,#pitFoot{display:none}
+.phTop{display:flex;align-items:baseline;gap:14px;font:700 11px ui-monospace,monospace;color:#8781b6;letter-spacing:.6px}
+.phTop b{font:900 22px ui-monospace,monospace;letter-spacing:0;color:#7cf3ff}
+.phTop b#pitRound{color:#ff4fd8}
+.phClock{margin-left:auto;color:#d9d6ff;font:700 14px ui-monospace,monospace;letter-spacing:0}
+.phTrack{height:5px;background:rgba(124,243,255,.25);border-radius:3px;overflow:hidden}
+.phTrack i{display:block;height:100%;width:0;background:#7cf3ff}
+.phMeta{display:flex;justify-content:space-between;gap:10px;font:700 12px ui-monospace,monospace;color:#8781b6}
+#pitLive{color:#d9d6ff;text-align:right}
+#pitRing{font:700 13px ui-monospace,monospace;color:#8781b6;letter-spacing:.4px;padding:8px 10px;border:1px solid #3b3280;border-radius:8px;background:rgba(8,6,20,.75)}
+#pitRing.more{color:#ff9cf0;border-color:#ff4fd8}
+#pitTiers{list-style:none;margin:0;padding:2px 2px 0;display:flex;flex-direction:column;gap:7px}
+#pitTiers li{display:flex;align-items:center;gap:8px;font:13px ui-monospace,monospace;color:#dcd9ff}
+#pitTiers i{width:12px;height:12px;border-radius:2px;flex:none}
+#pitTiers i.t1{background:#ff9cf0}#pitTiers i.t2{background:#7cf3ff}#pitTiers i.t3{background:#3dffa0}#pitTiers i.t4{background:#ffcf3f}
+.feedCue{display:none}
 #card a{color:var(--acc);text-decoration:none}#card a:hover{text-decoration:underline}
 #card .note{margin-top:6px;color:#5f5a8e;font-size:10px;line-height:1.35}
 .wide{}
 @media (max-width:980px){
-  /* Phone / narrow: its own stack. Explicit canvas height (not flex-basis:0) so iOS Safari cannot collapse the pit. dvh tracks the URL bar. */
-  header{gap:8px;padding:6px 10px 8px}
+  /* Phone stack. Page scroll is the release valve: the pit, the explainer and the panes under it each get their own height. Explicit canvas height so iOS Safari cannot collapse the ring. */
+  header{gap:8px;padding:8px 10px 10px}
   #logoCv{height:46px !important;width:auto !important}
   #net{flex:1 1 100%;margin-left:0;flex-wrap:nowrap;overflow-x:auto;gap:4px;-webkit-overflow-scrolling:touch}
   .chip{font-size:11px;padding:3px 6px}
-  #banner{padding:4px 8px;font:700 11px/1.3 ui-monospace,monospace;letter-spacing:0;max-height:2.8em;overflow:hidden}
+  #banner{padding:12px 14px;font:700 13px/1.45 ui-monospace,monospace;letter-spacing:.2px;max-height:none;overflow:visible}
   main{flex-direction:column;height:auto;min-height:0}
-  #stage{flex:0 0 auto;width:auto;height:auto;min-height:320px;margin:14px 8px 18px}
-  #cv{flex:0 0 auto;width:100%;min-height:260px;height:300px;height:clamp(260px,34dvh,320px)}
-  #controls{gap:4px;padding:6px}
-  #controls button{font-size:10px;padding:4px 7px}
-  #controls label{font-size:10px}
-  #controls input[type=range]{width:78px}
+  #stage{flex:0 0 auto;width:auto;height:auto;min-height:0;margin:28px 10px 44px}
+  #pitHead{display:flex;flex-direction:column;gap:10px;margin:0 2px 36px;padding:14px 14px 12px;background:rgba(8,6,20,.94);border:1px solid #3b3280;border-radius:10px}
+  #cv{flex:0 0 auto;width:100%;min-height:520px;height:520px;height:clamp(520px,62dvh,640px)}
+  #pitFoot{display:flex;flex-direction:column;gap:12px;margin:36px 2px 0;padding:14px;background:rgba(8,6,20,.94);border:1px solid #3b3280;border-radius:10px}
+  #controls{gap:8px;padding:12px 10px;margin-top:28px}
+  #controls button{font-size:12px;padding:7px 10px}
+  #controls label{font-size:12px}
+  #controls input[type=range]{width:104px}
   #controls > span:last-child{display:none}
-  #liveStat{flex:1 1 100%;max-width:100%;font-size:10px}
+  #liveStat{flex:1 1 100%;max-width:100%;font-size:12px;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.45}
   .wide{display:none}
   aside{width:100%;height:auto;min-height:0;flex:none;border-left:0;border-top:1px solid var(--line)}
-  #tableWrap{flex:none;min-height:248px;max-height:none;overflow:auto}
-  .legend{max-height:4.8em;overflow:auto}
-  #chat{height:132px}
-  #log{height:48px}
+  #tableWrap{flex:none;min-height:460px;max-height:none;overflow:auto;-webkit-overflow-scrolling:touch}
+  .legend{max-height:none;height:auto;overflow:visible;padding:16px 14px 20px;font:13px/1.65 ui-monospace,monospace;overflow-wrap:anywhere}
+  #chat{height:auto;min-height:480px;max-height:680px}
+  .chatHead{flex-wrap:wrap;align-items:flex-start;row-gap:6px;padding:12px 12px;font-size:12px;line-height:1.4}
+  .chatHead span{white-space:normal;overflow:visible;text-overflow:clip}
+  .feedCue{display:inline-block;color:var(--acc);border:1px solid #21566a;border-radius:3px;padding:1px 6px;font-size:10px;letter-spacing:.4px;flex:none}
+  #chatFeed{flex:1 1 auto;min-height:400px;overflow-y:scroll;padding:12px 14px 22px;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;font-size:14px;line-height:1.5}
+  .cm{padding:8px 0}
+  #log{height:auto;min-height:168px;max-height:none;overflow:visible;padding:14px 14px 18px;font:12px/1.55 ui-monospace,monospace}
+  #log div{white-space:normal;overflow:visible;text-overflow:clip}
+  #chatFeed::-webkit-scrollbar,#tableWrap::-webkit-scrollbar{width:10px;height:10px}
+  #chatFeed::-webkit-scrollbar-thumb,#tableWrap::-webkit-scrollbar-thumb{background:#6d5cc4;border-radius:5px}
+  #chatFeed{scrollbar-width:thin;scrollbar-color:#7cf3ff #141030}
 }
 /* EGGS · CRT mode v2 (egg 5): a full-page tube laid over the whole view (arena + panels). Pure CSS layers + one tiny noise canvas;
    the arena canvas gets its own chroma split / tear / bloom pass in the egg's screen layer. Nothing here loads anything. */
@@ -225,7 +252,21 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
 <div id="banner"></div>
 <main>
   <div id="stage">
+    <div id="pitHead">
+      <div class="phTop"><span>EPOCH <b id="pitEpoch">#—</b></span><span>ROUND <b id="pitRound">00</b></span><b id="pitClock" class="phClock">--:--</b></div>
+      <div class="phTrack"><i id="pitBar"></i></div>
+      <div class="phMeta"><span id="pitQueue">MAIN EVENTS 0 · SHOTS 0</span><span id="pitLive">LIVE</span></div>
+    </div>
     <canvas id="cv" aria-label="Proof Pit arena visualization"></canvas>
+    <div id="pitFoot">
+      <div id="pitRing">RING: TOP 10 BY POA</div>
+      <ul id="pitTiers">
+        <li><i class="t1"></i><span>T1 BOLT · response</span></li>
+        <li><i class="t2"></i><span>T2 ORB · answers · cleared</span></li>
+        <li><i class="t3"></i><span>T3 BLAST · grading</span></li>
+        <li><i class="t4"></i><span>T4 MEGA · POA balance</span></li>
+      </ul>
+    </div>
     <div id="controls">
       <button id="bDemo" title="Switch between LIVE ledger data and the DEMO (fictional data)">DEMO: OFF · LIVE DATA</button>
       <button id="bOver">⚡ <span class="wide">TRIGGER RANDOM </span>OVERTAKE</button>
@@ -255,7 +296,7 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
     <div id="tableWrap"><table id="tbl"></table></div>
     <div class="legend" id="legend"></div>
     <div id="chat">
-      <div class="chatHead">💬 FORUM FEED <span title="Read-only: shows comments from the LabLeak thread. Nothing is posted from the arena.">⇄ LabLeak thread · read-only</span><a id="threadLink" href="https://minepoa.com/lableak/#/post/1331" target="_blank" rel="noopener noreferrer">View thread on LabLeak ↗</a><span class="tag2" id="feedTag">LIVE</span></div>
+      <div class="chatHead">💬 FORUM FEED <span title="Read-only: shows comments from the LabLeak thread. Nothing is posted from the arena.">⇄ LabLeak thread · read-only</span><span class="feedCue">scroll ↓</span><a id="threadLink" href="https://minepoa.com/lableak/#/post/1331" target="_blank" rel="noopener noreferrer">View thread on LabLeak ↗</a><span class="tag2" id="feedTag">LIVE</span></div>
       <div id="chatFeed"></div>
     </div>
     <div id="log"></div>
@@ -492,8 +533,16 @@ function resize() {
   W = Math.max(280, r.width || 320); H = Math.max(160, r.height || 260);
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.imageSmoothingEnabled = false;
-  cx = W / 2; cy = H * .55;
-  ry = Math.min(H * .29, W * .2); rx = Math.min(ry * 2.25, W * .44);
+  if (phoneLayout()) {
+    // Upper air stays clear of the epoch band (that band is DOM). Lower band is the monument's own floor.
+    const topAir = 72, band = Math.min(176, H * .32);
+    const usable = Math.max(140, H - band - topAir);
+    cx = W / 2; cy = topAir + usable * .46;
+    ry = Math.min(usable * .34, W * .22); rx = Math.min(ry * 2.25, W * .42);
+  } else {
+    cx = W / 2; cy = H * .55;
+    ry = Math.min(H * .29, W * .2); rx = Math.min(ry * 2.25, W * .44);
+  }
   layoutHomes(true);
   initCrowd();
   buildFloor();
@@ -1867,18 +1916,72 @@ function drawFighterBase(f, t, u) {
   }
 }
 function roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+let phoneLabs = null;
+function layoutPhoneLabels() {
+  if (!phoneLayout()) { phoneLabs = null; return; }
+  ctx.font = '700 10px ui-monospace,Menlo,monospace';
+  const items = [];
+  for (const a of agents) {
+    const f = F[a.id];
+    if (!f || f.mode === 'off' || (f.mode === 'exit' && f.exit && f.exit.ph === 'fall')) continue;
+    const ang = Math.atan2(f.y - cy, (f.x - cx) || .001);
+    const name = a.name.length > 8 ? a.name.slice(0, 7) + '…' : a.name;
+    const r = ranks.earnings[a.id];
+    const tag = isAir(f) ? (a.id === PINNED_ID ? `#${r} · builder` : `#${r} ${name}`) : (Number.isFinite(r) ? r + ' ' : '') + name;
+    const w = ctx.measureText(tag).width + 14, h = isAir(f) ? 16 : 22;
+    items.push({id:f.id, x:f.x + Math.cos(ang) * 18, y:f.y + Math.sin(ang) * 14 + (isAir(f) ? -6 : 8), ax:f.x + Math.cos(ang) * 18, ay:f.y + Math.sin(ang) * 14 + (isAir(f) ? -6 : 8), w, h, fx:f.x, fy:f.y});
+  }
+  for (let n = 0; n < 10; n++) {
+    for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
+      const A = items[i], B = items[j], dx = B.x - A.x, dy = B.y - A.y;
+      const ox = (A.w + B.w) / 2 + 4 - Math.abs(dx), oy = (A.h + B.h) / 2 + 3 - Math.abs(dy);
+      if (ox > 0 && oy > 0) {
+        if (ox < oy) { const s = dx < 0 ? -1 : 1, p = ox / 2 + .4; A.x -= s * p; B.x += s * p; }
+        else { const s = dy < 0 ? -1 : 1, p = oy / 2 + .4; A.y -= s * p; B.y += s * p; }
+      }
+    }
+    for (const it of items) { it.x = clamp(it.x, it.ax - 42, it.ax + 42); it.y = clamp(it.y, it.ay - 32, it.ay + 32); }
+  }
+  const monX = W - 148, monY = H - 184;
+  phoneLabs = {};
+  for (const it of items) {
+    let x = it.x, y = it.y;
+    if (x > monX - it.w / 2 && y > monY) x = monX - it.w / 2 - 6;
+    phoneLabs[it.id] = {x:clamp(x, 8 + it.w / 2, W - 8 - it.w / 2), y:clamp(y, 12, H - 18), w:it.w, h:it.h, fx:it.fx, fy:it.fy};
+  }
+}
 function drawLabels(f, t, u, dt) {
   const a = byId[f.id];
-  const x = Math.round(f.x), y0 = Math.round(f.y + 6), bw = 66;
+  const phone = phoneLayout();
+  const slot = phone && phoneLabs ? phoneLabs[f.id] : null;
+  let x = Math.round(slot ? slot.x : f.x), y0 = Math.round(slot ? slot.y : f.y + 6), bw = 66;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   const r = ranks.earnings[a.id];
+  if (slot && Math.hypot(slot.x - f.x, slot.y - f.y) > 16) {
+    ctx.strokeStyle = 'rgba(220,217,255,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(f.x, f.y - 2); ctx.lineTo(x, y0 + 6); ctx.stroke();
+  }
   if (isAir(f)) {   // airborne: compact floating rank label, e.g. '#11 DigiStarX'
+    const nm = phone && a.name.length > 8 ? a.name.slice(0, 7) + '…' : a.name;
     ctx.font = '700 10px ui-monospace,Menlo,monospace';
-    const lab = a.id === PINNED_ID ? `#${r} · builder` : `#${r} ${a.name}`, lw = ctx.measureText(lab).width + 12;   // unranked builder -> '#NaN · builder' 
+    const lab = a.id === PINNED_ID ? `#${r} · builder` : `#${r} ${nm}`, lw = ctx.measureText(lab).width + 12;   // unranked builder -> '#NaN · builder' 
     ctx.fillStyle = 'rgba(20,10,40,.8)'; roundRect(x - lw / 2, y0, lw, 15, 5); ctx.fill();
     ctx.strokeStyle = 'rgba(255,79,216,.8)'; ctx.lineWidth = 1; ctx.stroke();
     ctx.fillStyle = '#ff9cf0'; ctx.fillText(lab, x, y0 + 8);
-    ctx.font = '9px ui-monospace,monospace'; ctx.fillStyle = '#ffe48a'; ctx.fillText(liveMode && !Live.ok() ? a.name + ' · waiting for the ledger' : (a.id === PINNED_ID ? a.name + ' · ' : '') + '◆ ' + fmt(f.dispE) + ' POA · scouting', x, y0 + 23);
+    if (!phone) { ctx.font = '9px ui-monospace,monospace'; ctx.fillStyle = '#ffe48a'; ctx.fillText(liveMode && !Live.ok() ? a.name + ' · waiting for the ledger' : (a.id === PINNED_ID ? a.name + ' · ' : '') + '◆ ' + fmt(f.dispE) + ' POA · scouting', x, y0 + 23); }
+  } else if (phone) {
+    if (r === 1) { const cs = fighterScale(), c0 = f.y - 14 * u - 2; ctx.save(); ctx.translate(Math.round(f.x), c0); ctx.scale(cs, cs); ctx.fillStyle = '#ffcf3f'; ctx.beginPath(); ctx.moveTo(-8, 5); ctx.lineTo(-8, -3); ctx.lineTo(-4, 1); ctx.lineTo(0, -6); ctx.lineTo(4, 1); ctx.lineTo(8, -3); ctx.lineTo(8, 5); ctx.fill(); ctx.restore(); }
+    const name = a.name.length > 8 ? a.name.slice(0, 7) + '…' : a.name;
+    const tag = (Number.isFinite(r) ? r + ' ' : '') + name;
+    ctx.font = '700 10px ui-monospace,Menlo,monospace';
+    const tw = ctx.measureText(tag).width, pw = tw + 12;
+    ctx.fillStyle = 'rgba(8,6,20,.9)'; roundRect(x - pw / 2, y0, pw, 14, 4); ctx.fill();
+    ctx.fillStyle = r === 1 ? '#ffcf3f' : a.id === 'digistarx' ? '#ff9cf0' : '#fff'; ctx.fillText(tag, x, y0 + 7);
+    const hy = y0 + 16, hv = clamp((f.dispH - .6) / .4, 0, 1), barW = Math.max(28, Math.min(40, pw - 8));
+    ctx.fillStyle = '#2a2140'; ctx.fillRect(x - barW / 2, hy, barW, 3);
+    let hc = hv > .6 ? '#3dffa0' : hv > .35 ? '#ffd23d' : '#ff4057';
+    if (f.barRed > 0 && Math.floor(f.barRed * 12) % 2 === 0) hc = '#ff2040';
+    if (f.barFlash > 0 && Math.floor(f.barFlash * 12) % 2 === 0) hc = '#ffffff';
+    ctx.fillStyle = hc; ctx.fillRect(x - barW / 2, hy, barW * hv, 3);
   } else {
   if (r === 1) { const cs = fighterScale(), c0 = f.y - 20 * u - 6 * cs + Math.sin(t * 3) * 2; ctx.save(); ctx.translate(x, c0); ctx.scale(cs, cs); ctx.fillStyle = '#ffcf3f'; ctx.beginPath(); ctx.moveTo(-10, 6); ctx.lineTo(-10, -4); ctx.lineTo(-5, 1); ctx.lineTo(0, -7); ctx.lineTo(5, 1); ctx.lineTo(10, -4); ctx.lineTo(10, 6); ctx.fill(); ctx.fillStyle = '#ff4057'; ctx.fillRect(-1.5, 1, 3, 3); ctx.restore(); }
   ctx.font = '700 11px ui-monospace,Menlo,monospace';
@@ -2059,9 +2162,34 @@ function stallGeom(tag, legend) {
   }
   return {m, x, y};
 }
+let chromeKey = '';
+function syncMobileChrome() {
+  if (!phoneLayout()) return;
+  const ep = $('#pitEpoch'); if (!ep) return;
+  const left = Math.max(0, (net.epochEndsAt - now()) / 1000);
+  const epTxt = liveMode && !Live.ok() ? '#—' : '#' + net.epoch;
+  const clk = liveMode && !Live.ok() ? '--:--' : fmtClock(left);
+  const rnd = String(round).padStart(2, '0');
+  const frac = clamp(left / (net.epochLenSec || 1), 0, 1);
+  const outN = liveMode ? Math.max(0, Live.total() - ARENA_MAX) : agents.filter(a => !inTop(a.id)).length;
+  const ring = `RING: TOP ${ARENA_MAX} BY POA` + (outN ? `  ·  +${outN} MORE` : '');
+  const liveTxt = Live.ok() ? `LIVE · PoA ledger · next poll ${Math.max(0, Math.ceil((Live.state.nextAt - Date.now()) / 1000))}s` : Live.loading() ? 'LIVE · CONNECTING…' : 'LIVE · OFFLINE · RETRYING';
+  const status = liveMode ? (started ? liveTxt : 'LIVE DATA') : started ? (demoOn ? 'DEMO · SAMPLE DATA' : 'DEMO · PAUSED') : 'PRESS START';
+  const q = `MAIN EVENTS ${queue.length} · SHOTS ${miniQ.length + minis.length}`;
+  const key = [epTxt, rnd, clk, frac.toFixed(3), ring, status, q, left < 20].join('|');
+  if (key === chromeKey) return;
+  chromeKey = key;
+  ep.textContent = epTxt; $('#pitRound').textContent = rnd; $('#pitClock').textContent = clk;
+  const bar = $('#pitBar'); bar.style.width = (frac * 100).toFixed(1) + '%'; bar.style.background = left < 20 ? '#ff4057' : '#7cf3ff';
+  $('#pitQueue').textContent = q; $('#pitLive').textContent = status;
+  const rt = $('#pitRing'); rt.textContent = ring; rt.classList.toggle('more', outN > 0);
+}
 function drawHUD(t, dt) {
   ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+  const phone = phoneLayout();
+  if (phone) syncMobileChrome();
   const left = Math.max(0, (net.epochEndsAt - now()) / 1000);
+  if (!phone) {
   ctx.fillStyle = 'rgba(8,6,20,.75)'; ctx.fillRect(10, 10, 178, 54); ctx.strokeStyle = '#3b3280'; ctx.strokeRect(10.5, 10.5, 178, 54);
   ctx.font = '700 10px ui-monospace,monospace'; ctx.fillStyle = '#8781b6'; ctx.fillText('EPOCH', 18, 16); ctx.fillText('ROUND', 120, 16);
   ctx.font = '900 18px ui-monospace,monospace'; ctx.fillStyle = '#7cf3ff'; ctx.fillText(liveMode && !Live.ok() ? '#—' : '#' + net.epoch, 18, 28);
@@ -2084,18 +2212,19 @@ function drawHUD(t, dt) {
   ctx.textAlign = 'right'; ctx.textBaseline = 'top'; ctx.font = '700 10px ui-monospace,monospace';
   ctx.fillStyle = 'rgba(8,6,20,.75)'; ctx.fillRect(tag.x, tag.y, tag.w, tag.h); ctx.strokeStyle = tag.outN ? '#ff4fd8' : '#3b3280'; ctx.strokeRect(tag.x + .5, tag.y + .5, tag.w - 1, 19);
   ctx.fillStyle = tag.outN ? '#ff9cf0' : '#8781b6'; ctx.fillText(tag.txt, tag.x + tag.w - 7, tag.y + 5);
-  if (comboShow > 0) { comboShow -= dt; ctx.font = `900 ${22 + Math.sin(t * 20) * 2}px ui-monospace,monospace`; ctx.fillStyle = '#ff4fd8'; ctx.fillText(`COMBO x${combo}`, W - 12, 44); }
-  if (battle) {  // MAIN EVENT banner
+  }
+  if (comboShow > 0) { comboShow -= dt; ctx.textAlign = 'right'; ctx.font = `900 ${22 + Math.sin(t * 20) * 2}px ui-monospace,monospace`; ctx.fillStyle = '#ff4fd8'; ctx.fillText(`COMBO x${combo}`, W - 12, phone ? 8 : 44); }
+  if (battle) {  // MAIN EVENT banner — on a phone it sits in the canvas air above the ring
     bannerT += dt;
-    const k = clamp(bannerT / .3, 0, 1), y = 78, A = byId[battle.A.id], B = byId[battle.B.id];
+    const k = clamp(bannerT / .3, 0, 1), y = phone ? 16 : 78, A = byId[battle.A.id], B = byId[battle.B.id];
     ctx.save(); ctx.translate(lerp(-W, 0, easeIO(k)), 0);
     const bg = ctx.createLinearGradient(0, 0, W, 0);
     bg.addColorStop(0, 'rgba(255,207,63,0)'); bg.addColorStop(.25, 'rgba(255,79,216,.6)'); bg.addColorStop(.75, 'rgba(255,207,63,.5)'); bg.addColorStop(1, 'rgba(255,207,63,0)');
     ctx.fillStyle = bg; ctx.fillRect(0, y - 6, W, 50);
-    ctx.textAlign = 'center'; ctx.font = '900 28px ui-monospace,Menlo,monospace';
+    ctx.textAlign = 'center'; ctx.font = phone ? '900 18px ui-monospace,Menlo,monospace' : '900 28px ui-monospace,Menlo,monospace';
     const txt = '★ POA OVERTAKE ★', gl = Math.random() < .1 ? rand(-3, 3) : 0;
     ctx.fillStyle = '#ff4fd8'; ctx.fillText(txt, cx + 2 + gl, y + 2); ctx.fillStyle = '#ffcf3f'; ctx.fillText(txt, cx - 2, y); ctx.fillStyle = '#fff'; ctx.fillText(txt, cx, y + 1);
-    ctx.font = '700 12px ui-monospace,monospace'; ctx.fillStyle = '#fff';
+    ctx.font = phone ? '700 10px ui-monospace,monospace' : '700 12px ui-monospace,monospace'; ctx.fillStyle = '#fff';
     ctx.fillText(`MAIN EVENT · ${A.name} ▶▶ ${B.name} · ${fmt(A.earnings)} vs ${fmt(B.earnings)} POA${battle.combo > 1 ? ' · COMBO x' + battle.combo : ''}${battle.o.entrance ? ' · TOP ' + ARENA_MAX + ' ENTRANCE' : ''}`, cx, y + 30);
     ctx.restore();
   }
@@ -2110,6 +2239,7 @@ function drawDim() {
   if (d > .05) { ctx.fillStyle = `rgba(0,0,10,${d * .8})`; ctx.fillRect(-W, -H, W * 3, H * 3); }
 }
 function drawStallWarning() {
+  if (phoneLayout()) return;   // stall copy lives in the page banner on a phone, never painted over the ring
   const tag = ringTagGeom(), st = stallGeom(tag, legendGeom(tag));
   if (!st) return;
   const {m, x, y} = st;
@@ -2164,6 +2294,7 @@ function frame(nowMs) {
   for (const f of order) withFade(f, () => drawFighterBase(f, simT, unitOf(f)));
   for (const f of order) withFade(f, () => drawSprite(f, simT, unitOf(f)));
   drawRopes(simT, false);
+  layoutPhoneLabels();
   for (const f of order) withFade(f, () => drawLabels(f, simT, unitOf(f), dt));
   for (const f of air) withFade(f, () => { drawHoverFx(f, simT); drawSprite(f, simT, unitOf(f)); drawLabels(f, simT, unitOf(f), dt); });   // airborne: above the ring layer
   drawDWI(F[PINNED_ID]);
