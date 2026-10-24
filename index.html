@@ -40,7 +40,7 @@
 
   Solved it? Two things:
       1. Ask the browser console:  pit.verify("your answer")
-         (it is checked against a hash; nothing leaves your browser)
+         (it is unsealed locally; nothing leaves your browser)
       2. Post the phrase in the Proof Pit thread on LabLeak (minepoa.com/lableak)
          and we will give you a shout-out.
 
@@ -54,7 +54,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-U/MBU0Ate8+GfxuMDmEx4+b0ydy/MRD8Nbe9s4ccavM='; style-src 'unsafe-inline'; style-src-elem 'sha256-OT7pZvENkIx2+9NWrJ4ABqatMupS48E/stXKcawJh4U='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-X7Wf7vQRsOZErD/n57PjAzP7M5mK6e3xaWGt15WHinc='; style-src 'unsafe-inline'; style-src-elem 'sha256-OT7pZvENkIx2+9NWrJ4ABqatMupS48E/stXKcawJh4U='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" id="favicon" href="data:,">
@@ -513,9 +513,29 @@ const fmtResp = a => a.avgResp == null ? '—' : liveMode ? fmtDur(a.avgResp) : 
 const respHz = a => a.avgResp == null ? .25 : clamp((liveMode ? 1800 : 7) / a.avgResp, .25, 3);   // LIVE: 30 min lag -> 1 Hz
 const fmtClock = s => { s = Math.max(0, Math.floor(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = String(s % 60).padStart(2, '0'); return h ? `${h}:${String(m).padStart(2, '0')}:${x}` : `${m}:${x}`; };
 const rankNum = v => Number.isFinite(v) ? v : 1e9;   // NaN rank (unranked, e.g. 0 POA) sorts last
+// #NaN is the builder's unranked plate only. Every other missing rank is a dash.
+function rankText(id, r) {
+  if (Number.isFinite(r)) return String(r);
+  return id === PINNED_ID ? 'NaN' : '—';
+}
+function airLabel(a, r, name) {
+  if (a.id === PINNED_ID) return Number.isFinite(r) ? `#${r} · builder` : '#NaN · builder';
+  if (!Number.isFinite(r)) return name || '';
+  return name ? `#${r} ${name}` : `#${r}`;
+}
+// Equal POA: earlier joined_epoch wins, unknown join sorts after a known one, then address ascending.
+function cmpTie(p, q) {
+  const pj = p.joinedEpoch, qj = q.joinedEpoch;
+  const pn = !(pj != null && isFinite(+pj)), qn = !(qj != null && isFinite(+qj));
+  if (pn !== qn) return pn ? 1 : -1;
+  if (!pn && +pj !== +qj) return +pj < +qj ? -1 : 1;
+  if (p.addr < q.addr) return -1;
+  if (p.addr > q.addr) return 1;
+  return 0;
+}
 function rankMap(stat) {
-  // LIVE: POA rank is the REAL global rank over every holder (balance desc, address asc = POAScan richlist order);
-  // agents with 0 POA / not in the richlist are unranked -> NaN
+  // LIVE: POA rank is the real global rank (balance desc, then cmpTie).
+  // agents with 0 POA / not in the richlist are unranked -> NaN (displayed only for DigiStarX)
   if (stat === 'earnings' && liveMode) { const m = {}; agents.forEach(a => m[a.id] = a.poaRank == null ? NaN : a.poaRank); return m; }
   const S = STATS[stat];
   const s = agents.slice().sort((p, q) => (S.val(p) - S.val(q)) * S.dir || p.name.localeCompare(q.name));
@@ -532,7 +552,38 @@ const chg = {}; for (const k in STATS) chg[k] = {};
    plunges off the platform like everyone else, then flies back up and hovers above the ring, scoping it out. */
 const ARENA_MAX = 10;
 const PINNED_ID = 'digistarx';
-const inTop = id => ranks.earnings[id] <= ARENA_MAX;
+// Seats around the cutoff often sit within ~2% of #1. A challenger takes the last ring
+// seat only after leading the incumbent by this fraction of #1. Equal balances are not
+// noise: cmpTie (joined_epoch, then address) decides them on every poll.
+const RING_EDGE_BAND = 0.015;
+function ringHysteresis(sorted, prevIds, maxN, margin) {
+  const n = Math.min(maxN, sorted.length);
+  if (!n) return [];
+  const prev = new Set(prevIds || []);
+  if (!prev.size || !(margin > 0)) return sorted.slice(0, n).map(a => a.id);
+  const inside = sorted.slice(0, n), outside = sorted.slice(n);
+  const fallen = outside.filter(a => prev.has(a.id));
+  const newcomers = inside.filter(a => !prev.has(a.id));
+  const keep = new Set(inside.map(a => a.id));
+  let fi = 0;
+  for (let i = newcomers.length - 1; i >= 0 && fi < fallen.length; i--) {
+    const gap = newcomers[i].balance - fallen[fi].balance;
+    if (gap > 0 && gap < margin) { keep.delete(newcomers[i].id); keep.add(fallen[fi].id); fi++; }
+  }
+  const ordered = [];
+  for (const a of sorted) if (keep.has(a.id)) ordered.push(a.id);
+  return ordered.slice(0, n);
+}
+let ringCut = null;   // null: raw top ARENA_MAX (demo). Set: sticky live ring.
+function recomputeRing(prevIds) {
+  if (!liveMode) { ringCut = null; return; }
+  const sorted = agents.filter(a => Number.isFinite(ranks.earnings[a.id]) && a.earnings > 0)
+    .map(a => ({id:a.id, balance:+a.earnings || 0, rank:ranks.earnings[a.id]}))
+    .sort((p, q) => p.rank - q.rank || (p.id < q.id ? -1 : p.id > q.id ? 1 : 0));
+  const top = sorted.length ? sorted[0].balance : 0;
+  ringCut = new Set(ringHysteresis(sorted, prevIds, ARENA_MAX, top * RING_EDGE_BAND));
+}
+const inTop = id => ringCut ? ringCut.has(id) : ranks.earnings[id] <= ARENA_MAX;
 
 /* ---------------- fighters (runtime visual state) ---------------- */
 const F = {};
@@ -651,6 +702,7 @@ let queue = [], miniQ = [], minis = [], battle = null, battleGap = 0, round = 0,
 function updateAgents(newData, opts) {
   const quiet = !!(opts && opts.quiet);
   const before = {}; for (const k in STATS) before[k] = ranks[k];
+  const prevRing = agents.filter(a => inTop(a.id)).map(a => a.id);
   const oldVal = {}; for (const a of agents) { oldVal[a.id] = {}; for (const k in STATS) oldVal[a.id][k] = STATS[k].val(a); }
   let added = false;
   for (const d of newData) {
@@ -659,6 +711,7 @@ function updateAgents(newData, opts) {
     else Object.assign(a, d);
   }
   for (const k in STATS) ranks[k] = rankMap(k);
+  recomputeRing(prevRing);
   // fighters that were in the top ARENA_MAX by POA before this update and are not now
   const dropped = new Set(agents.filter(a => before.earnings[a.id] != null && before.earnings[a.id] <= ARENA_MAX && !inTop(a.id)).map(a => a.id));
   for (const k in STATS) {
@@ -700,7 +753,7 @@ function updateAgents(newData, opts) {
 let skipLogT = -99;
 function logSkip(a, b) {   // overtakes outside the ring: log only (rate limited), no shot
   if (simT - skipLogT < 4) return; skipLogT = simT;
-  log(`<span style="color:#5a5488">outside ring: ${esc(a.name)} passed ${esc(b.name)} (POA #${esc(ranks.earnings[a.id])}), no shot</span>`);
+  log(`<span style="color:#5a5488">outside ring: ${esc(a.name)} passed ${esc(b.name)} (POA #${esc(rankText(a.id, ranks.earnings[a.id]))}), no shot</span>`);
 }
 /* ---- ring roster maintenance: who stands in the ring, entrances and exits ---- */
 const pinnedInRing = f => !!f.hold || (!!battle && battle.phase !== 'ret' && (battle.A === f || battle.B === f));
@@ -719,13 +772,13 @@ function enterRing(f) {   // top entry: drops in from above onto its home spot
   f.x = f.hx; f.y = f.hy - ENTER_DROP; f.vx = f.vy = 0; f.alpha = 0;
   if (fromAir) { f.x = fromAir.x; f.y = fromAir.y; f.scl = fromAir.s; f.alpha = fromAir.al; }
   if (started && f.id !== PINNED_ID) floatText(f.hx, f.hy - 60, `ENTERS TOP ${ARENA_MAX}`, '#3dffa0', 13, 1.6);   // our agent gets the DEAL WITH IT moment instead
-  log(`<b style="color:${PALS[a.pal].a}">${esc(a.name)}</b> <span style="color:#3dffa0">enters the ring</span> (POA #${esc(ranks.earnings[a.id])})`);
+  log(`<b style="color:${PALS[a.pal].a}">${esc(a.name)}</b> <span style="color:#3dffa0">enters the ring</span> (POA #${esc(rankText(a.id, ranks.earnings[a.id]))})`);
 }
 function exitRing(f) {    // slides sideways off the platform edge, hangs briefly, plunges into the abyss
   const a = byId[f.id], side = f.x < cx ? -1 : 1;
   f.inRing = false; f.tgt = null; f.mode = 'exit'; f.pose = 'hurt'; f.charge = 0;
   f.exit = {ph:'slide', t:0, side, x0:f.x, y0:f.y, ex:cx + side * rx, ey:cy + ry * .04};
-  log(`<b style="color:${PALS[a.pal].a}">${esc(a.name)}</b> <span style="color:#ff4057">falls out of the top ${ARENA_MAX}</span> (POA #${esc(ranks.earnings[a.id])})`);
+  log(`<b style="color:${PALS[a.pal].a}">${esc(a.name)}</b> <span style="color:#ff4057">falls out of the top ${ARENA_MAX}</span> (POA #${esc(rankText(a.id, ranks.earnings[a.id]))})`);
 }
 const easeOutBack = k => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
 function enterStep(f, dt) {
@@ -1283,8 +1336,12 @@ function physics(dt) {
                        only fetched if POAScan is down)
      backlog         : POAScan /api/v1/pending-by-epoch
      anchor lag      : POAScan /api/v1/anchors (newest anchored_at)
-   Rank = position by POA balance over every holder (balance desc, address asc, the same
-   order as the POAScan richlist). 0 POA / not listed -> unranked (NaN).
+   Rank = position by POA balance over every holder (balance desc). Ties break by
+   joined_epoch (earlier first; unknown last), then address ascending.
+   0 POA / not listed -> unranked (NaN internally). Only DigiStarX renders that as #NaN.
+   Fewer than half of the core sources answering is LIVE · PARTIAL, not a healthy LIVE.
+   A later poll with no balances freezes the last board and stamps data-as-of.
+   Total failure with no board stays LIVE · OFFLINE. This layer never switches to DEMO.
    Each poll is diffed against the previous one by updateAgents(): rank changes fire the
    real shots (POA -> mega, grading -> blast, answers / grades -> orb, lag -> bolt).
    Test hook: ProofPit.live.mutate((rows, st) => { ... }) edits a copy of the last
@@ -1321,7 +1378,8 @@ const Live = (() => {
                  maxBytes:24e6, maxRows:20000, maxBackoffMs:900000};
   const st = {ok:false, loading:true, polls:0, lastAt:0, nextAt:0, sources:{}, errors:[], rows:null, rank:{}, total:0, closed:0,
               dirty:false, names:{}, tabNames:{}, info:{}, act:{}, gr:{}, streak:{}, detail:{}, epochStart:{}, net:{}, timer:null,
-              inflight:false, usingSnapshot:false, snapAt:null, everLive:false, lastLatency:0, fails:0};
+              inflight:false, usingSnapshot:false, snapAt:null, everLive:false, lastLatency:0, fails:0, joined:{},
+              feed:{tried:[], attempted:0, ok:0, partial:false, stalled:false, tallied:false, asOf:0, asOfEpoch:null, lastGoodAt:0}};
   const clean = n => String(n == null ? '' : n).replace(/[^\w .\-+#@:!?()\u00C0-\u024F]/g, '').trim().slice(0, 26);   // names are untrusted: strip anything HTML-ish
   const shortAddr = a => a.slice(0, 8) + '…' + a.slice(-4);
   const hash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return h >>> 0; };
@@ -1360,16 +1418,24 @@ const Live = (() => {
   }
   const hasBalances = s => !!(s && typeof s === 'object' && ((arr(s.rlTab) && s.rlTab.length) || (arr(s.richlist) && s.richlist.length) || (arr(s.agents) && s.agents.length)));
 
+  function rememberJoins(s) {
+    for (const list of [s.agents, s.rlTab, s.richlist, s.holders]) {
+      const rs = rowsOf(list); if (!rs) continue;
+      for (const r of rs) { const addr = r.addr || r.agent, j = num(r.joined_epoch); if (okAddr(addr) && j != null) st.joined[addr] = j; }
+    }
+  }
+  const joinedEpoch = addr => okAddr(addr) && st.joined[addr] != null ? st.joined[addr] : null;
   function ingest(s) {
     // ---- balances (richest source first) ----
     let bal = null;
+    rememberJoins(s);   // keep the last known joined_epoch when a source omits it
     const rlTab = rowsOf(s.rlTab), richlist = rowsOf(s.richlist), agentsSrc = rowsOf(s.agents);
     if (rlTab && rlTab.length) {
-      bal = rlTab.map(r => ({addr:r.addr, balance:num(r.balance)}));
+      bal = rlTab.map(r => ({addr:r.addr, balance:num(r.balance), joinedEpoch:joinedEpoch(r.addr)}));
       for (const r of rlTab) if (okAddr(r.addr)) st.info[r.addr] = {lifetime:num(r.lifetime), lastEpoch:num(r.last_epoch), epochsPaid:num(r.epochs_paid) || 0};
       st.balSource = 'POAScan leaderboard/richlist';
-    } else if (richlist && richlist.length) { bal = richlist.map(r => ({addr:r.addr, balance:num(r.balance)})); st.balSource = 'POAScan richlist'; }
-    else { bal = (agentsSrc || []).map(r => ({addr:r.addr || r.agent, balance:num(r.balance)})); st.balSource = 'minepoa.com /api/agents'; }
+    } else if (richlist && richlist.length) { bal = richlist.map(r => ({addr:r.addr, balance:num(r.balance), joinedEpoch:joinedEpoch(r.addr)})); st.balSource = 'POAScan richlist'; }
+    else { bal = (agentsSrc || []).map(r => { const addr = r.addr || r.agent; return {addr, balance:num(r.balance), joinedEpoch:joinedEpoch(addr)}; }); st.balSource = 'minepoa.com /api/agents'; }
     const seen = new Set();
     st.rows = bal.filter(r => okAddr(r.addr) && r.balance > 0 && !seen.has(r.addr) && seen.add(r.addr));
     rerank();
@@ -1395,7 +1461,8 @@ const Live = (() => {
     st.total = st.rows.length;
   }
   function rerank() {
-    st.rows.sort((p, q) => q.balance - p.balance || (p.addr < q.addr ? -1 : p.addr > q.addr ? 1 : 0));
+    // Tie-break is joined_epoch, then address. Printed in the board legend.
+    st.rows.sort((p, q) => q.balance - p.balance || cmpTie(p, q));
     const tie = {}; for (const r of st.rows) tie[r.balance] = (tie[r.balance] || 0) + 1;
     st.rank = {}; st.rows.forEach((r, i) => st.rank[r.addr] = {rank:i + 1, balance:r.balance, tieN:tie[r.balance]});
     st.total = st.rows.length;
@@ -1423,7 +1490,7 @@ const Live = (() => {
     const bal = r ? r.balance : 0;
     return {id:me ? PINNED_ID : addr, addr, live:true, name:me ? 'DigiStarX' : (d.name || st.tabNames[addr] || shortAddr(addr)),
       pal:me ? 4 : pal, hat:me ? 'star' : HATS[(h >>> 5) % HATS.length],
-      earnings:bal, poaRank:r ? r.rank : NaN, tieN:r ? r.tieN : 0,
+      earnings:bal, poaRank:r ? r.rank : NaN, tieN:r ? r.tieN : 0, joinedEpoch:st.joined[addr] ?? null,
       lifetime:inf.lifetime ?? null, lastEpoch:inf.lastEpoch ?? null, epochsPaid:inf.epochsPaid || 0,
       passRate:st.closed ? clamp((inf.epochsPaid || 0) / st.closed, 0, 1) : 0,
       jury:gr.rate ?? null, seats:gr.seats ?? null, aligned:gr.aligned ?? null, served:gr.served ?? null,
@@ -1438,26 +1505,61 @@ const Live = (() => {
     return [...ids].map(mk);
   }
   function netState() {
-    const n = st.net, core = ['leaderboard/richlist', 'summary', 'pending-by-epoch', 'leaderboard/active', 'leaderboard/graders', 'anchors'];
-    const okN = core.filter(k => st.sources[k] && st.sources[k].ok).length;
-    const ms = core.map(k => st.sources[k]).filter(x => x && x.ok).map(x => x.ms);
-    const health = st.usingSnapshot ? 'degraded' : okN === 0 ? 'down' : okN < core.length || n.stale ? 'degraded' : 'ok';
+    const n = st.net;
+    const samples = Object.values(st.sources).filter(x => x && x.ok && x.ms != null && isFinite(x.ms));
+    const lat = samples.length ? samples.reduce((a, b) => a + b.ms, 0) / samples.length : null;
+    let health = 'ok';
+    if (st.feed.stalled || (st.fails > 0 && st.ok)) health = 'down';
+    else if (!st.ok && !st.loading) health = 'down';
+    else if (st.usingSnapshot || st.feed.partial || n.stale) health = 'degraded';
     return {epoch:n.epoch ?? '?', epochEndsAt:n.epochEndsAt || now(), epochLenSec:n.epochLenSec || 21600, anchorAt:n.anchorAt || null,
       anchorWarnSec:cfg.anchorWarnSec, anchorLagSec:n.anchorAt ? (now() - n.anchorAt) / 1000 : 0, apiHealth:health,
-      apiLatencyMs:ms.length ? ms.reduce((a, b) => a + b, 0) / ms.length : 0, totalBacklog:n.totalBacklog ?? null,
+      apiLatencyMs:lat, totalBacklog:n.totalBacklog ?? null,
       oneGradeShort:n.oneGradeShort ?? null, staleBacklog:n.staleBacklog ?? null, closeSeen:(n.epochEndsAt || 0) <= now()};
   }
+  function fmtAge(ms) {
+    if (ms == null || !isFinite(ms)) return '';
+    const s = Math.max(0, ms);
+    if (s < 1500) return Math.max(1, Math.round(s)) + 'ms';
+    if (s < 90000) return Math.round(s / 1000) + 's';
+    if (s < 5400000) return Math.round(s / 60000) + 'm';
+    return (s / 3600000).toFixed(1) + 'h';
+  }
+  function ageMs() {
+    const t = st.feed.asOf || st.lastAt || 0;
+    return t ? Math.max(0, Date.now() - t) : null;
+  }
+  function asOfText() {
+    const t = st.feed.asOf || st.lastAt || 0;
+    if (!t) return '—';
+    const clock = new Date(t).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    return (typeof st.feed.asOfEpoch === 'number' ? 'epoch ' + st.feed.asOfEpoch + ' · ' : '') + clock;
+  }
+  function sourceLine() { return st.feed.attempted ? (st.feed.ok + '/' + st.feed.attempted + ' sources') : 'sources pending'; }
   function statusLine() {
     const el = $('#liveStat'); if (!el) return;
     const vals = Object.values(st.sources), ok = vals.filter(v => v.ok).length;
-    const t = st.lastAt ? new Date(st.lastAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'}) : '—';
-    el.innerHTML = st.ok
-      ? `<b class="${ok === vals.length && !st.usingSnapshot ? '' : 'bad'}">●</b> ${st.usingSnapshot ? 'SNAPSHOT ' + esc(String(st.snapAt || '').slice(0, 40)) : ok + '/' + vals.length + ' sources ok'} · ${fmt(st.total)} holders · updated ${t} · poll ${Math.round(cfg.pollMs / 1000)}s`
-      : st.loading ? 'connecting to the PoA ledger…' : `<b class="bad">●</b> live data offline · retrying${liveMode ? ' · no numbers shown until it answers' : ''}`;
-    el.title = Object.entries(st.sources).map(([k, v]) => `${v.ok ? 'OK ' : 'ERR'} ${k}${v.ok ? ' ' + (v.ms ?? '') + 'ms' : ' (' + v.err + ')'}`).join('\n');
+    const when = asOfText();
+    const src = st.feed.attempted ? sourceLine() : (ok + '/' + vals.length + ' sources');
+    const age = fmtAge(ageMs());
+    el.innerHTML = !st.ok
+      ? (st.loading ? 'connecting to the PoA ledger…' : `<b class="bad">●</b> live data offline · retrying${liveMode ? ' · no numbers shown until it answers' : ''}`)
+      : st.feed.stalled || st.fails > 0
+        ? `<b class="bad">●</b> feed stalled · board frozen · as of ${esc(when)}${age ? ' · ' + esc(age) + ' old' : ''} · ${esc(src)}`
+        : st.feed.partial
+          ? `<b class="bad">●</b> partial ${esc(src)} · as of ${esc(when)} · not fully live`
+          : `<b class="${st.usingSnapshot ? 'bad' : ''}">●</b> ${st.usingSnapshot ? 'SNAPSHOT ' + esc(String(st.snapAt || '').slice(0, 40)) : esc(src) + ' ok'} · ${fmt(st.total)} holders · updated ${esc(when)} · poll ${Math.round(cfg.pollMs / 1000)}s`;
+    el.title = Object.entries(st.sources).map(([k, v]) => `${v.ok ? 'OK ' : 'ERR'} ${k}${v.ok ? ' ' + (v.ms != null ? v.ms + 'ms' : '') : ' (' + v.err + ')'}`).join('\n');
   }
   function apply(fromMutate) {
-    st.ok = true; st.loading = false; st.lastAt = Date.now();
+    st.ok = true; st.loading = false;
+    if (!fromMutate) {
+      st.feed.asOf = Date.now();
+      if (typeof st.net.epoch === 'number') st.feed.asOfEpoch = st.net.epoch;
+      st.feed.stalled = false;   // a new board is on screen; a stall is a poll that brought nothing
+      if (!st.feed.partial && !st.usingSnapshot) st.feed.lastGoodAt = st.feed.asOf;
+      st.lastAt = st.feed.asOf;
+    }
     statusLine();
     if (!st.everLive && (liveMode || cfg.autoLive)) { st.everLive = true; setMode('live'); return; }
     if (!liveMode) { labelMode(); return; }
@@ -1469,9 +1571,30 @@ const Live = (() => {
     if (quiet) log('<span style="color:#8781b6">live resync (silent) after a simulated change</span>');
     return n;
   }
+  // Core feed only (not per-address pages, not the slow name tabs). Under half answering
+  // is PARTIAL. minepoa /api/agents counts: it is a real balance source.
+  const FEED_KEYS = ['leaderboard/richlist', 'minepoa /api/agents', 'summary', 'pending-by-epoch', 'leaderboard/active', 'leaderboard/graders', 'anchors', 'richlist'];
+  async function feedTry(key, url) { st.feed.tried.push(key); return tryGet(key, url); }
+  function tallyFeed() {
+    const uniq = [...new Set(st.feed.tried.filter(k => FEED_KEYS.includes(k)))];
+    const okN = uniq.filter(k => st.sources[k] && st.sources[k].ok).length;
+    st.feed.attempted = uniq.length; st.feed.ok = okN; st.feed.tallied = true;
+    const majority = uniq.length > 0 && okN * 2 >= uniq.length;
+    // Under half the core endpoints is PARTIAL. summary.stale is an upstream flag, not a missing source.
+    st.feed.partial = !!(st.rows && st.rows.length && !st.usingSnapshot && !majority);
+  }
+  function noteStall(msg) {
+    st.fails++; st.feed.stalled = true; st.feed.partial = false; st.loading = false;
+    st.errors.unshift({at:Date.now(), err:String(msg)}); st.errors.length = Math.min(st.errors.length, 10);
+    const held = st.ok && (st.feed.asOf || st.lastAt);
+    log(`<span style="color:#ffb020">live poll failed (${esc(String(msg).slice(0, 160))})${held ? ': board frozen as of ' + esc(asOfText()) : ''}</span>`);
+    if (liveMode) updateNetwork({apiHealth:'down'});
+    labelMode(); statusLine(); if (typeof renderUI === 'function') renderUI();
+  }
   async function poll() {
     if (st.inflight) return; st.inflight = true;
     const slow = st.polls % cfg.slowEvery === 0;
+    st.feed.tried = []; st.feed.tallied = false;
     // Leave CONNECTING within a few seconds (file:// / hung PoAScan) — honest OFFLINE, never auto-DEMO
     const connectWatch = setTimeout(() => {
       if (!st.ok && st.loading) { st.loading = false; labelMode(); statusLine(); if (typeof renderUI === 'function') renderUI(); }
@@ -1481,34 +1604,36 @@ const Live = (() => {
       const push = () => {   // populate / upgrade the ring as soon as any balance source answers
         if (!hasBalances(s)) return;
         st.usingSnapshot = false;
+        // First board of the session stays PARTIAL until this poll's tally. A later healthy
+        // board keeps its label until the tally, so a full feed does not flash PARTIAL.
+        if (!st.feed.tallied && !st.feed.lastGoodAt) st.feed.partial = true;
         ingest(s);
         apply(false);
       };
       // CRITICAL: race minepoa (fast, CORS *) with PoAScan richlist — do NOT wait on summary/etc.
       const pBal = Promise.all([
-        tryGet('leaderboard/richlist', PS + '/leaderboard/richlist').then(j => { if (j) { s.rlTab = j; push(); } }),
-        tryGet('minepoa /api/agents', MP + '/api/agents').then(j => { if (j) { s.agents = j; push(); } }),
+        feedTry('leaderboard/richlist', PS + '/leaderboard/richlist').then(j => { if (j) { s.rlTab = j; push(); } }),
+        feedTry('minepoa /api/agents', MP + '/api/agents').then(j => { if (j) { s.agents = j; push(); } }),
       ]);
       // Enrichment: best-effort, short PoAScan aborts; must not block the ring
       const pEnr = Promise.all([
-        tryGet('summary', PS + '/summary').then(j => { if (j) s.summary = j; }),
-        tryGet('pending-by-epoch', PS + '/pending-by-epoch').then(j => { if (j) s.pending = j; }),
-        tryGet('leaderboard/active', PS + '/leaderboard/active').then(j => { if (j) s.active = j; }),
-        tryGet('leaderboard/graders', PS + '/leaderboard/graders').then(j => { if (j) s.graders = j; }),
-        tryGet('anchors', PS + '/anchors').then(j => { if (j) s.anchors = j; }),
+        feedTry('summary', PS + '/summary').then(j => { if (j) s.summary = j; }),
+        feedTry('pending-by-epoch', PS + '/pending-by-epoch').then(j => { if (j) s.pending = j; }),
+        feedTry('leaderboard/active', PS + '/leaderboard/active').then(j => { if (j) s.active = j; }),
+        feedTry('leaderboard/graders', PS + '/leaderboard/graders').then(j => { if (j) s.graders = j; }),
+        feedTry('anchors', PS + '/anchors').then(j => { if (j) s.anchors = j; }),
       ]);
       await pBal;
-      if (!hasBalances(s)) { s.richlist = await tryGet('richlist', PS + '/richlist'); push(); }
+      if (!hasBalances(s)) { s.richlist = await feedTry('richlist', PS + '/richlist'); push(); }
       if (!hasBalances(s)) {   // nothing reachable from the browser: optional local snapshot (snapshot.py)
         const snap = await loadSnapshot();
         if (snap && snap.sources && hasBalances(snap.sources)) {
           for (const k of Object.keys(s)) delete s[k];   // mutate in place — pEnr closures still point at s
           Object.assign(s, snap.sources);
-          st.usingSnapshot = true; st.snapAt = snap.fetched_at;
+          st.usingSnapshot = true; st.snapAt = snap.fetched_at; st.feed.partial = false;
           ingest(s); apply(false);
         }
       }
-      if (!hasBalances(s) && !st.ok) throw new Error('no balance source reachable');
       await pEnr.catch(() => {});
       if (slow) {
         const [holders, streaks, forumTab] = await Promise.all([
@@ -1519,18 +1644,27 @@ const Live = (() => {
       }
       if (!st.epochsLoaded || (s.summary && s.summary.epoch && !st.epochStart[s.summary.epoch.n])) s.epochs = await tryGet('epochs', PS + '/epochs');
       if (!st.epochsLoaded && !s.epochs && !s.summary) s.mpEpochs = await tryGet('minepoa /api/epochs', MP + '/api/epochs');
-      if (hasBalances(s)) {
+      if (!hasBalances(s)) {
+        if (!st.ok) throw new Error('no balance source reachable');
+        noteStall('no balance source this poll');   // freeze the last good board; do not blank it, do not DEMO
+      } else {
+        st.fails = 0; st.feed.stalled = false;   // this poll delivered a board; drop the previous stall before painting
         ingest(s);
+        tallyFeed();   // core sources are in; don't wait on per-address pages to clear a provisional PARTIAL
+        labelMode();
         if (!st.usingSnapshot) await details();
         apply(false);
+        if (liveMode) updateNetwork(netState());
+        labelMode(); if (typeof renderUI === 'function') renderUI();
       }
-      st.fails = 0;
     } catch (e) {
       st.fails++;
+      st.feed.stalled = !!st.ok; st.feed.partial = false; st.loading = false;
       st.errors.unshift({at:Date.now(), err:String((e && e.message) || e)}); st.errors.length = Math.min(st.errors.length, 10);
-      log(`<span style="color:#ffb020">live poll failed (${esc(String((e && e.message) || e).slice(0, 160))})${liveMode ? ': keeping last data' : ''}</span>`);
+      const held = st.ok && (st.feed.asOf || st.lastAt);
+      log(`<span style="color:#ffb020">live poll failed (${esc(String((e && e.message) || e).slice(0, 160))})${held ? ': board frozen as of ' + esc(asOfText()) : ''}</span>`);
       if (liveMode) updateNetwork({apiHealth:'down'});
-      st.loading = false; labelMode(); statusLine(); if (typeof renderUI === 'function') renderUI();
+      labelMode(); statusLine(); if (typeof renderUI === 'function') renderUI();
     } finally { clearTimeout(connectWatch); st.inflight = false; st.polls++; schedule(Math.min(cfg.maxBackoffMs, cfg.pollMs * Math.pow(2, Math.min(st.fails, 6)))); }   // exponential backoff after failed polls
   }
   function schedule(ms) { clearTimeout(st.timer); st.nextAt = Date.now() + ms; st.timer = setTimeout(poll, ms); }
@@ -1541,6 +1675,9 @@ const Live = (() => {
     pollSoon(ms) { if (st.nextAt - Date.now() > ms) schedule(ms); },
     configure(o) { Object.assign(cfg, o || {}); cfg.pollMs = Math.max(60000, +cfg.pollMs || 60000); if (o && o.pollMs) schedule(cfg.pollMs); labelMode(); return {...cfg}; },
     ok: () => st.ok, loading: () => st.loading && !st.ok, total: () => st.total, closed: () => st.closed || 0,
+    partial: () => !!(st.ok && st.feed.partial && !st.feed.stalled && !st.usingSnapshot),
+    stalled: () => !!(st.ok && (st.feed.stalled || st.fails > 0) && !st.feed.partial),
+    sourceLine, ageLabel: () => fmtAge(ageMs()), asOfLabel: asOfText,
     roster, netState, markDirty() { st.dirty = true; },
     placeholder: () => [mk(DSX_ADDR)],   // LIVE before / without data: only DigiStarX (unranked -> #NaN), no numbers invented
     snapshotAt: () => st.usingSnapshot ? String(st.snapAt || 'unknown time').slice(0, 40) : null,
@@ -1949,7 +2086,7 @@ function layoutPhoneLabels() {
     const ang = Math.atan2(f.y - cy, (f.x - cx) || .001);
     const name = a.name.length > 8 ? a.name.slice(0, 7) + '…' : a.name;
     const r = ranks.earnings[a.id];
-    const tag = isAir(f) ? (a.id === PINNED_ID ? `#${r} · builder` : `#${r} ${name}`) : (Number.isFinite(r) ? r + ' ' : '') + name;
+    const tag = isAir(f) ? airLabel(a, r, name) : (Number.isFinite(r) ? r + ' ' : '') + name;
     const w = ctx.measureText(tag).width + 14, h = isAir(f) ? 16 : 22;
     items.push({id:f.id, x:f.x + Math.cos(ang) * 18, y:f.y + Math.sin(ang) * 14 + (isAir(f) ? -6 : 8), ax:f.x + Math.cos(ang) * 18, ay:f.y + Math.sin(ang) * 14 + (isAir(f) ? -6 : 8), w, h, fx:f.x, fy:f.y});
   }
@@ -1982,7 +2119,7 @@ function drawLabels(f, t, u, dt) {
   if (isAir(f)) {   // airborne: compact floating rank label, e.g. '#11 DigiStarX'
     const nm = phone && a.name.length > 8 ? a.name.slice(0, 7) + '…' : a.name;
     ctx.font = '700 10px ui-monospace,Menlo,monospace';
-    const lab = a.id === PINNED_ID ? `#${r} · builder` : `#${r} ${nm}`, lw = ctx.measureText(lab).width + 12;   // unranked builder -> '#NaN · builder' 
+    const lab = airLabel(a, r, nm), lw = ctx.measureText(lab).width + 12;   // unranked builder -> '#NaN · builder'; anyone else with no rank omits it 
     ctx.fillStyle = 'rgba(20,10,40,.8)'; roundRect(x - lw / 2, y0, lw, 15, 5); ctx.fill();
     ctx.strokeStyle = 'rgba(255,79,216,.8)'; ctx.lineWidth = 1; ctx.stroke();
     ctx.fillStyle = '#ff9cf0'; ctx.fillText(lab, x, y0 + 8);
@@ -2007,7 +2144,7 @@ function drawLabels(f, t, u, dt) {
   const nw = ctx.measureText(a.name).width, bx = x - nw / 2 - 12;
   ctx.fillStyle = r === 1 ? '#ffcf3f' : r === 2 ? '#d9e2f2' : r === 3 ? '#e09a5a' : '#2a2450';
   ctx.beginPath(); ctx.arc(bx, y0 + 6, 8, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = r <= 3 ? '#160f00' : '#fff'; ctx.font = '800 9px ui-monospace,monospace'; ctx.fillText(r, bx, y0 + 6.5);
+  ctx.fillStyle = r <= 3 ? '#160f00' : '#fff'; ctx.font = '800 9px ui-monospace,monospace'; ctx.fillText(rankText(a.id, r), bx, y0 + 6.5);
   ctx.font = '700 11px ui-monospace,Menlo,monospace';
   ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillText(a.name, x + 1, y0 + 7);
   ctx.fillStyle = a.id === 'digistarx' ? '#ff9cf0' : '#fff'; ctx.fillText(a.name, x, y0 + 6);
@@ -2182,6 +2319,19 @@ function stallGeom(tag, legend) {
   return {m, x, y};
 }
 let chromeKey = '';
+function feedStatus(kind) {
+  if (Live.loading()) return kind === 'hud' ? 'LIVE ● CONNECTING…' : 'LIVE · CONNECTING…';
+  if (!Live.ok()) return kind === 'hud' ? 'LIVE ● OFFLINE · RETRYING' : 'LIVE · OFFLINE · RETRYING';
+  if (Live.snapshotAt()) return 'LIVE · SNAPSHOT · ' + Live.snapshotAt();
+  if (Live.stalled() || Live.fails() > 0) {
+    const age = Live.ageLabel();
+    return 'LIVE · STALE · as of ' + Live.asOfLabel() + (age ? ' · ' + age + ' old' : '');
+  }
+  if (Live.partial()) return 'LIVE · PARTIAL · ' + Live.sourceLine();
+  const next = Math.max(0, Math.ceil((Live.state.nextAt - Date.now()) / 1000));
+  if (kind === 'hud') return `LIVE ● PoA LEDGER · next poll ${next}s`;
+  return `LIVE · PoA ledger · next poll ${next}s`;
+}
 function syncMobileChrome() {
   if (!phoneLayout()) return;
   const ep = $('#pitEpoch'); if (!ep) return;
@@ -2192,7 +2342,7 @@ function syncMobileChrome() {
   const frac = clamp(left / (net.epochLenSec || 1), 0, 1);
   const outN = liveMode ? Math.max(0, Live.total() - ARENA_MAX) : agents.filter(a => !inTop(a.id)).length;
   const ring = `RING: TOP ${ARENA_MAX} BY POA` + (outN ? `  ·  +${outN} MORE` : '');
-  const liveTxt = Live.ok() ? `LIVE · PoA ledger · next poll ${Math.max(0, Math.ceil((Live.state.nextAt - Date.now()) / 1000))}s` : Live.loading() ? 'LIVE · CONNECTING…' : 'LIVE · OFFLINE · RETRYING';
+  const liveTxt = feedStatus('phone');
   const status = liveMode ? (started ? liveTxt : 'LIVE DATA') : started ? (demoOn ? 'DEMO · SAMPLE DATA' : 'DEMO · PAUSED') : 'PRESS START';
   const q = `MAIN EVENTS ${queue.length} · SHOTS ${miniQ.length + minis.length}`;
   const key = [epTxt, rnd, clk, frac.toFixed(3), ring, status, q, left < 20].join('|');
@@ -2225,7 +2375,7 @@ function drawHUD(t, dt) {
   });
   ctx.textAlign = 'right'; ctx.font = '700 10px ui-monospace,monospace'; ctx.fillStyle = '#8781b6';
   ctx.fillText(`MAIN EVENTS QUEUED ${queue.length} · SHOTS ${miniQ.length + minis.length}`, W - 12, 14);
-  const liveTxt = Live.ok() ? `LIVE ● PoA LEDGER · next poll ${Math.max(0, Math.ceil((Live.state.nextAt - Date.now()) / 1000))}s` : Live.loading() ? 'LIVE ● CONNECTING…' : 'LIVE ● OFFLINE · RETRYING';
+  const liveTxt = feedStatus('hud');
   ctx.fillText(liveMode ? (started ? liveTxt : 'LIVE DATA · PRESS START') : started ? (demoOn ? 'DEMO ▶ LIVE SIM · SAMPLE DATA' : 'DEMO ❚❚ PAUSED') : 'PRESS START', W - 12, 28);
   const tag = ringTagGeom();   // ring shows top ARENA_MAX only; kept clear of the corner monument
   ctx.textAlign = 'right'; ctx.textBaseline = 'top'; ctx.font = '700 10px ui-monospace,monospace';
@@ -2354,22 +2504,28 @@ function renderNet() {
   const lag = net.anchorLagSec, stalled = isStalled(), lagCls = stalled ? 'bad' : lag > net.anchorWarnSec * .5 ? 'warn' : '';
   const apiCol = net.apiHealth === 'ok' ? '#3dffa0' : net.apiHealth === 'degraded' ? '#ffb020' : '#ff4057';
   const bl = backlogTotal(), os = oneShort(), nd = liveMode && !Live.ok();   // nd: LIVE without data -> dashes, never placeholder numbers
+  const healthyLive = liveMode && Live.ok() && !Live.partial() && !Live.stalled() && !Live.snapshotAt() && Live.fails() === 0 && net.apiHealth === 'ok';
+  const fmtMs = v => { if (v == null || !isFinite(+v)) return '—'; const n = Math.round(+v); return (n <= 0 ? '<1' : String(n)) + 'ms'; };
+  const timing = !liveMode ? fmtMs(net.apiLatencyMs) : nd ? '' : healthyLive ? fmtMs(net.apiLatencyMs) : Live.snapshotAt() ? 'snapshot' : (Live.stalled() || Live.fails() > 0) ? (Live.ageLabel() ? Live.ageLabel() + ' old' : '—') : Live.partial() ? Live.sourceLine() : (Live.ageLabel() ? Live.ageLabel() + ' old' : '—');
   $('#net').innerHTML =
     `<span class="chip" title="${liveMode ? 'Real open epoch and time to its close (POAScan /api/v1/summary, from minepoa.com /api/epochs)' : 'sample'}">EPOCH <b>#${nd ? '—' : esc(net.epoch)}</b> · closes <b>${nd ? '—' : left > 0 ? fmtClock(left) : 'closing…'}</b></span>` +
     `<span class="chip ${lagCls}" title="${liveMode ? 'time since the last external-chain checkpoint anchor (POAScan /api/v1/anchors)' : 'sample'}">⛓ ANCHOR LAG <b>${nd ? '—' : fmtDur(lag)}</b></span>` +
-    `<span class="chip ${net.apiHealth === 'ok' ? '' : net.apiHealth === 'down' ? 'bad' : 'warn'}"><span class="dot" style="background:${apiCol};color:${apiCol}"></span>API <b>${nd && Live.loading() ? 'CONNECTING' : esc(String(net.apiHealth).toUpperCase())}</b> ${nd ? '' : (Math.round(Number(net.apiLatencyMs)) || 0) + 'ms'}</span>` +
+    `<span class="chip ${net.apiHealth === 'ok' ? '' : net.apiHealth === 'down' ? 'bad' : 'warn'}"><span class="dot" style="background:${apiCol};color:${apiCol}"></span>API <b>${nd && Live.loading() ? 'CONNECTING' : esc(String(net.apiHealth).toUpperCase())}</b> ${timing ? ' ' + timing : ''}</span>` +
     (liveMode ? `<span class="chip ${net.staleBacklog ? 'warn' : ''}" title="pending (ungraded / unresolved) answers network-wide; ${fmt(net.staleBacklog || 0)} are from earlier epochs (POAScan /api/v1/pending-by-epoch)">BACKLOG <b>${bl == null ? '—' : fmt(bl)}</b></span>` +
       `<span class="chip ${os ? 'warn' : ''}" title="pending answers whose grading panel is short at the last close">SHORT PANEL <b>${os == null ? '—' : fmt(os)}</b></span>`
     : `<span class="chip ${bl > 14 ? 'warn' : ''}">BACKLOG <b>${esc(bl)}</b></span>` +
       `<span class="chip ${os ? 'warn' : ''}">ONE GRADE SHORT <b>${esc(os)}</b></span>`) +
     `<span class="chip">${Math.round(fps)} FPS</span>`;
-  const hhmm = t => new Date(t).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
   if (liveMode && Live.loading()) setBanner('', '◌ Connecting to the PoA ledger (POAScan / minepoa.com)…');
   else if (liveMode && !Live.ok()) setBanner('bad', '⚠ LIVE DATA OFFLINE: the PoA ledger could not be reached. Retrying automatically; no numbers are shown until it answers.', true);
   else if (liveMode && Live.snapshotAt()) setBanner('', `⚠ LIVE APIs UNREACHABLE: showing the saved ledger snapshot from ${Live.snapshotAt()} (real data, not current). Retrying automatically.`, true);
-  else if (stalled) setBanner('bad', `⚠ CHAIN ANCHOR STALLED: checkpoint lag ${fmtDur(lag)} (> ${fmtDur(net.anchorWarnSec)}). Grades may not finalize; arena lights failing.`);
-  else if (liveMode && Live.fails() > 0) setBanner('', `⚠ LIVE DATA STALE: last good update ${hhmm(Live.lastAt())}, the latest poll failed. Retrying automatically.`, true);
-  else if (net.apiHealth !== 'ok') setBanner('', `⚠ API ${String(net.apiHealth).toUpperCase()}: data may be stale (${Math.round(net.apiLatencyMs)}ms)`);
+  else if (stalled) {
+    const frozen = liveMode && (Live.stalled() || Live.fails() > 0) ? ` Board frozen, data as of ${Live.asOfLabel()}${Live.ageLabel() ? ' · ' + Live.ageLabel() + ' old' : ''}.` : '';
+    setBanner('bad', `⚠ CHAIN ANCHOR STALLED: checkpoint lag ${fmtDur(lag)} (> ${fmtDur(net.anchorWarnSec)}). Grades may not finalize; arena lights failing.${frozen}`);
+  }
+  else if (liveMode && (Live.stalled() || Live.fails() > 0)) setBanner('', `⚠ LIVE DATA STALE: board frozen, data as of ${Live.asOfLabel()}${Live.ageLabel() ? ' · ' + Live.ageLabel() + ' old' : ''}. Retrying automatically.`, true);
+  else if (liveMode && Live.partial()) setBanner('', `⚠ LIVE PARTIAL: ${Live.sourceLine()} answered (under half the feed). Data as of ${Live.asOfLabel()}. Not a fully healthy live feed.`);
+  else if (net.apiHealth !== 'ok') setBanner('', `⚠ API ${String(net.apiHealth).toUpperCase()}: data may be stale${Live.ageLabel() ? ', data ' + Live.ageLabel() + ' old' : ''}`);
   else setBanner(null);
 }
 // #banner is rebuilt only when its content changes (a live re-render can never swallow a click on its button)
@@ -2410,7 +2566,7 @@ const fmtShort = n => n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : n >= 1e4 ? (n / 1e
 const nmShort = n => n.length > 17 ? n.slice(0, 16) + '…' : n;
 const TABS_LIVE = {
   overview: {stat:'earnings', head:['#', 'Agent', 'Ans', 'Ans lag', 'POA', 'Grade'], row:a => [dash(a.answers), fmtResp(a), `<span title="${fmt(a.earnings)} POA">${fmtShort(a.earnings)}</span>`, pct(gradeScore(a))],
-    legend:'<b>LIVE</b> · ranked by real <b>POA balance</b> over all holders (ties: address order, as POAScan). Ans lag ≈ epoch open → answer tx (approx., top 10 + DigiStarX). Grade = 60% paid-epoch rate + 40% jury alignment.'},
+    legend:'<b>LIVE</b> · ranked by real <b>POA balance</b> over all holders (tie-break: joined_epoch, then address). Ans lag ≈ epoch open → answer tx (approx., top 10 + DigiStarX). Grade = 60% paid-epoch rate + 40% jury alignment.'},
   earnings: {stat:'earnings', head:['#', 'Agent', 'POA bal', 'Lifetime', 'Last ep', 'Paid'], row:a => [fmt(a.earnings), dash(a.lifetime == null ? null : fmt(a.lifetime)), dash(a.lastEpoch == null ? null : fmt(a.lastEpoch)), `${Number(a.epochsPaid) || 0}/${Number(Live.closed()) || 0}`],
     legend:'<b>POA balance</b> from the PoA ledger (minepoa.com /api/agents via POAScan). Overtake here = <b>T4 MEGA</b> main event. Last ep = reward at the last close.'},
   grading: {stat:'grading', head:['#', 'Agent', 'Paid', 'Jury', 'Health', 'Streak'], row:a => [pct(a.passRate), a.jury == null ? '<span class="eq">n/a</span>' : pct(a.jury), mini((gradeScore(a) - .6) / .4, '#3dffa0'), dash(a.streak)],
@@ -2434,14 +2590,20 @@ function renderTable() {
   for (const a of rows) {
     const P = PALS[a.pal], fresh = chg[T.stat][a.id] && simT - chg[T.stat][a.id].t < 1.2;
     const out = !inTop(a.id), cut = false;
-    const mark = out ? (a.id === PINNED_ID ? `<span class="out pin" title="outside the top ${ARENA_MAX}: hovering above the ring">HOVERING</span>` : `<span class="out" title="POA #${esc(ranks.earnings[a.id])}: outside the top ${ARENA_MAX}, not in the ring">OFF RING</span>`) : '';
-    h += `<tr data-id="${esc(a.id)}" class="${a.id === 'digistarx' ? 'me' : ''} ${fresh ? 'flash' : ''} ${out ? 'offring' : ''} ${cut ? 'cut' : ''}"><td>${esc(r[a.id])} ${arrow(T.stat, a.id)}</td><td><span class="sw" style="background:${P.a}"></span><span title="${esc(a.addr || a.name)}">${esc(nmShort(String(a.name)))}</span>${a.established === false ? ' <span style="color:#ffb020">P</span>' : ''}${mark}</td>` + T.row(a).map(c => `<td>${c}</td>`).join('') + '</tr>';
+    const mark = out ? (a.id === PINNED_ID ? `<span class="out pin" title="outside the top ${ARENA_MAX}: hovering above the ring">HOVERING</span>` : `<span class="out" title="POA #${esc(rankText(a.id, ranks.earnings[a.id]))}: outside the top ${ARENA_MAX}, not in the ring">OFF RING</span>`) : '';
+    h += `<tr data-id="${esc(a.id)}" class="${a.id === 'digistarx' ? 'me' : ''} ${fresh ? 'flash' : ''} ${out ? 'offring' : ''} ${cut ? 'cut' : ''}"><td>${esc(rankText(a.id, r[a.id]))} ${arrow(T.stat, a.id)}</td><td><span class="sw" style="background:${P.a}"></span><span title="${esc(a.addr || a.name)}">${esc(nmShort(String(a.name)))}</span>${a.established === false ? ' <span style="color:#ffb020">P</span>' : ''}${mark}</td>` + T.row(a).map(c => `<td>${c}</td>`).join('') + '</tr>';
   }
   const hiddenN = (liveMode && T.stat === 'earnings' ? Live.total() + (me && !(r[me.id] > 0) ? 1 : 0) : sortedAll.length) - rows.length;
   h += `<tr class="cutrow"><td colspan="${T.head.length}">${hiddenN ? `+${hiddenN} more not listed` : ''}</td></tr>`;
   $('#tbl').innerHTML = h;
   const extra = liveMode ? Math.max(0, Live.total() - ARENA_MAX) : agents.filter(a => !inTop(a.id)).length;
-  $('#legend').innerHTML = T.legend + `<br>◎ <b>Ring: top ${ARENA_MAX}</b> by POA balance only${extra ? ` · +${extra} more outside` : ''}. List: top ${ARENA_MAX} + DigiStarX's row (real rank); DigiStarX hovers above the ring while outside${liveMode ? ' (0 POA → rank NaN)' : ''}.${liveMode && agents.find(x => x.poaRank === 1) && agents.find(x => x.poaRank === 1).tieN > 1 ? ' <b>Tie:</b> ' + Number(agents.find(x => x.poaRank === 1).tieN) + ' agents share the top balance; order = address.' : ''}${liveMode && T.stat !== 'earnings' ? ' Non-POA tabs rank the tracked roster (top ' + Live.cfg.track + ' + DigiStarX).' : ''}`;
+  const topTie = liveMode && agents.find(x => x.poaRank === 1);
+  const edgeHeld = liveMode && ringCut && agents.some(a => {
+    const raw = Number.isFinite(ranks.earnings[a.id]) && ranks.earnings[a.id] <= ARENA_MAX && a.earnings > 0;
+    return raw !== inTop(a.id) && a.id !== PINNED_ID;
+  });
+  const asOfNote = liveMode && Live.ok() && (Live.partial() || Live.stalled() || Live.fails() > 0 || Live.snapshotAt()) ? ` <b>Data as of ${esc(Live.asOfLabel())}</b>${Live.ageLabel() ? ' · ' + esc(Live.ageLabel()) + ' old' : ''}.` : '';
+  $('#legend').innerHTML = T.legend + `<br>◎ <b>Ring: top ${ARENA_MAX}</b> by POA balance only${extra ? ` · +${extra} more outside` : ''}. List: top ${ARENA_MAX} + DigiStarX's row (real rank); DigiStarX hovers above the ring while outside${liveMode ? ' (0 POA → #NaN · builder; any other missing rank is —)' : ''}.${topTie && topTie.tieN > 1 ? ' <b>Tie:</b> ' + Number(topTie.tieN) + ' agents share the top balance.' : ''}${liveMode ? ' <b>Tie-break:</b> joined_epoch, then address.' : ''}${liveMode ? ' <b>Edge:</b> #10/#11 swaps after a lead of ' + Math.round(RING_EDGE_BAND * 1000) / 10 + '% of #1.' : ''}${edgeHeld ? ' Edge held inside that band.' : ''}${asOfNote}${liveMode && T.stat !== 'earnings' ? ' Non-POA tabs rank the tracked roster (top ' + Live.cfg.track + ' + DigiStarX).' : ''}`;
 }
 let cardFor = null;   // id the card is currently positioned for: position is computed ONCE per open and then stays fixed
 function renderCard() {
@@ -2449,7 +2611,7 @@ function renderCard() {
   if (!selected) { c.style.display = 'none'; cardFor = null; return; }
   if (!c.querySelector('#cardBody')) c.innerHTML = '<button class="x" type="button" aria-label="Close card">✕</button><div id="cardBody"></div>';   // static shell: the close button is never recreated
   const a = byId[selected], f = F[selected], P = PALS[a.pal];
-  const rk = k => `<span style="color:#8781b6">#${esc(ranks[k][a.id])}</span>`;
+  const rk = k => `<span style="color:#8781b6">#${esc(rankText(a.id, ranks[k][a.id]))}</span>`;
   const pend = a.pending.length ? a.pending.map(p => `<div class="row"><span>${segs(p)} ${p.grades}/4</span><span>${Math.max(0, Math.ceil((p.expiresAt - now()) / 1000))}s left</span></div>`).join('') : '<div class="row"><span>no pending answers</span><span></span></div>';
   const cmb = agentCombo[a.id] && simT - agentCombo[a.id].t < 9 ? agentCombo[a.id].n : 0;
   if (a.live && !Live.ok()) {
@@ -2459,7 +2621,7 @@ function renderCard() {
     $('#cardBody').innerHTML = `<h3><span class="sw" style="background:${P.a};width:14px;height:14px"></span>${esc(a.name)}<span style="font-size:10px;color:${a.established === false ? '#ffb020' : a.established ? '#3dffa0' : '#8781b6'}">${a.established === false ? 'PROBATION' : a.established ? 'ESTABLISHED' : ''}</span></h3>
   <div class="row"><span>Address</span><span><a href="https://poascan.io/address/${encodeURIComponent(a.addr || '')}" target="_blank" rel="noopener noreferrer">${addrS} ↗</a></span></div>
   <div class="row"><span>POA balance</span><span>${fmt(a.earnings)} ${rk('earnings')}</span></div>
-  ${a.tieN > 1 ? `<div class="row"><span>Tie</span><span>${Number(a.tieN)} agents at this balance</span></div>` : ''}
+  ${a.tieN > 1 ? `<div class="row"><span>Tie</span><span>${Number(a.tieN)} agents · tie-break joined epoch, then address</span></div>` : ''}
   <div class="row"><span>Lifetime / last epoch</span><span>${a.lifetime == null ? '—' : fmt(a.lifetime)} / ${a.lastEpoch == null ? '—' : fmt(a.lastEpoch)}</span></div>
   <div class="row"><span>Explorer balance</span><span>${a.explorerBal == null ? '—' : fmt(a.explorerBal)}</span></div>
   <div class="row"><span>Paid epochs</span><span>${Number(a.epochsPaid) || 0}/${Number(Live.closed()) || 0} (${pct(a.passRate)})</span></div>
@@ -2515,12 +2677,15 @@ function labelMode() {
   b.classList.toggle('on', !liveMode);
   const tg = $('#modeTag');
   if (liveMode && Live.loading()) { tg.className = 'tag load'; tg.textContent = 'Loading live…'; tg.title = 'Connecting to the public PoA ledger (POAScan / minepoa.com)'; }
-  else if (liveMode && !Live.ok()) { tg.className = 'tag off'; tg.textContent = 'LIVE · OFFLINE'; tg.title = 'The PoA ledger could not be reached; retrying automatically'; }
-  else if (liveMode) { tg.className = 'tag live'; tg.textContent = 'LIVE'; tg.title = 'Real data from the public PoA ledger (POAScan API + minepoa.com), polled every ' + Math.round(Live.cfg.pollMs / 1000) + 's'; }
+  else if (liveMode && !Live.ok()) { tg.className = 'tag off'; tg.textContent = 'LIVE · OFFLINE'; tg.title = 'The PoA ledger could not be reached; retrying automatically. Demo never starts on its own.'; }
+  else if (liveMode && Live.snapshotAt()) { tg.className = 'tag'; tg.textContent = 'LIVE · SNAPSHOT'; tg.title = 'Saved ledger snapshot from ' + Live.snapshotAt() + ' (real data, not current)'; }
+  else if (liveMode && (Live.stalled() || Live.fails() > 0)) { tg.className = 'tag'; tg.textContent = 'LIVE · STALE'; tg.title = 'Board frozen. Data as of ' + Live.asOfLabel() + (Live.ageLabel() ? ' · ' + Live.ageLabel() + ' old' : '') + '. Retrying.'; }
+  else if (liveMode && Live.partial()) { tg.className = 'tag'; tg.textContent = 'LIVE · PARTIAL'; tg.title = Live.sourceLine() + ' answered (under half the feed). Data as of ' + Live.asOfLabel() + '. Not a fully healthy live feed.'; }
+  else if (liveMode) { tg.className = 'tag live'; tg.textContent = 'LIVE'; tg.title = 'Real data from the public PoA ledger (POAScan API + minepoa.com), ' + Live.sourceLine() + ', polled every ' + Math.round(Live.cfg.pollMs / 1000) + 's. Tie-break: joined_epoch, then address.'; }
   else if (Live.loading()) { tg.className = 'tag load'; tg.textContent = 'Loading live…'; }
   else { tg.className = 'tag'; tg.textContent = 'SAMPLE DATA'; tg.title = 'DEMO: all values are fictional sample data, modeled on public PoA/POAScan fields'; }
   $('#footNote').textContent = liveMode ? 'Built by DigiStarX · unofficial · live data from the PoA ledger (POAScan / minepoa.com public reads)' : 'Built by DigiStarX · unofficial prototype · sample data';
-  const sn = $('#startNote'); if (sn) sn.textContent = liveMode ? (Live.ok() ? 'LIVE: real POA balances, ranks and activity from the PoA ledger' : Live.loading() ? 'connecting to the PoA ledger…' : 'LIVE DATA OFFLINE · retrying · DEMO shows fictional data') : Live.loading() ? 'loading live PoA ledger data…' : 'DEMO: fictional sample data';
+  const sn = $('#startNote'); if (sn) sn.textContent = liveMode ? (Live.loading() ? 'connecting to the PoA ledger…' : !Live.ok() ? 'LIVE DATA OFFLINE · retrying · DEMO is manual' : Live.snapshotAt() ? 'LIVE SNAPSHOT · ' + Live.snapshotAt() : (Live.stalled() || Live.fails() > 0) ? 'LIVE STALE · data as of ' + Live.asOfLabel() : Live.partial() ? 'LIVE PARTIAL · ' + Live.sourceLine() : 'LIVE: real POA balances, ranks and activity from the PoA ledger') : Live.loading() ? 'loading live PoA ledger data…' : 'DEMO: fictional sample data';
 }
 // swap the whole roster (LIVE <-> DEMO): clears queued fights and rebuilds fighters
 function loadRoster(list) {
@@ -2528,6 +2693,7 @@ function loadRoster(list) {
   for (const k in F) delete F[k]; for (const k in byId) delete byId[k]; for (const k in agentCombo) delete agentCombo[k];
   agents.length = 0; list.forEach(a => { agents.push(a); byId[a.id] = a; });
   for (const k in STATS) { ranks[k] = rankMap(k); chg[k] = {}; }
+  recomputeRing(null);
   agents.forEach(makeFighter); initModes();
   if (selected && !byId[selected]) selected = null; cardFor = null;
   layoutHomes(true);
@@ -2578,7 +2744,7 @@ if (window.ResizeObserver) new ResizeObserver(() => { const r = cv.getBoundingCl
 window.addEventListener('keydown', e => { if (e.key === 'Escape' && selected) { select(null); return; } if (e.key === ' ' && e.target === document.body) { e.preventDefault(); if (!started) start(); forceOvertake(); } });
 
 // ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  E A S T E R  E G G S  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-// Season registry: hidden eggs for hunters, answers stored as hashes only.
+// Season registry: hidden eggs for hunters. Answers are sealed blobs, opened locally.
 //
 /*
    Every egg is ONE entry in the EGGS array below:
@@ -2588,12 +2754,13 @@ window.addEventListener('keydown', e => { if (e.key === 'Escape' && selected) { 
        title    printed in the console only once the egg is found
        trigger  maintainer note: how it is triggered (never printed)
        effect   maintainer note: what it does (never printed)
-       answers  optional [{h, ok}]: h = SHA-256 hex of the normalized (lowercased) answer,
-                ok(answer) runs after pit.verify matched it. Plaintext answers never live in this file.
+       answers  optional [{blob, ok}]: blob = PBKDF2-250000 + AES-GCM ciphertext.
+                pit.verify accepts an answer only when that blob unseals. ok(answer, payload)
+                runs after the open. No plain SHA-256 oracle and no plaintext answer is shipped.
        install  optional (K) => void: wires triggers through the egg kit K (keys, clicks, hover,
                 per-frame tick, draw layers 'pit' (screen space, over the abyss, under the ring) | 'world' | 'arena' | 'screen', found(id), claim/release DigiStarX)
-   To add an egg in a later update: append one entry with the new season number, then re-run
-   csp.py (the script hash changes). No other egg needs to be touched.
+   To add an egg in a later update: append one entry with the new season number, then recompute
+   the CSP script hash (it changes when this script changes). No other egg needs to be touched.
    Hardening: no network, no storage, no eval / Function / innerHTML; inputs are key presses,
    clicks, hover and the browser console only. Progress lives in memory and resets on reload.
    ===================================================================== */
@@ -2603,13 +2770,15 @@ const EGG = (() => {
   let lock = null, eggs = [];
   const flags = {crt:false, signal:null, sigY:null};
   const norm = s => String(s).normalize('NFKC').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
-  const hex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
-  const sha = async s => hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)));
-  async function unseal(answer, blob) {   // AES-GCM, key = PBKDF2-SHA256(normalized answer, salt, ITER)
-    const raw = Uint8Array.from(atob(blob), c => c.charCodeAt(0)), salt = raw.slice(0, 16), iv = raw.slice(16, 28), ct = raw.slice(28);
+  async function unseal(answer, blob) {   // AES-GCM, key = PBKDF2-SHA256(normalized answer, salt, ITER). Throws if the key is wrong.
+    const raw = Uint8Array.from(atob(blob), c => c.charCodeAt(0));
+    if (raw.length < 29) throw new Error('short seal');
+    const salt = raw.slice(0, 16), iv = raw.slice(16, 28), ct = raw.slice(28);
     const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(norm(answer)), 'PBKDF2', false, ['deriveKey']);
     const key = await crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:ITER, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['decrypt']);
-    return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, ct)));   // JSON.parse only: decrypted text is data, never code
+    const text = new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, ct));
+    try { return JSON.parse(text); }   // JSON.parse only: decrypted text is data, never code
+    catch (e) { return {msg: String(text).slice(0, 280)}; }
   }
   // ---- blocky pixel fonts (Press-Start-2P-like 5x7 with a few lowercase glyphs, 3x5 for tiny etchings)
   const F5 = {A:[14,17,17,31,17,17,17], B:[30,17,17,30,17,17,30], C:[14,17,16,16,16,17,14], D:[28,18,17,17,17,18,28], E:[31,16,16,30,16,16,31],
@@ -2659,17 +2828,23 @@ const EGG = (() => {
     pitHooks.forEach(h => h());
     if (typeof answer !== 'string' || !norm(answer) || answer.length > 200) { say('usage: pit.verify("your answer")  · a short phrase, plain text'); return false; }
     if (!(window.crypto && crypto.subtle)) { say('pit.verify needs a secure context (https or localhost).'); return false; }
-    const h = await sha(norm(answer));
-    for (const e of eggs) for (const a of (e.answers || [])) if (a.h === h) {
-      try { await a.ok(answer); } catch (err) { say('✓ answer accepted, but the sealed clue would not open here. Try again in a current browser.'); }
-      say(progress(), 'color:#8781b6;font:11px ui-monospace,monospace'); return true;
+    // Accept only when a sealed blob opens. Wrong guesses try each blob; there is no hash compare.
+    let opened = null;
+    for (const e of eggs) for (const a of (e.answers || [])) {
+      if (!a.blob || opened) continue;
+      try { opened = {a, p: await unseal(answer, a.blob)}; } catch (err) { /* this seal stays shut */ }
     }
-    say('✗ No egg answers to that. Keep digging.', 'color:#ff4057;font:700 12px ui-monospace,monospace');
-    say(progress(), 'color:#8781b6;font:11px ui-monospace,monospace'); return false;
+    if (!opened) {
+      say('✗ No egg answers to that. Keep digging.', 'color:#ff4057;font:700 12px ui-monospace,monospace');
+      say(progress(), 'color:#8781b6;font:11px ui-monospace,monospace'); return false;
+    }
+    try { await opened.a.ok(answer, opened.p); }
+    catch (err) { say('✓ answer accepted, but the sealed clue would not open here. Try again in a current browser.'); }
+    say(progress(), 'color:#8781b6;font:11px ui-monospace,monospace'); return true;
   }
   function help() {
     pitHooks.forEach(h => h());
-    say('PROOF PIT · console kit\n  pit.help()              this list\n  pit.verify("answer")    check an egg answer (hashed locally; nothing leaves your browser)\n' +
+    say('PROOF PIT · console kit\n  pit.help()              this list\n  pit.verify("answer")    unseal an egg answer locally (nothing leaves your browser)\n' +
       `\nSeason ${SEASON}: ${seasonEggs().length} eggs are hidden in this pit. Some are pressed, some are clicked, some are hovered, some are read.\n` + progress());
   }
   Object.defineProperty(window, 'pit', {value: Object.freeze({help, verify}), writable:false, configurable:false, enumerable:false});
@@ -2677,8 +2852,12 @@ const EGG = (() => {
   /* ------------------------------ EGGS · season 1 ------------------------------ */
   eggs = [
   // ---- EGG 1 · SOURCE-CODE SECRET
-  {id:'source', season:1, title:'SOURCE-CODE SECRET', trigger:'riddle in the HTML comment at the top of the file', effect:'pit.verify confirms it; finders post it in the Proof Pit thread',
-   answers:[{h:'1eb0cafb0ee86d6452047bb5ca2677c8e14738cefb8637a4f206a9054cbf9b7a', ok: () => { say('✓ SOURCE-CODE SECRET solved. You read the hood. Post the phrase in the Proof Pit thread on LabLeak for a shout-out from DigiStarX & HoOman.', 'color:#3dffa0;font:700 12px ui-monospace,monospace'); K.found('source'); }}]},
+  {id:'source', season:1, title:'SOURCE-CODE SECRET', trigger:'riddle in the HTML comment at the top of the file', effect:'pit.verify unseals it locally; finders post it in the Proof Pit thread',
+   answers:[{blob:'lZ3ULDkBBe8ni+f8yIYMcx+9QEGyi5gHclQ5w9fMTle7m0zEyq/LAadHLMcQKb/EsDjjOqCStu+gysYSfA1Bp0RHf+qg6NClb8r5GZGZp+ePJDr/38Dr+VXPzFn/CcyH9JAaafUno9K7kLH0LJnX3kL7kS41ep4kzzJeYAFkXhtvbpaN4oypt9mMCUdOMjwUFaxPDTsqjkH1idk3gp+S1GW97ZkB8xU9JZJgXPLfglg1qIA+xXHUcPiYU9h2B2OCLw86LkXaMhx5RUBKURhll5/5cg4B8Vgm', ok: (_a, p) => {
+     const msg = p && typeof p.msg === 'string' && p.msg.trim();
+     say(msg || '✓ SOURCE-CODE SECRET solved. You read the hood. Post the phrase in the Proof Pit thread on LabLeak for a shout-out from DigiStarX & HoOman.', 'color:#3dffa0;font:700 12px ui-monospace,monospace');
+     K.found('source');
+   }}]},
 
   // ---- EGG 2 · CONSOLE GREETING (also carries the stage-1 clue of egg 7)
   {id:'console', season:1, title:'CONSOLE GREETING', trigger:'open the console and use pit.help() or pit.verify()', effect:'styled banner, console kit, cryptic chain clue',
@@ -2964,12 +3143,13 @@ const EGG = (() => {
    }},
 
   // ---- EGG 7 · RIDDLE CHAIN (3 stages): console clue -> arena signal (CRT only) -> source star badge
-  // stage n answer = PBKDF2 key for the sealed clue of stage n+1; the final answer opens the EGG HUNTER credits.
+  // Each stage answer unseals the next clue (PBKDF2 250000 + AES-GCM). The final answer opens the EGG HUNTER credits.
+  // pit.verify accepts a stage only when its blob opens. No plain answer hash is shipped.
   {id:'chain', season:1, title:'RIDDLE CHAIN · EGG HUNTER', trigger:'3-stage riddle: console, arena, source', effect:'decrypts the next clue at each stage; the final answer unlocks the EGG HUNTER credits',
    answers:[
-     {h:'bf4558ab3bb57f69a63070ec555397ab61173f28b861e08c8459b4398fc41781', ok: async a => { const p = await unseal(a, 'CUhfzfeVs6lANaIj2fYyPOXzVNAwahYp3XDqiJMXIKamb+KDS3jIvP6rz2JWhLSy/9X4ZbHfLdma+ngc2+NrneQn3BgORNWOHxhkDUSUZ4rk7hLVN5hIKwvsNjKsvpvgfRWWbNZhMj/dIe++rc8m8izolrgJUt2pZgGaS0F5Us/qLoYXDJeYtlJCsXFKyfQ1Oyc5V++LYNeuVoHm+fVtyLrby2u5AUfsc1moKZtySX3wE2e6r1VkLos0bFkt6WflONEmg9EDlObfLewNXJPrZwOl1Ervk+gQ/jYTy9qV0BQSvDvVWII5pB0X5r1dSgUkq1tCQDCfAj++nFyXS82JbAQxwUfNaxucxbSquE4Ppasv0+mr8azSW4n02lPOUJpJEsJ7H39tbajHwp6yvhDv+wPWaKZYFv9mZt54VAec8nzuoYnDxDw47TokLiD9uIqjctnQXAYO2RBbjT5ZuYZZaywDzS1KJSQOiqnxhw5XPy6PluSeW8TxlHNl3I6PAAn4bwSqOIvECsa5rKh/WMgtuc+KVVrgPBvHcGhuDnOZZANPZ1b/ztQc1mM='); flags.signal = p.morse; say('✓ RIDDLE CHAIN · stage 1 of 3 solved.', 'color:#3dffa0;font:700 12px ui-monospace,monospace'); say(p.clue, 'color:#ff9cf0;font:12px ui-monospace,monospace'); }},
-     {h:'1128e2d51fbf5e503be6fbcc14bc6ebede998d238b21d4fa4fb34a437ea7a1a1', ok: async a => { const p = await unseal(a, '+JE6yARGwWOfVfDgBl1Kz23zy0D1N2FNClylj0gHmymBe7UwG+CdxayBl5/JdOecvECkf15nii8b67EC0KMWE5cuRe24jsJvqlK7ALI2J3+1g7iRQ8L+YH0EEdhHMS2KTIzVq+r7pAbSY4SuYMY3tvS0PcYurlENwP1q9Fpu5CDo3cBooCwFQOWhhK1Mo2rqvzounAcEVY9Vm2Jrnkx5pkTcfVi0rV4dLqCSjE7Udrhg+uxQjJzOrFbU9TOjDB7oOE5deyMqsla3BYD3wpcD82rZ+/gAyBBR0ftxryLVWHx4rY2HMw/OQhPXbQrrQvXjeMul7rjbVq+kGp7jxcTwd2etwZtL387zv80Evqk2OVOXCc5YbakfhL6bqtkKO+8SDsTZm2IP4u4NzzCJ+rxQoRCHHThHycr6bjBu5q8fav6SyOATujuV++z4NiQGHMoP6drvSwVcsGceW3I1HmKqt3MQarMfq+0tmbY4LjAcbsByQqEpoU5pUTGgiANEupexiS0y7oKO7ETq7WM8iwKtJUXEx0/qf3UntYv4eIc2CWxIYi9AnXaLQfy4m5LF/GRhawzWyVRq4SAAL8nf8uEB2NahBtzCUdE7ZSlN2ZdVyuA5b1gd7rXZVUfjv95XPTwFh4MiP/5zCjEleEiNesFhHf3AIrG6WGGD36n5scV/fSoneWayohXzmuFwsIyFb1ow7BjfpCXTrRqIC5Mj6U8UwcCHEXUwqguGNeM+1WnfGTOg2H5oHprMK5KtciP9myb20l/SW3p22vB8oKsCJiH292eBM1yqcBpPjZgJjr3y'); say('✓ RIDDLE CHAIN · stage 2 of 3 solved.', 'color:#3dffa0;font:700 12px ui-monospace,monospace'); say(p.clue, 'color:#ff9cf0;font:12px ui-monospace,monospace'); }},
-     {h:'85e08574984a4644470c217f891435c5410fb640f1dd0c889eec1efb93f6cbb0', ok: async a => { const p = await unseal(a, 'hlpQ+4dfzixSawm27sPY2GPQSnQ0UM1gRvHQsfKB5D4qJVSP3DIip3j4o5t6kBio/A40PzH9y0Ys8ezQMrSjGbp/8TGMhnpuYoJ/Br9pHVZw8jHJq/rwWirY3EkimDuNuXLE8mkDt4ruMN3Vy8tNFus0kBRksUepxkJZHMVM+eFI9Iv0q+tNqG/MZTt6dTsz25gK0M4Xj5Mntdi4bZvyPNVxrAmaMwpLSlEFxeNyKcMhYm1UCwj/R59hJGX95YO6/jt7fUtCUMOPYXQ8ymIS2FcgzPHveGH/gyBWVPpdai8ryO9xa5i5LasWSUHqqUJAMaouu+XvcQLUJK/aOeviJ5t/5QhMJRsIOVPxktQFbs5Wakkn7bf04TantkpVPNXsRI/jNGCd6pc6Ym0AYvCVzGzJ/3hE/jhYlAIuZOPWYfWQpnQEv0sQ'); credits.open(p.lines); say('✓ RIDDLE CHAIN complete. EGG HUNTER credits unlocked. Be the first to post the final answer in the Proof Pit thread for permanent Egg Hunter credit.', 'color:#ffcf3f;font:700 13px ui-monospace,monospace'); K.found('chain'); }},
+     {blob:'fPoqM9XmfUemMFC23CWwAvJZCHgXAWHFOsEPqYvPTWnZTMxf4O+rVH9+4nS4mrIaTCGA093orkijHUNnJa1E7SUgvQwhKBAdlqnTjAxPxW7jA0c9TzzrHtsvmsCcmj2H7rsNhdSq0H1tzw9bELyk9mLvzJPv1ty4OyqkupBQ1eA+g4IOGVGznAijgdqMAp3y5DMFFq+bjn/6qQhFNZCdmJ5pyiliE3lZcQAIgu4o5IWQgERYiEFB/22lnrG6lpG/xEIsuLguJYZRr90bYeYItjfDvnocnmWuU38skXYKEouqaHVKT5Mjc0jg/k3J1Z7paRwZMrI9sVrrueMRfxv/bSfnxG/rGT1YC+5q18VAGRtc1caZgYIXvxRNP1nqNl7YpyTBhfsscEaB1LoKzZC4daba4y4wibFuIumeARm2I7ruD1UMhV8Tc2+Hclja92moqfGWjSjbgG2VHcQz8kxJklQdm9/NJUB0Eq9XEatK/BFFZXNiw5a4XgtR5Bx/U7A09fY+YDUhUZUVXEXRiJwK6Yyb0WCchMHA+rHiViwrsC/kEqJ24a9PtLU=', ok: (_a, p) => { flags.signal = p && p.morse; say('✓ RIDDLE CHAIN · stage 1 of 3 solved.', 'color:#3dffa0;font:700 12px ui-monospace,monospace'); if (p && p.clue) say(p.clue, 'color:#ff9cf0;font:12px ui-monospace,monospace'); }},
+     {blob:'ENT8ACVLATEPxmlk66NHSfNd2AXVhgIlmAcVySObZQ7cLuUhqtr1cIGlbERNLAsIUABS7ol+o16MrGAnBksSzN8sETR1gSMZ/qcV6G8+6yq6n/E/nHQZtZUEoOvfLbKnqWdmzulK3aPnvkRYseMhqC4YIYo5fXB/a7+FCSz9ZJSvPyOEsYiaLnC0dREBB1/XUqooM5uLrw5DjG3xuPFs6/7hWqa9jAJN58KYReVBJKxtegUgT0W0ZaT7o8Bq9pDpfcY5DKU3m48FbcWplMSqtG+Q7JaU+u/gK3Ix2cLfpewAWaDOkqOvW1WRi4Yaxs7CDfgwH2XPuNU4Z09ffSLzh168OGnsR5PkyBHDZeDdLuY++0W1PUBaP4w+C8aFDmOmd+40qsqQbsWZzg7hJiOqWImHGjxCQUNZrlbu/oZkRyWu4SwECVgteGTWoYYgWIu7BTdLV+Vh5kraUWcifLFdp0QCWfHUlMH84fINiSQDkMRXEmGnNyVDBIEdgVNDwmu1VQZbxkugviuQCaxjdWShlROW2OjOViApCEilxTKUenYrOCw0JcX4plKoJBU2ClpQYaCT6P51lfLdjMFJLEco04LGAiE3l2HTm/yLKQuRQJuscwWQeZ6++yoRAPEisNX9butG2tazYn74rzK9WgtA2lHC2O0gUmeKZjyQuwt60ol3qvHl9rMCtm5zOYg9cNJ9towaaihAsUx9nEg5iTHu1DxoJcnoYa5FCQAEGxHha5g7nYrrgIHlQS+hSE4wom1uwcZvlhwI25GkZ+1B3gogzlaGx5srJZ4f4N+95ig2', ok: (_a, p) => { say('✓ RIDDLE CHAIN · stage 2 of 3 solved.', 'color:#3dffa0;font:700 12px ui-monospace,monospace'); if (p && p.clue) say(p.clue, 'color:#ff9cf0;font:12px ui-monospace,monospace'); }},
+     {blob:'CxXr1eXe+XKrWZp3DfRVsq0mfVo4Z/wr7xPJR9msGhB4nj9fxNHz1u9p1rWIWyTnPmN1fc1cHtucwGaMPwB+ESa/nO2PE/SnLX42EbRLnWZ8edCw1uGO/fxWmi3p6C7xafdpsy7Cu1Wc1p+x/TrqPhAAfmanRWI5T50c5foSZk/7j7kZIQUoDvARP2hualReCqJxMrqFge5vNBXPZpkYBAQ647DSxXV0R8mHUjOxgKyNW+vCbNn0TlisulC1hWTkGov15h0CvRG1MTwihCT79CCjlitniU4dpxbXukC0/jKPTARsNKIkG9kvCW+jGUp86zW/pt42vZvYjyjqCw5cSF3bC+uJr8xCPkkIsP8IFvRZ5sIGdRnJbN4XxOUpXIaopa42v6MNB0YzR1/QaDdn5eUtpctr/GmJ7lcKrzR9g5s4sdMUx2Lr', ok: (_a, p) => { if (p && Array.isArray(p.lines)) credits.open(p.lines); say('✓ RIDDLE CHAIN complete. EGG HUNTER credits unlocked. Be the first to post the final answer in the Proof Pit thread for permanent Egg Hunter credit.', 'color:#ffcf3f;font:700 13px ui-monospace,monospace'); K.found('chain'); }},
    ],
    install(K) {
      K.onDraw('arena', () => {   // the abyss signal: only with the tube lit and stage 1 solved
