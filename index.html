@@ -54,7 +54,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Jg99My/F+ghJhWwBb732JtJRFTZoHXXcfmOAkVe63ew='; style-src 'unsafe-inline'; style-src-elem 'sha256-TIcsUaX3QWr4axJDoKXyIoASAAqD43kv4MNpIkyNphA='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-U/MBU0Ate8+GfxuMDmEx4+b0ydy/MRD8Nbe9s4ccavM='; style-src 'unsafe-inline'; style-src-elem 'sha256-OT7pZvENkIx2+9NWrJ4ABqatMupS48E/stXKcawJh4U='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" id="favicon" href="data:,">
@@ -164,42 +164,57 @@ footer small{display:block;font-size:11px}
 #pitTiers i{width:12px;height:12px;border-radius:2px;flex:none}
 #pitTiers i.t1{background:#ff9cf0}#pitTiers i.t2{background:#7cf3ff}#pitTiers i.t3{background:#3dffa0}#pitTiers i.t4{background:#ffcf3f}
 .feedCue{display:none}
+#seeMon{display:none}
+#monOv{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,4,12,.86)}
+#monOv[hidden]{display:none !important}
+.monSheet{width:min(440px,100%);height:min(780px,calc(100dvh - 32px));display:flex;flex-direction:column;gap:10px;background:#0e0c1d;border:1px solid #ffcf3f;border-radius:14px;padding:12px 12px 16px;box-shadow:0 0 42px rgba(255,207,63,.28)}
+#monClose{align-self:flex-end}
+#monCv{flex:1;width:100%;min-height:320px;background:#07060f;border-radius:8px;touch-action:none}
+#monTitle{text-align:center;font:700 13px ui-monospace,monospace;letter-spacing:1px;color:#ffcf3f}
+body.mon-open{overflow:hidden}
 #card a{color:var(--acc);text-decoration:none}#card a:hover{text-decoration:underline}
 #card .note{margin-top:6px;color:#5f5a8e;font-size:10px;line-height:1.35}
 .wide{}
 @media (max-width:980px){
-  /* Phone stack. Page scroll is the release valve: the pit, the explainer and the panes under it each get their own height. Explicit canvas height so iOS Safari cannot collapse the ring. */
-  header{gap:8px;padding:8px 10px 10px}
-  #logoCv{height:46px !important;width:auto !important}
-  #net{flex:1 1 100%;margin-left:0;flex-wrap:nowrap;overflow-x:auto;gap:4px;-webkit-overflow-scrolling:touch}
-  .chip{font-size:11px;padding:3px 6px}
+  /* One column. The page scrolls down. Nothing in the top stack (epoch, arena, attacks) is its own scroller, and nothing slides sideways. */
+  html,body{overflow-x:clip;max-width:100%}
+  header{flex-direction:column;align-items:stretch;gap:8px;padding:10px 12px 12px;max-width:100%}
+  #logoCv{height:46px !important;width:auto !important;max-width:100%}
+  #net{width:100%;flex:1 1 auto;margin-left:0;flex-wrap:wrap;overflow:visible;gap:6px;max-width:100%}
+  .chip{font-size:12px;padding:5px 8px;white-space:normal;max-width:100%}
   #banner{padding:12px 14px;font:700 13px/1.45 ui-monospace,monospace;letter-spacing:.2px;max-height:none;overflow:visible}
-  main{flex-direction:column;height:auto;min-height:0}
-  #stage{flex:0 0 auto;width:auto;height:auto;min-height:0;margin:28px 10px 44px}
-  #pitHead{display:flex;flex-direction:column;gap:10px;margin:0 2px 36px;padding:14px 14px 12px;background:rgba(8,6,20,.94);border:1px solid #3b3280;border-radius:10px}
-  #cv{flex:0 0 auto;width:100%;min-height:520px;height:520px;height:clamp(520px,62dvh,640px)}
-  #pitFoot{display:flex;flex-direction:column;gap:12px;margin:36px 2px 0;padding:14px;background:rgba(8,6,20,.94);border:1px solid #3b3280;border-radius:10px}
-  #controls{gap:8px;padding:12px 10px;margin-top:28px}
+  main{flex-direction:column;height:auto;min-height:0;max-width:100%;overflow:visible}
+  #stage{flex:0 0 auto;width:100%;max-width:100%;height:auto;min-height:0;margin:28px 0 40px;padding:0 12px;overflow:visible}
+  #pitHead,#pitFoot{display:flex;flex-direction:column;height:auto;max-height:none;overflow:visible;background:rgba(8,6,20,.94);border:1px solid #3b3280;border-radius:10px}
+  #pitHead{gap:10px;margin:0 0 32px;padding:14px 14px 12px}
+  #cv{flex:0 0 auto;width:100%;max-width:100%;min-height:440px;height:440px;height:clamp(440px,50dvh,540px)}
+  #pitFoot{gap:12px;margin:32px 0 0;padding:14px}
+  #seeMon{display:inline-flex;align-self:center;margin:16px auto 0;font-size:13px;padding:8px 14px;border-color:#ffcf3f;color:#ffcf3f}
+  #controls{gap:8px;padding:12px 0 0;margin-top:20px;max-width:100%;overflow:visible}
   #controls button{font-size:12px;padding:7px 10px}
-  #controls label{font-size:12px}
-  #controls input[type=range]{width:104px}
+  #controls label{font-size:12px;max-width:100%}
+  #controls input[type=range]{width:120px;max-width:100%}
   #controls > span:last-child{display:none}
   #liveStat{flex:1 1 100%;max-width:100%;font-size:12px;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.45}
   .wide{display:none}
-  aside{width:100%;height:auto;min-height:0;flex:none;border-left:0;border-top:1px solid var(--line)}
-  #tableWrap{flex:none;min-height:460px;max-height:none;overflow:auto;-webkit-overflow-scrolling:touch}
+  .tabs{flex-wrap:wrap}
+  .tabs button{flex:1 1 30%;min-width:0}
+  aside{width:100%;max-width:100%;height:auto;min-height:0;flex:none;border-left:0;border-top:1px solid var(--line);overflow:visible}
+  #tableWrap{flex:none;width:100%;max-width:100%;min-height:0;height:auto;max-height:none;overflow:visible}
+  #tbl{width:100%;table-layout:fixed}
+  #tbl th,#tbl td{white-space:normal;overflow-wrap:anywhere;word-break:break-word;font-size:11px;padding:8px 4px}
+  #tbl th:nth-child(1),#tbl td:nth-child(1){width:14%}
+  #tbl th:nth-child(2),#tbl td:nth-child(2){width:28%}
   .legend{max-height:none;height:auto;overflow:visible;padding:16px 14px 20px;font:13px/1.65 ui-monospace,monospace;overflow-wrap:anywhere}
-  #chat{height:auto;min-height:480px;max-height:680px}
+  #log{height:auto;min-height:0;max-height:none;overflow:visible;padding:14px 14px 18px;font:12px/1.55 ui-monospace,monospace}
+  #log::before{content:'TAKEOVERS';display:block;margin-bottom:8px;font:700 12px ui-monospace,monospace;letter-spacing:.8px;color:#fff}
+  #log div{white-space:normal;overflow:visible;text-overflow:clip}
+  #chat{height:auto;min-height:420px;max-height:640px;max-width:100%}
   .chatHead{flex-wrap:wrap;align-items:flex-start;row-gap:6px;padding:12px 12px;font-size:12px;line-height:1.4}
   .chatHead span{white-space:normal;overflow:visible;text-overflow:clip}
   .feedCue{display:inline-block;color:var(--acc);border:1px solid #21566a;border-radius:3px;padding:1px 6px;font-size:10px;letter-spacing:.4px;flex:none}
-  #chatFeed{flex:1 1 auto;min-height:400px;overflow-y:scroll;padding:12px 14px 22px;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;font-size:14px;line-height:1.5}
+  #chatFeed{flex:1 1 auto;min-height:340px;overflow-x:hidden;overflow-y:auto;padding:12px 14px 22px;font-size:14px;line-height:1.5}
   .cm{padding:8px 0}
-  #log{height:auto;min-height:168px;max-height:none;overflow:visible;padding:14px 14px 18px;font:12px/1.55 ui-monospace,monospace}
-  #log div{white-space:normal;overflow:visible;text-overflow:clip}
-  #chatFeed::-webkit-scrollbar,#tableWrap::-webkit-scrollbar{width:10px;height:10px}
-  #chatFeed::-webkit-scrollbar-thumb,#tableWrap::-webkit-scrollbar-thumb{background:#6d5cc4;border-radius:5px}
-  #chatFeed{scrollbar-width:thin;scrollbar-color:#7cf3ff #141030}
 }
 /* EGGS · CRT mode v2 (egg 5): a full-page tube laid over the whole view (arena + panels). Pure CSS layers + one tiny noise canvas;
    the arena canvas gets its own chroma split / tear / bloom pass in the egg's screen layer. Nothing here loads anything. */
@@ -267,6 +282,7 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
         <li><i class="t4"></i><span>T4 MEGA · POA balance</span></li>
       </ul>
     </div>
+    <button type="button" id="seeMon">See Monument</button>
     <div id="controls">
       <button id="bDemo" title="Switch between LIVE ledger data and the DEMO (fictional data)">DEMO: OFF · LIVE DATA</button>
       <button id="bOver">⚡ <span class="wide">TRIGGER RANDOM </span>OVERTAKE</button>
@@ -294,13 +310,20 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
       <button data-t="backlog">BACKLOG</button>
     </div>
     <div id="tableWrap"><table id="tbl"></table></div>
+    <div id="log"></div>
     <div class="legend" id="legend"></div>
     <div id="chat">
       <div class="chatHead">💬 FORUM FEED <span title="Read-only: shows comments from the LabLeak thread. Nothing is posted from the arena.">⇄ LabLeak thread · read-only</span><span class="feedCue">scroll ↓</span><a id="threadLink" href="https://minepoa.com/lableak/#/post/1331" target="_blank" rel="noopener noreferrer">View thread on LabLeak ↗</a><span class="tag2" id="feedTag">LIVE</span></div>
       <div id="chatFeed"></div>
     </div>
-    <div id="log"></div>
   </aside>
+<div id="monOv" hidden>
+  <div class="monSheet" role="dialog" aria-modal="true" aria-labelledby="monTitle">
+    <button type="button" id="monClose">Close</button>
+    <canvas id="monCv" aria-label="Genesis Ten monument"></canvas>
+    <div id="monTitle">Genesis Ten</div>
+  </div>
+</div>
 </main>
 <footer>
 <pre>   *    .  DigiStarX  .    *
@@ -534,11 +557,10 @@ function resize() {
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.imageSmoothingEnabled = false;
   if (phoneLayout()) {
-    // Upper air stays clear of the epoch band (that band is DOM). Lower band is the monument's own floor.
-    const topAir = 72, band = Math.min(176, H * .32);
-    const usable = Math.max(140, H - band - topAir);
-    cx = W / 2; cy = topAir + usable * .46;
-    ry = Math.min(usable * .34, W * .22); rx = Math.min(ry * 2.25, W * .42);
+    // Monument is a popup on a phone, so the ring uses the canvas. A small inset keeps nameplates off the edge.
+    const inset = 28;
+    cx = W / 2; cy = H * .5;
+    ry = Math.min((H * .5 - inset) * .62, W * .24); rx = Math.min(ry * 2.25, W * .44);
   } else {
     cx = W / 2; cy = H * .55;
     ry = Math.min(H * .29, W * .2); rx = Math.min(ry * 2.25, W * .44);
@@ -1942,12 +1964,9 @@ function layoutPhoneLabels() {
     }
     for (const it of items) { it.x = clamp(it.x, it.ax - 42, it.ax + 42); it.y = clamp(it.y, it.ay - 32, it.ay + 32); }
   }
-  const monX = W - 148, monY = H - 184;
   phoneLabs = {};
   for (const it of items) {
-    let x = it.x, y = it.y;
-    if (x > monX - it.w / 2 && y > monY) x = monX - it.w / 2 - 6;
-    phoneLabs[it.id] = {x:clamp(x, 8 + it.w / 2, W - 8 - it.w / 2), y:clamp(y, 12, H - 18), w:it.w, h:it.h, fx:it.fx, fy:it.fy};
+    phoneLabs[it.id] = {x:clamp(it.x, 8 + it.w / 2, W - 8 - it.w / 2), y:clamp(it.y, 12, H - 18), w:it.w, h:it.h, fx:it.fx, fy:it.fy};
   }
 }
 function drawLabels(f, t, u, dt) {
@@ -2887,13 +2906,54 @@ const EGG = (() => {
        g.strokeStyle = 'rgba(255,79,216,.4)'; g.lineWidth = 1; g.strokeRect(u * 1 + .5, u * 143 + .5, (UW - 2) * u - 1, 14 * u - 1);
        img = {c, dpr:DPR, u};
      };
-     const gem = () => ({x:pos.x + CX * u, y:pos.y + 2.5 * u});
-     K.onHover((x, y) => { const g = gem(), r = 3 * u + 3; if (Math.abs(x - g.x) <= r && Math.abs(y - g.y) <= r) { if (!reveal) K.found('founders'); hold = 2.5; } });
+     let drawU = 1;
+     const gem = () => ({x:pos.x + CX * drawU, y:pos.y + 2.5 * drawU});
+     const armGem = (x, y) => { const g = gem(), rad = 3 * drawU + 6; if (Math.abs(x - g.x) <= rad && Math.abs(y - g.y) <= rad) { if (!reveal) K.found('founders'); hold = 2.5; } };
+     K.onHover((x, y) => { if (phoneLayout()) return; armGem(x, y); });
      K.onTick((dt, rdt) => { hold = Math.max(0, hold - rdt); reveal = clamp(reveal + (hold > 0 ? rdt * 2.5 : -rdt * 1.2), 0, 1); });
+     // Phone: the obelisk is not in the arena. A button opens it in a sheet so it can be read without stealing the stack.
+     const monCv = $('#monCv'), monCtx = monCv && monCv.getContext('2d');
+     let monOpen = false;
+     const setMon = on => {
+       monOpen = !!on && phoneLayout();
+       const ov = $('#monOv'); if (ov) ov.hidden = !monOpen;
+       document.body.classList.toggle('mon-open', monOpen);
+     };
+     const see = $('#seeMon'); if (see) see.addEventListener('click', () => setMon(true));
+     const closer = $('#monClose'); if (closer) closer.addEventListener('click', () => setMon(false));
+     const ovEl = $('#monOv'); if (ovEl) ovEl.addEventListener('click', e => { if (e.target === ovEl) setMon(false); });
+     window.addEventListener('keydown', e => { if (e.key === 'Escape' && monOpen) { e.preventDefault(); setMon(false); } });
+     if (window.matchMedia) { const mq = window.matchMedia(NARROW_MQ); const wide = () => { if (!mq.matches) setMon(false); }; if (mq.addEventListener) mq.addEventListener('change', wide); else if (mq.addListener) mq.addListener(wide); }
+     if (monCv) {
+       const rel = e => { const r = monCv.getBoundingClientRect(); return {x:(e.clientX - r.left) * (monCv.clientWidth / (r.width || 1)), y:(e.clientY - r.top) * (monCv.clientHeight / (r.height || 1))}; };
+       monCv.addEventListener('pointermove', e => { if (monOpen) { const p = rel(e); armGem(p.x, p.y); } });
+       monCv.addEventListener('pointerdown', e => { if (monOpen) { const p = rel(e); armGem(p.x, p.y); } });
+     }
+     const paintModal = () => {
+       if (!monCv || !monCtx || !monOpen) return;
+       const r = monCv.getBoundingClientRect(), cssW = r.width, cssH = r.height;
+       if (cssW < 8 || cssH < 8) return;
+       const dpr = Math.min(window.devicePixelRatio || 1, 3), bw = Math.round(cssW * dpr), bh = Math.round(cssH * dpr);
+       if (monCv.width !== bw || monCv.height !== bh) { monCv.width = bw; monCv.height = bh; }
+       monCtx.setTransform(dpr, 0, 0, dpr, 0, 0); monCtx.imageSmoothingEnabled = false; monCtx.clearRect(0, 0, cssW, cssH);
+       const fit = [3, 2, 1].find(s => UW * s <= cssW - 36 && UH * s <= cssH - 36) || 1;
+       const zoom = Math.max(1, Math.min((cssW - 28) / (UW * fit), (cssH - 28) / (UH * fit)));
+       if (!img || img.dpr !== DPR || img.u !== fit) { u = fit; build(); } else u = fit;
+       drawU = u * zoom;
+       const MW = UW * drawU, MH = UH * drawU;
+       pos = {x:Math.round((cssW - MW) / 2), y:Math.round((cssH - MH) / 2)};
+       monCtx.drawImage(img.c, pos.x, pos.y, MW, MH);
+       const gl = .5 + .5 * Math.sin(simT * 3);
+       monCtx.fillStyle = `rgba(255,224,102,${.3 + .5 * gl})`; monCtx.fillRect(pos.x + (CX - 2) * drawU, pos.y + drawU, 4 * drawU, 3 * drawU);
+       if (gl > .8) { monCtx.fillStyle = `rgba(255,240,180,${(gl - .8) * 3})`; monCtx.fillRect(pos.x + (CX - .5) * drawU, pos.y - 2 * drawU, drawU, 9 * drawU); monCtx.fillRect(pos.x + (CX - 4) * drawU, pos.y + 2 * drawU, 8 * drawU, drawU); }
+       if (reveal > 0) { monCtx.globalAlpha = reveal; monCtx.fillStyle = 'rgba(255,207,63,.16)'; monCtx.fillRect(pos.x + (CX - 38) * drawU, pos.y + 20 * drawU, 76 * drawU, 16 * drawU);
+         ptext(monCtx, 'DIGIVATAR', pos.x + CX * drawU, pos.y + 24 * drawU, drawU, '#ffe48a', {align:'center', shadow:'#2a1a00', sd:Math.max(1, drawU)}); monCtx.globalAlpha = 1; }
+     };
      K.onDraw('pit', () => {   // stands in the abyss: drawn under the ring, fighters and cards, so it never blocks them
+       if (phoneLayout()) { hudCorner = null; paintModal(); return; }   // phone: popup only, never in the ring
        const k = W + 'x' + H + '@' + DPR + ':' + Math.round(rx) + ',' + Math.round(ry);
        if (k !== key) { key = k; u = [3, 2, 1].find(fits) || 1; }
-       if (!img || img.dpr !== DPR || img.u !== u) build(); pos = place(u);
+       if (!img || img.dpr !== DPR || img.u !== u) build(); pos = place(u); drawU = u;
        const MW = UW * u, MH = UH * u; hudCorner = {x:pos.x, y:pos.y, w:MW, h:MH};
        ctx.globalAlpha = .55 + .45 * light; ctx.drawImage(img.c, pos.x, pos.y, MW, MH); ctx.globalAlpha = 1;
        const gl = .5 + .5 * Math.sin(simT * 3); ctx.fillStyle = `rgba(255,224,102,${.3 + .5 * gl})`; ctx.fillRect(pos.x + (CX - 2) * u, pos.y + u, 4 * u, 3 * u);
