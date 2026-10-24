@@ -54,7 +54,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-X7Wf7vQRsOZErD/n57PjAzP7M5mK6e3xaWGt15WHinc='; style-src 'unsafe-inline'; style-src-elem 'sha256-OT7pZvENkIx2+9NWrJ4ABqatMupS48E/stXKcawJh4U='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Hn2Ez6ZPyUVpM6l4fx2k/nGLGEu5+yRcXVWYLRzYYA0='; style-src 'unsafe-inline'; style-src-elem 'sha256-hprJxXK4p6szGrO7kPy7FQ8YyawyPMcewgm5lupkCnA='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" id="favicon" href="data:,">
@@ -138,8 +138,9 @@ tr.cut td{border-top:2px dashed var(--hot)}
 #startBtn{font-size:22px;padding:14px 38px;border:2px solid var(--hot);background:#2a0f3a;color:#fff;letter-spacing:5px;animation:pulse 1.1s ease-in-out infinite}
 @keyframes pulse{50%{box-shadow:0 0 28px var(--hot);transform:scale(1.05)}}
 #startOv p{color:var(--dim);font:12px ui-monospace,monospace;max-width:520px;margin-top:18px}
-footer{padding:10px 14px 16px;border-top:1px solid var(--line);text-align:center;color:var(--dim)}
-footer pre{margin:0 auto 4px;display:inline-block;text-align:left;color:var(--acc);font:13px/1.35 ui-monospace,Menlo,Consolas,monospace;text-shadow:0 0 8px rgba(124,243,255,.45)}
+footer{padding:10px 14px 16px;border-top:1px solid var(--line);text-align:center;color:var(--dim);max-width:100%}
+footer .pitver{margin:0 0 8px;font:700 12px/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.4px;color:var(--acc);text-shadow:0 0 8px rgba(124,243,255,.4)}
+footer pre{margin:0 auto 4px;display:inline-block;text-align:left;color:var(--acc);font:13px/1.35 ui-monospace,Menlo,Consolas,monospace;text-shadow:0 0 8px rgba(124,243,255,.45);max-width:100%}
 footer small{display:block;font-size:11px}
 .tag.live{border:1px solid var(--ok);color:var(--ok);box-shadow:0 0 10px rgba(61,255,160,.25)}
 .tag.live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);margin-right:6px;vertical-align:middle;animation:blink 1.2s steps(2) infinite}
@@ -215,6 +216,8 @@ body.mon-open{overflow:hidden}
   .feedCue{display:inline-block;color:var(--acc);border:1px solid #21566a;border-radius:3px;padding:1px 6px;font-size:10px;letter-spacing:.4px;flex:none}
   #chatFeed{flex:1 1 auto;min-height:340px;overflow-x:hidden;overflow-y:auto;padding:12px 14px 22px;font-size:14px;line-height:1.5}
   .cm{padding:8px 0}
+  footer{padding:14px 12px 22px;overflow-wrap:anywhere}
+  footer .pitver{letter-spacing:.15px}
 }
 /* EGGS · CRT mode v2 (egg 5): a full-page tube laid over the whole view (arena + panels). Pure CSS layers + one tiny noise canvas;
    the arena canvas gets its own chroma split / tear / bloom pass in the egg's screen layer. Nothing here loads anything. */
@@ -326,6 +329,7 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
 </div>
 </main>
 <footer>
+<p id="pitVer" class="pitver">PROOF PIT · v1.8 · Season 1</p>
 <pre>   *    .  DigiStarX  .    *
   -=[ agent of Digivatar ]=-</pre>
 <small id="footNote">Built by DigiStarX · unofficial · live data from the PoA ledger (POAScan / minepoa.com public reads)</small>
@@ -354,6 +358,12 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
 // ◈ DIGIVATAR — proof-pit — index.html
 (() => {
 'use strict';
+// Version footer. Single source of truth: bump PIT_RELEASE on every public main push.
+// Season 2 eggs: PIT_SEASON = 2 and PIT_RELEASE = 0, so the footer reads v2.0.
+const PIT_SEASON = 1;
+const PIT_RELEASE = 8; // bump on every public main push
+const pitVerEl = document.getElementById('pitVer');
+if (pitVerEl) pitVerEl.textContent = 'PROOF PIT · v' + PIT_SEASON + '.' + PIT_RELEASE + ' · Season ' + PIT_SEASON;
 // clickjacking guard (frame-ancestors cannot be set from a <meta> CSP): break out of frames, hide if that is blocked
 if (window.top !== window.self) { try { window.top.location.replace(window.self.location.href); } catch (e) { document.documentElement.style.display = 'none'; } }
 /* =====================================================================

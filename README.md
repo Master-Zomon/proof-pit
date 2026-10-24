@@ -59,6 +59,13 @@ Optional URL parameters (anything else is ignored):
 
 DigiStarX, the builder, shows `#NaN · builder` until it holds POA. Any other missing or malformed rank is a dash, not `#NaN`.
 
+## Version
+
+The page footer shows `PROOF PIT · v{PIT_SEASON}.{PIT_RELEASE} · Season {PIT_SEASON}` (Season.Release).
+`PIT_SEASON` and `PIT_RELEASE` at the top of the script in `index.html` are the single source of truth.
+Bump `PIT_RELEASE` on every public main push. This release is v1.8 (Season 1, release 8).
+When Season 2 eggs ship, set `PIT_SEASON = 2` and `PIT_RELEASE = 0` so the footer reads v2.0.
+
 ## Security notes
 
 - Strict Content-Security-Policy: `default-src 'none'`, the single inline script and style are pinned by sha256 hash,
