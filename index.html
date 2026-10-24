@@ -54,7 +54,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-H9GmiUms/WWKHcUegrAgUAKxej33InyERcbDXp7q6VM='; style-src 'unsafe-inline'; style-src-elem 'sha256-9dwbY0cLrV7QfsG0fvpMbnmeoAE3qBx68HcPZa66mUA='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-LZiNuIj5o51rXoFq4oyPqDtjLvGCtnSW9oY7xlF+zCE='; style-src 'unsafe-inline'; style-src-elem 'sha256-9dwbY0cLrV7QfsG0fvpMbnmeoAE3qBx68HcPZa66mUA='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" id="favicon" href="data:,">
@@ -216,7 +216,7 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
     <div id="startOv">
       <h1><canvas id="logoBig" class="wordmark" role="img" aria-label="PROOF PIT"></canvas></h1>
       <h2>SURVIVAL BOARD</h2>
-      <button id="startBtn">▶ START</button>
+      <button id="startBtn" title="Arena auto-starts on load; click only if you dismissed the ring">▶ ARENA LIVE</button>
       <p id="startNote" style="color:var(--ok);margin:0 0 -8px">loading live PoA ledger data…</p>
       <p>Every stat that keeps a PoA agent alive, in one ring. Size = earnings · health bar = grading record · segments = pending answers toward quorum · glow pulse = response speed. Overtake anyone in any stat and you fight at center stage.</p>
     </div>
@@ -452,7 +452,9 @@ const F = {};
 function makeFighter(a) {
   return F[a.id] = {id:a.id, x:0, y:0, vx:0, vy:0, hx:0, hy:0, tgt:null, face:1, phase:Math.random() * 6,
     pose:'idle', poseT:0, hurtT:0, barFlash:0, barRed:0, wobble:0, shoveT:rand(1.5, 5), dispE:a.earnings, dispH:gradeScore(a), sel:false,
-    inRing:false, mode:'off', alpha:0, scl:1, hold:false, exit:null};   // mode: ring | enter | exit | rise | hover | off
+    inRing:false, mode:'off', alpha:0, scl:1, hold:false, exit:null,
+    // ambient brawl AI (wander / chase / flee); battle + mini shots still own f.tgt / poses
+    ai:'wander', aiT:rand(.4, 1.8), aiId:null, wx:null, wy:null, lastHitId:null, lastHitT:-99};   // mode: ring | enter | exit | rise | hover | off
 }
 agents.forEach(makeFighter);
 // initial roster: top ARENA_MAX stand in the ring; our own agent hovers above the ring if outside
@@ -916,19 +918,151 @@ function shotPower(id, mag) {
 const STATCOL = {earnings:'#ffcf3f', grading:'#3dffa0', answers:'#7cf3ff', response:'#ff9cf0', cleared:'#ffb020'};
 
 // ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  P H Y S I C S  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-// Springs to home, momentum collisions and stat-driven shoves.
+// Ambient brawl: wander the whole floor, chase / flee, multi-pair smacks.
+// Battle staging still springs to f.tgt; main takeover / mini shots unchanged.
 //
 let ropeHit = 0;
+const bumpAt = Object.create(null);   // idle top-ten smack cooldowns (pairKey -> simT)
+const preferReduceMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 const inBattle = f => !!battle && (battle.A === f || battle.B === f);
+const inMiniF = f => minis.some(m => m.A === f || m.B === f);
+// random point on the arena floor (full ellipse, not home slots) so the pit uses the whole ring
+function ringFloorPoint(pad) {
+  const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * (pad == null ? .86 : pad);
+  return {x:cx + Math.cos(a) * rx * r, y:cy + Math.sin(a) * ry * r};
+}
+function setWander(f, tMin, tMax) {
+  const p = ringFloorPoint(.88); f.ai = 'wander'; f.aiId = null; f.wx = p.x; f.wy = p.y; f.aiT = rand(tMin == null ? 1.1 : tMin, tMax == null ? 2.6 : tMax);
+}
+function setChase(f, foe, tMin, tMax) {
+  f.ai = 'chase'; f.aiId = foe.id; f.wx = foe.x; f.wy = foe.y; f.aiT = rand(tMin == null ? 1.4 : tMin, tMax == null ? 2.8 : tMax);
+}
+function setFlee(f, from, tMin, tMax) {
+  // run toward the far side of the ring from the threat (or a random far point)
+  const ox = from ? from.x : f.x, oy = from ? from.y : f.y;
+  const dx = f.x - ox, dy = f.y - oy;
+  const ang = Math.atan2(dy / (ry || 1), dx / (rx || 1)) + rand(-.55, .55);
+  const r = rand(.62, .9);
+  f.ai = 'flee'; f.aiId = from ? from.id : null;
+  f.wx = cx + Math.cos(ang) * rx * r; f.wy = cy + Math.sin(ang) * ry * r;
+  f.aiT = rand(tMin == null ? .7 : tMin, tMax == null ? 1.5 : tMax);
+  f.vx += (f.wx - f.x) * .9; f.vy += (f.wy - f.y) * .7;
+}
+// pick a brawl foe: avoid sticky same-pair trading; prefer a spread of targets across the ring
+function pickBrawlFoe(f, list) {
+  let best = null, bestScore = -1e9;
+  for (const g of list) {
+    if (g === f || inBattle(g) || inMiniF(g)) continue;
+    const d = Math.hypot(g.x - f.x, (g.y - f.y) * 1.8);
+    let score = 40 + Math.random() * 55;
+    // soft preference for mid-range (chase across the floor) over glued nearest neighbor
+    if (d < rx * .18) score -= 35;
+    else if (d < rx * .45) score += 25;
+    else if (d < rx * .95) score += 40;
+    else score += 10;
+    if (f.lastHitId === g.id && simT - (f.lastHitT || -99) < 3.2) score -= 70;   // break sticky duels
+    if (g.lastHitId === f.id && simT - (g.lastHitT || -99) < 3.2) score -= 35;
+    if (g.ai === 'flee' && g.aiId === f.id) score += 15;   // keep a chase beat alive briefly
+    if (score > bestScore) { bestScore = score; best = g; }
+  }
+  return best;
+}
+function noteBrawlHit(hitter, victim) {
+  hitter.lastHitId = victim.id; hitter.lastHitT = simT;
+  victim.lastHitId = hitter.id; victim.lastHitT = simT;
+  // after a smack: victim bolts; hitter hunts someone else or roams — not the same rematch
+  setFlee(victim, hitter, .65, 1.35);
+  if (Math.random() < .55) {
+    const nxt = pickBrawlFoe(hitter, agents.map(a => F[a.id]).filter(x => x.mode === 'ring'));
+    if (nxt && nxt !== victim) setChase(hitter, nxt, 1.1, 2.4);
+    else setWander(hitter, .8, 1.8);
+  } else setWander(hitter, .6, 1.6);
+}
 function physics(dt) {
   const list = agents.map(a => F[a.id]).filter(f => f.mode === 'ring');   // only settled ring fighters move / shove / collide
+  const calm = preferReduceMotion();
   for (const f of list) {
-    const a = byId[f.id], inB = inBattle(f);
-    const tx = f.tgt ? f.tgt.x : f.hx, ty = f.tgt ? f.tgt.y : f.hy;
-    const k = f.tgt ? (f.hurtT > 0 ? 9 : 26) : 5.5;
-    f.vx += (tx - f.x) * k * dt; f.vy += (ty - f.y) * k * dt;
-    // shove: stamina = grading record, momentum = earnings growth
-    if (!inB && started) {
+    const a = byId[f.id], inB = inBattle(f), busy = inB || inMiniF(f) || !!f.tgt;
+    // --- attraction: battle tgt wins; else ambient AI waypoint (full-ring), not sticky home slots ---
+    if (f.tgt) {
+      const tx = f.tgt.x, ty = f.tgt.y, k = f.hurtT > 0 ? 9 : 26;
+      f.vx += (tx - f.x) * k * dt; f.vy += (ty - f.y) * k * dt;
+    } else if (calm || !started) {
+      // reduced motion / pre-start: soft home park (no chase/flee frenzy)
+      f.vx += (f.hx - f.x) * 3.6 * dt; f.vy += (f.hy - f.y) * 3.6 * dt;
+    } else {
+      if (f.wx == null || f.wy == null) setWander(f);
+      // AI brain (skipped while a main/mini event owns the fighter)
+      if (!busy && started) {
+        f.aiT -= dt;
+        if (f.ai === 'chase' && f.aiId) {
+          const foe = F[f.aiId];
+          if (!foe || foe.mode !== 'ring' || inBattle(foe)) { setWander(f); }
+          else {
+            f.wx = foe.x; f.wy = foe.y;
+            const d = Math.hypot(foe.x - f.x, (foe.y - f.y) * 1.8);
+            if (d < unitOf(f) * 7.5 + unitOf(foe) * 7.5 && f.pose !== 'shove' && f.pose !== 'attack') {
+              // one engage lunge; contact bump + noteBrawlHit then split them across the ring
+              const dx = foe.x - f.x, dy = foe.y - f.y, dd = Math.hypot(dx, dy) || 1;
+              const stamina = gradeScore(a), momentum = clamp(a.growth * 12, 0, 1.6);
+              const pw = 170 + 238 * stamina * (.4 + momentum);
+              f.vx += dx / dd * pw; f.vy += dy / dd * pw * .72; f.face = dx > 0 ? 1 : -1;
+              f.pose = 'shove'; f.poseT = .42;
+            }
+          }
+        } else if (f.ai === 'flee' && f.aiId) {
+          const threat = F[f.aiId];
+          if (threat && threat.mode === 'ring') {
+            // keep updating flee point away from pursuer so they actually run the ring
+            const dx = f.x - threat.x, dy = f.y - threat.y, d = Math.hypot(dx, dy) || 1;
+            if (d < rx * .35) {
+              const ang = Math.atan2(dy / (ry || 1), dx / (rx || 1)) + rand(-.4, .4);
+              const r = rand(.7, .92);
+              f.wx = cx + Math.cos(ang) * rx * r; f.wy = cy + Math.sin(ang) * ry * r;
+            }
+          }
+        }
+        if (f.aiT <= 0) {
+          const roll = Math.random();
+          if (f.ai === 'flee' || roll < .38) {
+            setWander(f);
+          } else if (roll < .78) {
+            const foe = pickBrawlFoe(f, list);
+            if (foe) setChase(f, foe); else setWander(f);
+          } else {
+            // spontaneous sprint to a far floor point (breaks clusters even without a chase)
+            const far = ringFloorPoint(.9);
+            const dx = far.x - f.x, dy = far.y - f.y, d = Math.hypot(dx, dy) || 1;
+            f.ai = 'wander'; f.aiId = null; f.wx = far.x; f.wy = far.y; f.aiT = rand(1.0, 2.2);
+            f.vx += dx / d * rand(119, 204); f.vy += dy / d * rand(85, 153);
+            f.face = dx > 0 ? 1 : -1; f.pose = 'shove'; f.poseT = .35;
+          }
+        }
+      }
+      const k = f.ai === 'chase' ? 8.1 : f.ai === 'flee' ? 7.2 : 3.1;
+      f.vx += (f.wx - f.x) * k * dt; f.vy += (f.wy - f.y) * k * dt;
+      // tiny home bias so rank spots still mean something, but never pin the brawl
+      f.vx += (f.hx - f.x) * .55 * dt; f.vy += (f.hy - f.y) * .55 * dt;
+    }
+    // legacy shove timer: opportunistic lunges toward a diversified foe (not always nearest)
+    if (!busy && started && !calm) {
+      f.shoveT -= dt;
+      if (f.shoveT <= 0) {
+        const stamina = gradeScore(a), momentum = clamp(a.growth * 12, 0, 1.6);
+        f.shoveT = rand(1.4, 3.6) / (.55 + stamina);
+        const tgt = pickBrawlFoe(f, list);
+        if (tgt) {
+          const d = Math.hypot(tgt.x - f.x, (tgt.y - f.y) * 1.8);
+          if (d < rx * 1.15) {
+            if (d > rx * .32 && f.ai !== 'chase') setChase(f, tgt, 1.2, 2.5);
+            else {
+              const dx = tgt.x - f.x, dy = tgt.y - f.y, dd = Math.hypot(dx, dy) || 1, pw = 145 + 230 * stamina * (.4 + momentum);
+              f.vx += dx / dd * pw; f.vy += dy / dd * pw * .7; f.face = dx > 0 ? 1 : -1; f.pose = 'shove'; f.poseT = .45;
+            }
+          }
+        }
+      }
+    } else if (!busy && started && calm) {
       f.shoveT -= dt;
       if (f.shoveT <= 0) {
         const stamina = gradeScore(a), momentum = clamp(a.growth * 12, 0, 1.6);
@@ -936,7 +1070,7 @@ function physics(dt) {
         let tgt = null, bd = 1e9;
         for (const g of list) { if (g === f || inBattle(g)) continue; const d = Math.hypot(g.x - f.x, (g.y - f.y) * 1.8); if (d < bd) { bd = d; tgt = g; } }
         if (tgt && bd < rx * .9) {
-          const dx = tgt.x - f.x, dy = tgt.y - f.y, d = Math.hypot(dx, dy) || 1, pw = 160 + 260 * stamina * (.4 + momentum);
+          const dx = tgt.x - f.x, dy = tgt.y - f.y, d = Math.hypot(dx, dy) || 1, pw = 136 + 221 * stamina * (.4 + momentum);
           f.vx += dx / d * pw; f.vy += dy / d * pw * .7; f.face = dx > 0 ? 1 : -1; f.pose = 'shove'; f.poseT = .45;
         }
       }
@@ -965,8 +1099,32 @@ function physics(dt) {
       }
     }
   }
+  // idle bump/smack: nearby top-ten contact FX even when ranks are stable / lagging (not only overtakes).
+  // Cooldown keeps it punchy; prefers-reduced-motion skips the FX. Takeover hits (battle / mini shots) unchanged.
+  // On contact, noteBrawlHit forces flee + new chase so the same two do not glue together.
+  if (started && list.length > 1 && !calm) {
+    for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
+      const p = list[i], q = list[j];
+      if (inBattle(p) || inBattle(q) || inMiniF(p) || inMiniF(q)) continue;
+      const rp = unitOf(p) * 6.2, rq = unitOf(q) * 6.2;
+      const dx = q.x - p.x, dy = (q.y - p.y) * 1.8, d = Math.hypot(dx, dy) || .01, r = rp + rq;
+      if (d > r * 1.12) continue;   // only when nearly touching
+      const key = p.id < q.id ? p.id + '|' + q.id : q.id + '|' + p.id;
+      if (simT - (bumpAt[key] || -99) < 1.15) continue;
+      bumpAt[key] = simT;
+      const nx = dx / d, ny = dy / d, impul = 120 + Math.random() * 70;
+      p.vx -= nx * impul; p.vy -= ny * impul * .7; q.vx += nx * impul; q.vy += ny * impul * .7;
+      let hitter = p, victim = q; if (Math.random() < .5) { hitter = q; victim = p; }
+      hitter.pose = 'attack'; hitter.poseT = .24; hitter.face = (victim.x - hitter.x) >= 0 ? 1 : -1;
+      victim.hurtT = Math.max(victim.hurtT, .28); victim.wobble = Math.max(victim.wobble, .4);   // poseOf uses hurtT
+      const mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
+      burst(mx, my - 5, 7, ['#cfc6ff', '#8a7fd0', '#fff'], 90, .32, 100, 1.8); sfx.shove();
+      noteBrawlHit(hitter, victim);
+    }
+  }
   for (const f of list) {
-    const damp = Math.exp(-3.2 * dt); f.vx *= damp; f.vy *= damp;
+    const dampK = (!calm && (f.ai === 'chase' || f.ai === 'flee')) ? 2.15 : 3.2;
+    const damp = Math.exp(-dampK * dt); f.vx *= damp; f.vy *= damp;
     f.x += f.vx * dt; f.y += f.vy * dt;
     const ex = (f.x - cx) / (rx * .93), ey = (f.y - cy) / (ry * .93), e = Math.hypot(ex, ey);
     if (e > 1) {   // ropes bounce fighters back
@@ -1005,9 +1163,10 @@ function physics(dt) {
    Every source below answered with Access-Control-Allow-Origin: * (checked 2026-10-21),
    so the page polls them straight from the browser. POAScan asks clients to poll at
    most once a minute, so the default poll is 60s (?poll=<s>, clamped to 60..3600).
-     balances + rank : POAScan /api/v1/leaderboard/richlist   (src = minepoa.com /api/agents)
-                       fallback POAScan /api/v1/richlist -> minepoa.com /api/agents
-                       -> ./live-data.json (written by snapshot.py, optional)
+     balances + rank : RACE minepoa.com /api/agents (fast) || POAScan /api/v1/leaderboard/richlist
+                       (PoAScan aborts ~6s — it hangs/503s often); ring fills from whichever answers first.
+                       fallback POAScan /api/v1/richlist -> ./live-data.json (snapshot.py, optional)
+                       CONNECTING escalates to LIVE·OFFLINE within ~4s; never auto-DEMO.
      names           : POAScan leaderboard names (census / forum), /address forum_name,
                        else a shortened address
      answers, grades : POAScan /api/v1/leaderboard/active
@@ -1054,7 +1213,7 @@ const Net = (() => {
 const Live = (() => {
   const PS = 'https://poascan.io/api/v1', MP = 'https://minepoa.com';
   const DSX_ADDR = 'poa12smF3UW3KjTvk3HoewMKqaSpwizJ5XikfhFwq5a6Exuf';
-  const cfg = {pollMs:60000, track:30, detailTtlMs:300000, slowEvery:5, timeoutMs:25000, snapshotUrl:'live-data.json', autoLive:true, anchorWarnSec:3600,
+  const cfg = {pollMs:60000, track:30, detailTtlMs:300000, slowEvery:5, timeoutMs:8000, psTimeoutMs:6000, connectDeadlineMs:4000, snapshotUrl:'live-data.json', autoLive:true, anchorWarnSec:3600,
                  maxBytes:24e6, maxRows:20000, maxBackoffMs:900000};
   const st = {ok:false, loading:true, polls:0, lastAt:0, nextAt:0, sources:{}, errors:[], rows:null, rank:{}, total:0, closed:0,
               dirty:false, names:{}, tabNames:{}, info:{}, act:{}, gr:{}, streak:{}, detail:{}, epochStart:{}, net:{}, timer:null,
@@ -1072,10 +1231,12 @@ const Live = (() => {
   const maxOf = (list, f) => list.reduce((m, x) => { const v = f(x); return v != null && v > m ? v : m; }, -Infinity);
 
   const memo = new Map();   // last good reply per URL (served instead of re-fetching inside the per-endpoint interval)
-  async function get(key, url) {
+  async function get(key, url, timeoutMs) {
     try { Net.gate(url); }   // global request budget + per-endpoint minimum interval
     catch (e) { if (memo.has(url)) return memo.get(url); st.sources[key] = {ok:false, err:e.message, url, at:Date.now()}; throw e; }   // over budget: reuse the last good reply
-    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), cfg.timeoutMs), t0 = performance.now();
+    // PoAScan often hangs / 503s (summary ~30s+); keep its abort short so minepoa can fill the ring
+    const toMs = timeoutMs != null ? timeoutMs : (/^https:\/\/poascan\.io\//.test(url) ? cfg.psTimeoutMs : cfg.timeoutMs);
+    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), toMs), t0 = performance.now();
     try {
       const r = await fetch(url, {signal:ctl.signal, cache:'no-store', credentials:'omit', referrerPolicy:'no-referrer'});
       if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -1207,26 +1368,58 @@ const Live = (() => {
   async function poll() {
     if (st.inflight) return; st.inflight = true;
     const slow = st.polls % cfg.slowEvery === 0;
+    // Leave CONNECTING within a few seconds (file:// / hung PoAScan) — honest OFFLINE, never auto-DEMO
+    const connectWatch = setTimeout(() => {
+      if (!st.ok && st.loading) { st.loading = false; labelMode(); statusLine(); if (typeof renderUI === 'function') renderUI(); }
+    }, cfg.connectDeadlineMs);
     try {
       let s = {};
-      [s.rlTab, s.summary, s.pending, s.active, s.graders, s.anchors] = await Promise.all([
-        tryGet('leaderboard/richlist', PS + '/leaderboard/richlist'), tryGet('summary', PS + '/summary'),
-        tryGet('pending-by-epoch', PS + '/pending-by-epoch'), tryGet('leaderboard/active', PS + '/leaderboard/active'),
-        tryGet('leaderboard/graders', PS + '/leaderboard/graders'), tryGet('anchors', PS + '/anchors')]);
-      if (slow) [s.holders, s.streaks, s.forumTab] = await Promise.all([tryGet('leaderboard/holders', PS + '/leaderboard/holders'),
-        tryGet('agents/streaks', PS + '/agents/streaks'), tryGet('leaderboard/forum', PS + '/leaderboard/forum')]);
-      if (!hasBalances(s)) { s.richlist = await tryGet('richlist', PS + '/richlist'); if (!hasBalances(s)) s.agents = await tryGet('minepoa /api/agents', MP + '/api/agents'); }
-      if (!st.epochsLoaded || (s.summary && s.summary.epoch && !st.epochStart[s.summary.epoch.n])) s.epochs = await tryGet('epochs', PS + '/epochs');
-      if (!st.epochsLoaded && !s.epochs && !s.summary) s.mpEpochs = await tryGet('minepoa /api/epochs', MP + '/api/epochs');
-      st.usingSnapshot = false;
+      const push = () => {   // populate / upgrade the ring as soon as any balance source answers
+        if (!hasBalances(s)) return;
+        st.usingSnapshot = false;
+        ingest(s);
+        apply(false);
+      };
+      // CRITICAL: race minepoa (fast, CORS *) with PoAScan richlist — do NOT wait on summary/etc.
+      const pBal = Promise.all([
+        tryGet('leaderboard/richlist', PS + '/leaderboard/richlist').then(j => { if (j) { s.rlTab = j; push(); } }),
+        tryGet('minepoa /api/agents', MP + '/api/agents').then(j => { if (j) { s.agents = j; push(); } }),
+      ]);
+      // Enrichment: best-effort, short PoAScan aborts; must not block the ring
+      const pEnr = Promise.all([
+        tryGet('summary', PS + '/summary').then(j => { if (j) s.summary = j; }),
+        tryGet('pending-by-epoch', PS + '/pending-by-epoch').then(j => { if (j) s.pending = j; }),
+        tryGet('leaderboard/active', PS + '/leaderboard/active').then(j => { if (j) s.active = j; }),
+        tryGet('leaderboard/graders', PS + '/leaderboard/graders').then(j => { if (j) s.graders = j; }),
+        tryGet('anchors', PS + '/anchors').then(j => { if (j) s.anchors = j; }),
+      ]);
+      await pBal;
+      if (!hasBalances(s)) { s.richlist = await tryGet('richlist', PS + '/richlist'); push(); }
       if (!hasBalances(s)) {   // nothing reachable from the browser: optional local snapshot (snapshot.py)
         const snap = await loadSnapshot();
-        if (snap && snap.sources && hasBalances(snap.sources)) { s = snap.sources; st.usingSnapshot = true; st.snapAt = snap.fetched_at; }
+        if (snap && snap.sources && hasBalances(snap.sources)) {
+          for (const k of Object.keys(s)) delete s[k];   // mutate in place — pEnr closures still point at s
+          Object.assign(s, snap.sources);
+          st.usingSnapshot = true; st.snapAt = snap.fetched_at;
+          ingest(s); apply(false);
+        }
       }
-      if (!hasBalances(s)) throw new Error('no balance source reachable');
-      ingest(s);
-      if (!st.usingSnapshot) await details();
-      apply(false);
+      if (!hasBalances(s) && !st.ok) throw new Error('no balance source reachable');
+      await pEnr.catch(() => {});
+      if (slow) {
+        const [holders, streaks, forumTab] = await Promise.all([
+          tryGet('leaderboard/holders', PS + '/leaderboard/holders'),
+          tryGet('agents/streaks', PS + '/agents/streaks'),
+          tryGet('leaderboard/forum', PS + '/leaderboard/forum')]);
+        if (holders) s.holders = holders; if (streaks) s.streaks = streaks; if (forumTab) s.forumTab = forumTab;
+      }
+      if (!st.epochsLoaded || (s.summary && s.summary.epoch && !st.epochStart[s.summary.epoch.n])) s.epochs = await tryGet('epochs', PS + '/epochs');
+      if (!st.epochsLoaded && !s.epochs && !s.summary) s.mpEpochs = await tryGet('minepoa /api/epochs', MP + '/api/epochs');
+      if (hasBalances(s)) {
+        ingest(s);
+        if (!st.usingSnapshot) await details();
+        apply(false);
+      }
       st.fails = 0;
     } catch (e) {
       st.fails++;
@@ -1234,7 +1427,7 @@ const Live = (() => {
       log(`<span style="color:#ffb020">live poll failed (${esc(String((e && e.message) || e).slice(0, 160))})${liveMode ? ': keeping last data' : ''}</span>`);
       if (liveMode) updateNetwork({apiHealth:'down'});
       st.loading = false; labelMode(); statusLine(); if (typeof renderUI === 'function') renderUI();
-    } finally { st.inflight = false; st.polls++; schedule(Math.min(cfg.maxBackoffMs, cfg.pollMs * Math.pow(2, Math.min(st.fails, 6)))); }   // exponential backoff after failed polls
+    } finally { clearTimeout(connectWatch); st.inflight = false; st.polls++; schedule(Math.min(cfg.maxBackoffMs, cfg.pollMs * Math.pow(2, Math.min(st.fails, 6)))); }   // exponential backoff after failed polls
   }
   function schedule(ms) { clearTimeout(st.timer); st.nextAt = Date.now() + ms; st.timer = setTimeout(poll, ms); }
   return {
@@ -2133,11 +2326,11 @@ $('#bSnd').onclick = () => {
 };
 function start() {
   if (started) return; started = true; $('#startOv').style.display = 'none';
-  if (liveMode) { demoOn = false; labelMode(); log('<span style="color:#3dffa0">● LIVE arena started</span>: real overtakes fire as the ledger changes'); }
-  else { setDemo(true); demoTimer = .5; log('<em>Demo started</em>: sample data, simulated overtakes'); }
+  if (liveMode) { demoOn = false; labelMode(); log('<span style="color:#3dffa0">● LIVE arena</span>: real overtakes fire as the ledger changes'); }
+  else { setDemo(true); demoTimer = .5; log('<em>Demo running</em>: sample data, simulated overtakes'); }
   floatText(cx, cy - 20, 'FIGHT!', '#ffe066', 46, 1.6); shake = 6; sfx.bell();
 }
-$('#startBtn').onclick = start;
+$('#startBtn').onclick = start;   // optional — page auto-starts; button only if overlay is shown again
 window.addEventListener('resize', resize);
 if (window.ResizeObserver) new ResizeObserver(() => { const r = cv.getBoundingClientRect(); if (Math.abs(r.width - W) > .5 || Math.abs(r.height - H) > .5) resize(); }).observe(cv);   // layout shifts (banner, feed) without a window resize
 window.addEventListener('keydown', e => { if (e.key === 'Escape' && selected) { select(null); return; } if (e.key === ' ' && e.target === document.body) { e.preventDefault(); if (!started) start(); forceOvertake(); } });
@@ -2439,8 +2632,8 @@ const EGG = (() => {
      });
    }},
 
-  // ---- EGG 6 · FOUNDERS MONUMENT: obelisk at the arena edge, hover the capstone gem
-  {id:'founders', season:1, title:'FOUNDERS MONUMENT', trigger:'hover the gem on the obelisk capstone', effect:'10 open founder seats; reveals the etched name of the first builder',
+  // ---- EGG 6 · GENESIS TEN MONUMENT: obelisk at the arena edge, hover the capstone gem (egg id stays founders for hash)
+  {id:'founders', season:1, title:'GENESIS TEN MONUMENT', trigger:'hover the gem on the obelisk capstone', effect:'10 open charter seats; gem reveals DIGIVATAR',
    install(K) {
      // layout in units (u = integer pixel scale, picked per resize so the whole obelisk stays clear of the floating platform)
      // rows: [top, bottom, half-width] of the silhouette, used by the fit test against platformUnder()
@@ -2465,9 +2658,9 @@ const EGG = (() => {
        R(CX - 39, 19, 78, 18, '#000'); R(CX - 38, 20, 76, 16, '#1d1840'); R(CX - 38, 20, 76, 1, '#4a3f86'); R(CX - 38, 35, 76, 1, '#15112b');
        for (let y = 4; y < 19; y++) { const w = Math.max(2, Math.round((y - 3) / 15 * 58)), x = Math.round(CX - w / 2); R(x - 1, y, w + 2, 1, '#000'); R(x, y, w, 1, y < 11 ? '#4a3f86' : '#352c66'); R(x, y, 1, 1, '#6a5fb0'); }
        R(CX - 2, 1, 4, 3, '#c98a00');   // capstone gem (the hover spot)
-       // 10 open founder seats
+       // 10 open charter seats (baked SEAT OPEN — not live top-ten names)
        for (let i = 0; i < 10; i++) { const y = 38 + i * 10; R(CX - 30, y, 60, 9, '#120e26'); R(CX - 30, y + 9, 60, 1, '#3a3170'); ptext(g, 'SEAT OPEN', CX * u, (y + 1) * u, u, '#9189cf', {align:'center', shadow:'#05030c', sd:u}); }
-       ptext(g, 'PROOF PIT · FOUNDERS', CX * u, 146 * u, u, '#ffcf3f', {align:'center', shadow:'#5a3a00', sd:u});
+       ptext(g, 'GENESIS TEN', CX * u, 146 * u, u, '#ffcf3f', {align:'center', shadow:'#5a3a00', sd:u});
        g.strokeStyle = 'rgba(255,79,216,.4)'; g.lineWidth = 1; g.strokeRect(u * 1 + .5, u * 143 + .5, (UW - 2) * u - 1, 14 * u - 1);
        img = {c, dpr:DPR, u};
      };
@@ -2483,7 +2676,7 @@ const EGG = (() => {
        const gl = .5 + .5 * Math.sin(simT * 3); ctx.fillStyle = `rgba(255,224,102,${.3 + .5 * gl})`; ctx.fillRect(pos.x + (CX - 2) * u, pos.y + u, 4 * u, 3 * u);
        if (gl > .8) { ctx.fillStyle = `rgba(255,240,180,${(gl - .8) * 3})`; ctx.fillRect(pos.x + (CX - .5) * u, pos.y - 2 * u, u, 9 * u); ctx.fillRect(pos.x + (CX - 4) * u, pos.y + 2 * u, 8 * u, u); }   // twinkle
        if (reveal > 0) { ctx.globalAlpha = reveal; ctx.fillStyle = 'rgba(255,207,63,.16)'; ctx.fillRect(pos.x + (CX - 38) * u, pos.y + 20 * u, 76 * u, 16 * u);
-         ptext(ctx, 'HoOman', pos.x + CX * u, pos.y + 21 * u, 2 * u, '#ffe48a', {align:'center', shadow:'#2a1a00', sd:u}); ctx.globalAlpha = 1; }
+         ptext(ctx, 'DIGIVATAR', pos.x + CX * u, pos.y + 24 * u, u, '#ffe48a', {align:'center', shadow:'#2a1a00', sd:u}); ctx.globalAlpha = 1; }   // s=u so DIGIVATAR fits the collar (was HoOman at 2u)
      });
    }},
 
@@ -2570,6 +2763,7 @@ if (qMode === 'demo') { Live.cfg.autoLive = false; configureForum({postId: Forum
 else { loadRoster(Live.placeholder()); Object.assign(net, Live.netState()); configureForum({postId: Forum.cfg.postId != null ? Forum.cfg.postId : DEFAULT_THREAD, live:true, pollMs:30000}); renderUI(); }
 labelMode();
 Live.start();   // fetch real data; LIVE (default) rebuilds the roster when the first snapshot lands, DEMO stays on sample data
+start();        // live page: arena already running — no START click required (button remains as optional rejoin)
 requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); });
 
 // public API: plug live polling in here
