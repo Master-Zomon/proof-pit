@@ -54,7 +54,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-LZiNuIj5o51rXoFq4oyPqDtjLvGCtnSW9oY7xlF+zCE='; style-src 'unsafe-inline'; style-src-elem 'sha256-9dwbY0cLrV7QfsG0fvpMbnmeoAE3qBx68HcPZa66mUA='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-VcBkBVwdy/KxM/hThEAg79ZF0UfwFxsa2bx7LKNd1Co='; style-src 'unsafe-inline'; style-src-elem 'sha256-9dwbY0cLrV7QfsG0fvpMbnmeoAE3qBx68HcPZa66mUA='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" id="favicon" href="data:,">
@@ -497,8 +497,12 @@ const hoverGround = a => ({x:cx + Math.cos(a) * rx * .76, y:cy + Math.sin(a) * r
 const hoverAlt = () => ry * .48;
 const persp = y => clamp(.8 + .34 * (y - (cy - ry)) / (2 * ry), .72, 1.2);
 let maxE = 1;
-// POA balance is the supreme stat: size scales with balance and the #1 holder is boss-sized
-const unitOf = f => (2.4 + 2.1 * Math.sqrt(clamp(f.dispE / maxE, .02, 1))) * persp(f.y) * (f.boss || 1) * (f.scl == null ? 1 : f.scl);
+// POA balance is the supreme stat: size scales with balance and the #1 holder is boss-sized.
+// Narrow viewports (same 980px breakpoint as the stacked mobile layout) shrink the whole body:
+// sprite, aura, halo and boss all read unitOf, so the ring floor stays visible. Desktop stays 1.
+const NARROW_MQ = '(max-width: 980px)', FIGHTER_NARROW = .64;
+const fighterScale = () => (window.matchMedia && window.matchMedia(NARROW_MQ).matches) ? FIGHTER_NARROW : 1;
+const unitOf = f => (2.4 + 2.1 * Math.sqrt(clamp(f.dispE / maxE, .02, 1))) * persp(f.y) * (f.boss || 1) * (f.scl == null ? 1 : f.scl) * fighterScale();
 
 /* ---------------- particles / texts ---------------- */
 const parts = [], texts = [], motes = [], flashes = [];
@@ -920,6 +924,10 @@ const STATCOL = {earnings:'#ffcf3f', grading:'#3dffa0', answers:'#7cf3ff', respo
 // ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  P H Y S I C S  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
 // Ambient brawl: wander the whole floor, chase / flee, multi-pair smacks.
 // Battle staging still springs to f.tgt; main takeover / mini shots unchanged.
+// Springs were chase 8.1 / flee 7.2 / wander 3.1. Another ~25% cut so a phone can follow.
+// AMB_IMP scales lunge / shove / sprint the same way. The prefers-reduced-motion shove is not scaled.
+const AMB_SPRING = {chase:6.1, flee:5.4, wander:2.3};
+const AMB_IMP = .75;
 //
 let ropeHit = 0;
 const bumpAt = Object.create(null);   // idle top-ten smack cooldowns (pairKey -> simT)
@@ -946,7 +954,7 @@ function setFlee(f, from, tMin, tMax) {
   f.ai = 'flee'; f.aiId = from ? from.id : null;
   f.wx = cx + Math.cos(ang) * rx * r; f.wy = cy + Math.sin(ang) * ry * r;
   f.aiT = rand(tMin == null ? .7 : tMin, tMax == null ? 1.5 : tMax);
-  f.vx += (f.wx - f.x) * .9; f.vy += (f.wy - f.y) * .7;
+  f.vx += (f.wx - f.x) * .9 * AMB_IMP; f.vy += (f.wy - f.y) * .7 * AMB_IMP;
 }
 // pick a brawl foe: avoid sticky same-pair trading; prefer a spread of targets across the ring
 function pickBrawlFoe(f, list) {
@@ -1005,7 +1013,7 @@ function physics(dt) {
               // one engage lunge; contact bump + noteBrawlHit then split them across the ring
               const dx = foe.x - f.x, dy = foe.y - f.y, dd = Math.hypot(dx, dy) || 1;
               const stamina = gradeScore(a), momentum = clamp(a.growth * 12, 0, 1.6);
-              const pw = 170 + 238 * stamina * (.4 + momentum);
+              const pw = (170 + 238 * stamina * (.4 + momentum)) * AMB_IMP;
               f.vx += dx / dd * pw; f.vy += dy / dd * pw * .72; f.face = dx > 0 ? 1 : -1;
               f.pose = 'shove'; f.poseT = .42;
             }
@@ -1034,12 +1042,12 @@ function physics(dt) {
             const far = ringFloorPoint(.9);
             const dx = far.x - f.x, dy = far.y - f.y, d = Math.hypot(dx, dy) || 1;
             f.ai = 'wander'; f.aiId = null; f.wx = far.x; f.wy = far.y; f.aiT = rand(1.0, 2.2);
-            f.vx += dx / d * rand(119, 204); f.vy += dy / d * rand(85, 153);
+            f.vx += dx / d * rand(119, 204) * AMB_IMP; f.vy += dy / d * rand(85, 153) * AMB_IMP;
             f.face = dx > 0 ? 1 : -1; f.pose = 'shove'; f.poseT = .35;
           }
         }
       }
-      const k = f.ai === 'chase' ? 8.1 : f.ai === 'flee' ? 7.2 : 3.1;
+      const k = f.ai === 'chase' ? AMB_SPRING.chase : f.ai === 'flee' ? AMB_SPRING.flee : AMB_SPRING.wander;
       f.vx += (f.wx - f.x) * k * dt; f.vy += (f.wy - f.y) * k * dt;
       // tiny home bias so rank spots still mean something, but never pin the brawl
       f.vx += (f.hx - f.x) * .55 * dt; f.vy += (f.hy - f.y) * .55 * dt;
@@ -1056,7 +1064,7 @@ function physics(dt) {
           if (d < rx * 1.15) {
             if (d > rx * .32 && f.ai !== 'chase') setChase(f, tgt, 1.2, 2.5);
             else {
-              const dx = tgt.x - f.x, dy = tgt.y - f.y, dd = Math.hypot(dx, dy) || 1, pw = 145 + 230 * stamina * (.4 + momentum);
+              const dx = tgt.x - f.x, dy = tgt.y - f.y, dd = Math.hypot(dx, dy) || 1, pw = (145 + 230 * stamina * (.4 + momentum)) * AMB_IMP;
               f.vx += dx / dd * pw; f.vy += dy / dd * pw * .7; f.face = dx > 0 ? 1 : -1; f.pose = 'shove'; f.poseT = .45;
             }
           }
@@ -1112,7 +1120,7 @@ function physics(dt) {
       const key = p.id < q.id ? p.id + '|' + q.id : q.id + '|' + p.id;
       if (simT - (bumpAt[key] || -99) < 1.15) continue;
       bumpAt[key] = simT;
-      const nx = dx / d, ny = dy / d, impul = 120 + Math.random() * 70;
+      const nx = dx / d, ny = dy / d, impul = (120 + Math.random() * 70) * AMB_IMP;
       p.vx -= nx * impul; p.vy -= ny * impul * .7; q.vx += nx * impul; q.vy += ny * impul * .7;
       let hitter = p, victim = q; if (Math.random() < .5) { hitter = q; victim = p; }
       hitter.pose = 'attack'; hitter.poseT = .24; hitter.face = (victim.x - hitter.x) >= 0 ? 1 : -1;
@@ -1827,8 +1835,8 @@ function drawFighterBase(f, t, u) {
     ag.addColorStop(0, `rgba(255,207,63,${.32 + .08 * Math.sin(t * 4)})`); ag.addColorStop(1, 'rgba(255,207,63,0)');
     ctx.fillStyle = ag; ctx.fillRect(f.x - 15 * u, f.y - 23 * u, 30 * u, 30 * u);
     for (let i = 0; i < 6; i++) {
-      const an = t * 1.8 + i * Math.PI / 3, ox = Math.cos(an) * 9 * u, oy = Math.sin(an) * 2.6 * u;
-      ctx.fillStyle = Math.sin(an) > 0 ? '#ffe066' : 'rgba(255,207,63,.45)'; ctx.fillRect(f.x + ox - 2, f.y - 8 * u + oy - 2 - (i % 2) * 6 * u, 4, 4);
+      const an = t * 1.8 + i * Math.PI / 3, ox = Math.cos(an) * 9 * u, oy = Math.sin(an) * 2.6 * u, cs = 4 * fighterScale();
+      ctx.fillStyle = Math.sin(an) > 0 ? '#ffe066' : 'rgba(255,207,63,.45)'; ctx.fillRect(f.x + ox - cs / 2, f.y - 8 * u + oy - cs / 2 - (i % 2) * 6 * u, cs, cs);
     }
     ctx.globalCompositeOperation = 'source-over';
   }
@@ -1847,7 +1855,7 @@ function drawLabels(f, t, u, dt) {
     ctx.fillStyle = '#ff9cf0'; ctx.fillText(lab, x, y0 + 8);
     ctx.font = '9px ui-monospace,monospace'; ctx.fillStyle = '#ffe48a'; ctx.fillText(liveMode && !Live.ok() ? a.name + ' · waiting for the ledger' : (a.id === PINNED_ID ? a.name + ' · ' : '') + '◆ ' + fmt(f.dispE) + ' POA · scouting', x, y0 + 23);
   } else {
-  if (r === 1) { const c0 = f.y - 20 * u - 6 + Math.sin(t * 3) * 2; ctx.fillStyle = '#ffcf3f'; ctx.beginPath(); ctx.moveTo(x - 10, c0 + 6); ctx.lineTo(x - 10, c0 - 4); ctx.lineTo(x - 5, c0 + 1); ctx.lineTo(x, c0 - 7); ctx.lineTo(x + 5, c0 + 1); ctx.lineTo(x + 10, c0 - 4); ctx.lineTo(x + 10, c0 + 6); ctx.fill(); ctx.fillStyle = '#ff4057'; ctx.fillRect(x - 1.5, c0 + 1, 3, 3); }
+  if (r === 1) { const cs = fighterScale(), c0 = f.y - 20 * u - 6 * cs + Math.sin(t * 3) * 2; ctx.save(); ctx.translate(x, c0); ctx.scale(cs, cs); ctx.fillStyle = '#ffcf3f'; ctx.beginPath(); ctx.moveTo(-10, 6); ctx.lineTo(-10, -4); ctx.lineTo(-5, 1); ctx.lineTo(0, -7); ctx.lineTo(5, 1); ctx.lineTo(10, -4); ctx.lineTo(10, 6); ctx.fill(); ctx.fillStyle = '#ff4057'; ctx.fillRect(-1.5, 1, 3, 3); ctx.restore(); }
   ctx.font = '700 11px ui-monospace,Menlo,monospace';
   const nw = ctx.measureText(a.name).width, bx = x - nw / 2 - 12;
   ctx.fillStyle = r === 1 ? '#ffcf3f' : r === 2 ? '#d9e2f2' : r === 3 ? '#e09a5a' : '#2a2450';
@@ -1969,7 +1977,50 @@ function drawTexts(dt) {
   }
   ctx.globalAlpha = 1;
 }
-let hudCorner = null, ringTagX = Infinity;   // bottom-right monument rect (set by the pit layer) + left edge of the RING tag
+let hudCorner = null;   // bottom-right monument rect (set by the pit layer)
+const hudOverlap = (a, b, pad) => !!(a && b && a.x < b.x + b.w + pad && a.x + a.w + pad > b.x && a.y < b.y + b.h + pad && a.y + a.h + pad > b.y);
+function ringTagGeom() {
+  ctx.font = '700 10px ui-monospace,monospace';
+  const outN = liveMode ? Math.max(0, Live.total() - ARENA_MAX) : agents.filter(a => !inTop(a.id)).length;
+  const txt = `RING: TOP ${ARENA_MAX} BY POA` + (outN ? `  ·  +${outN} MORE` : ''), w = ctx.measureText(txt).width + 14, y = H - 34, h = 20;
+  const hc = hudCorner, right = hc && hc.x < W - 12 && hc.y + hc.h > y && hc.y < y + h ? hc.x - 8 : W - 12;
+  return {txt, outN, x:right - w, y, w, h};
+}
+// Stall warning and the RING tag share the bottom edge. On a narrow stage the tag already fills
+// the gap left of the Genesis Ten monument, so the warning moves fully above the tag and the tier key.
+function stallGeom(tag) {
+  if (!isStalled()) return null;
+  const full = `⚠ CHAIN ANCHOR STALLED · CHECKPOINT LAG ${fmtDur(net.anchorLagSec)}`;
+  const split = [`⚠ CHAIN ANCHOR STALLED`, `CHECKPOINT LAG ${fmtDur(net.anchorLagSec)}`];
+  const legend = {x:10, y:H - 64, w:196, h:56};
+  const gap = 8, hc = hudCorner;
+  const measure = (lines, px) => {
+    ctx.font = `900 ${px}px ui-monospace,monospace`;
+    const w = Math.max(...lines.map(s => ctx.measureText(s).width)), lineH = px + 4;
+    return {lines, px, w, h:lines.length * lineH, lineH};
+  };
+  const rightOf = (y0, h0) => (hc && hc.y < y0 + h0 && hc.y + hc.h > y0) ? Math.min(W - gap, hc.x - gap) : W - gap;
+  let m = measure([full], 13), y = H - 16 - m.h / 2, x = cx - m.w / 2;
+  const box = () => ({x, y, w:m.w, h:m.h});
+  const clear = () => x >= gap && x + m.w <= W - gap && !hudOverlap(box(), tag, 4) && !hudOverlap(box(), legend, 4) && !hudOverlap(box(), hc, 2);
+  if (!clear()) {
+    const gl = legend.x + legend.w + gap, gr = Math.min(tag.x - gap, rightOf(y, m.h));
+    if (m.w <= gr - gl) x = gl + (gr - gl - m.w) / 2;
+    else {
+      const floor = Math.min(tag.y, legend.y) - gap;
+      y = floor - m.h;
+      let spanR = rightOf(y, m.h), span = spanR - gap;
+      if (m.w > span) {
+        m = measure(split, 12); y = floor - m.h; spanR = rightOf(y, m.h); span = spanR - gap;
+        if (m.w > span) { const px = Math.max(9, Math.floor(12 * span / Math.max(1, m.w))); m = measure(split, px); y = floor - m.h; spanR = rightOf(y, m.h); span = spanR - gap; }
+      }
+      x = gap + Math.max(0, (span - m.w) / 2);
+      if (x + m.w > spanR) x = Math.max(gap, spanR - m.w);
+    }
+  }
+  if (hudOverlap(box(), tag, 2)) { y = tag.y - gap - m.h; x = Math.max(gap, Math.min(x, W - gap - m.w)); }
+  return {m, x, y};
+}
 function drawHUD(t, dt) {
   ctx.textBaseline = 'top'; ctx.textAlign = 'left';
   const left = Math.max(0, (net.epochEndsAt - now()) / 1000);
@@ -1989,13 +2040,10 @@ function drawHUD(t, dt) {
   ctx.fillText(`MAIN EVENTS QUEUED ${queue.length} · SHOTS ${miniQ.length + minis.length}`, W - 12, 14);
   const liveTxt = Live.ok() ? `LIVE ● PoA LEDGER · next poll ${Math.max(0, Math.ceil((Live.state.nextAt - Date.now()) / 1000))}s` : Live.loading() ? 'LIVE ● CONNECTING…' : 'LIVE ● OFFLINE · RETRYING';
   ctx.fillText(liveMode ? (started ? liveTxt : 'LIVE DATA · PRESS START') : started ? (demoOn ? 'DEMO ▶ LIVE SIM · SAMPLE DATA' : 'DEMO ❚❚ PAUSED') : 'PRESS START', W - 12, 28);
-  const outN = liveMode ? Math.max(0, Live.total() - ARENA_MAX) : agents.filter(a => !inTop(a.id)).length;   // ring shows top ARENA_MAX only
-  ctx.font = '700 10px ui-monospace,monospace'; ctx.textAlign = 'right';
-  const bTxt = `RING: TOP ${ARENA_MAX} BY POA` + (outN ? `  ·  +${outN} MORE` : ''), bw = ctx.measureText(bTxt).width + 14;
-  const hc = hudCorner, bR = hc && hc.x < W - 12 && hc.y + hc.h > H - 34 ? hc.x - 8 : W - 12;   // never on top of the corner monument
-  ringTagX = bR - bw;
-  ctx.fillStyle = 'rgba(8,6,20,.75)'; ctx.fillRect(bR - bw, H - 34, bw, 20); ctx.strokeStyle = outN ? '#ff4fd8' : '#3b3280'; ctx.strokeRect(bR - bw + .5, H - 33.5, bw - 1, 19);
-  ctx.fillStyle = outN ? '#ff9cf0' : '#8781b6'; ctx.fillText(bTxt, bR - 7, H - 29);
+  const tag = ringTagGeom();   // ring shows top ARENA_MAX only; kept clear of the corner monument
+  ctx.textAlign = 'right'; ctx.textBaseline = 'top'; ctx.font = '700 10px ui-monospace,monospace';
+  ctx.fillStyle = 'rgba(8,6,20,.75)'; ctx.fillRect(tag.x, tag.y, tag.w, tag.h); ctx.strokeStyle = tag.outN ? '#ff4fd8' : '#3b3280'; ctx.strokeRect(tag.x + .5, tag.y + .5, tag.w - 1, 19);
+  ctx.fillStyle = tag.outN ? '#ff9cf0' : '#8781b6'; ctx.fillText(tag.txt, tag.x + tag.w - 7, tag.y + 5);
   if (comboShow > 0) { comboShow -= dt; ctx.font = `900 ${22 + Math.sin(t * 20) * 2}px ui-monospace,monospace`; ctx.fillStyle = '#ff4fd8'; ctx.fillText(`COMBO x${combo}`, W - 12, 44); }
   if (battle) {  // MAIN EVENT banner
     bannerT += dt;
@@ -2022,11 +2070,12 @@ function drawDim() {
   if (d > .05) { ctx.fillStyle = `rgba(0,0,10,${d * .8})`; ctx.fillRect(-W, -H, W * 3, H * 3); }
 }
 function drawStallWarning() {
-  if (!isStalled()) return;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = '900 13px ui-monospace,monospace';
+  const st = stallGeom(ringTagGeom());
+  if (!st) return;
+  const {m, x, y} = st;
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.font = `900 ${m.px}px ui-monospace,monospace`;
   ctx.fillStyle = Math.floor(simT * 3) % 2 ? '#ffb020' : '#ff4057';
-  const sTxt = `⚠ CHAIN ANCHOR STALLED · CHECKPOINT LAG ${fmtDur(net.anchorLagSec)}`, sw = ctx.measureText(sTxt).width;
-  ctx.fillText(sTxt, cx + sw / 2 > ringTagX - 8 ? Math.max(150 + sw / 2, ringTagX - 8 - sw / 2) : cx, H - 16);   // keep clear of the RING tag
+  m.lines.forEach((s, i) => { const lw = ctx.measureText(s).width; ctx.fillText(s, x + (m.w - lw) / 2, y + i * m.lineH); });
 }
 
 /* ---------------- main loop ---------------- */
