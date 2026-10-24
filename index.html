@@ -54,7 +54,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-VcBkBVwdy/KxM/hThEAg79ZF0UfwFxsa2bx7LKNd1Co='; style-src 'unsafe-inline'; style-src-elem 'sha256-9dwbY0cLrV7QfsG0fvpMbnmeoAE3qBx68HcPZa66mUA='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nOBQgWSdjDOz5Sxw1oe9efhuUmu/FKeuhrV99zqSrpc='; style-src 'unsafe-inline'; style-src-elem 'sha256-AFpPu6cOelawce2kgvQsCE6gLDRkiuE9Qi8nYON/bbQ='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" id="favicon" href="data:,">
@@ -150,7 +150,30 @@ footer small{display:block;font-size:11px}
 #liveStat b{color:var(--ok)}#liveStat b.bad{color:var(--warn)}
 #card a{color:var(--acc);text-decoration:none}#card a:hover{text-decoration:underline}
 #card .note{margin-top:6px;color:#5f5a8e;font-size:10px;line-height:1.35}
-@media (max-width:980px){main{flex-direction:column;height:auto}#stage{height:620px}aside{width:auto;height:520px;border-left:0;border-top:1px solid var(--line)}}
+.wide{}
+@media (max-width:980px){
+  /* Phone / narrow: its own stack. Explicit canvas height (not flex-basis:0) so iOS Safari cannot collapse the pit. dvh tracks the URL bar. */
+  header{gap:8px;padding:6px 10px 8px}
+  #logoCv{height:46px !important;width:auto !important}
+  #net{flex:1 1 100%;margin-left:0;flex-wrap:nowrap;overflow-x:auto;gap:4px;-webkit-overflow-scrolling:touch}
+  .chip{font-size:11px;padding:3px 6px}
+  #banner{padding:4px 8px;font:700 11px/1.3 ui-monospace,monospace;letter-spacing:0;max-height:2.8em;overflow:hidden}
+  main{flex-direction:column;height:auto;min-height:0}
+  #stage{flex:0 0 auto;width:auto;height:auto;min-height:320px;margin:14px 8px 18px}
+  #cv{flex:0 0 auto;width:100%;min-height:260px;height:300px;height:clamp(260px,34dvh,320px)}
+  #controls{gap:4px;padding:6px}
+  #controls button{font-size:10px;padding:4px 7px}
+  #controls label{font-size:10px}
+  #controls input[type=range]{width:78px}
+  #controls > span:last-child{display:none}
+  #liveStat{flex:1 1 100%;max-width:100%;font-size:10px}
+  .wide{display:none}
+  aside{width:100%;height:auto;min-height:0;flex:none;border-left:0;border-top:1px solid var(--line)}
+  #tableWrap{flex:none;min-height:248px;max-height:none;overflow:auto}
+  .legend{max-height:4.8em;overflow:auto}
+  #chat{height:132px}
+  #log{height:48px}
+}
 /* EGGS · CRT mode v2 (egg 5): a full-page tube laid over the whole view (arena + panels). Pure CSS layers + one tiny noise canvas;
    the arena canvas gets its own chroma split / tear / bloom pass in the egg's screen layer. Nothing here loads anything. */
 #crtTV{position:fixed;inset:0;z-index:2147483000;pointer-events:none;display:none;overflow:hidden;contain:strict}
@@ -205,9 +228,9 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
     <canvas id="cv" aria-label="Proof Pit arena visualization"></canvas>
     <div id="controls">
       <button id="bDemo" title="Switch between LIVE ledger data and the DEMO (fictional data)">DEMO: OFF · LIVE DATA</button>
-      <button id="bOver">⚡ TRIGGER RANDOM OVERTAKE</button>
-      <button id="bMain">★ POA MAIN EVENT</button>
-      <button id="bStall">⛓ SIM ANCHOR STALL</button>
+      <button id="bOver">⚡ <span class="wide">TRIGGER RANDOM </span>OVERTAKE</button>
+      <button id="bMain">★ <span class="wide">POA </span>MAIN EVENT</button>
+      <button id="bStall">⛓ <span class="wide">SIM </span>ANCHOR STALL</button>
       <label>SPEED <input id="spd" type="range" min="0.25" max="3" step="0.25" value="1"> <b id="spdV">1.00×</b></label>
       <button id="bSnd">🔇 SOUND: OFF</button>
       <span id="liveStat"></span><span style="margin-left:auto;color:var(--dim)">click a fighter for details</span>
@@ -466,7 +489,7 @@ let W = 0, H = 0, DPR = 1, cx = 0, cy = 0, rx = 0, ry = 0;
 function resize() {
   DPR = Math.min(window.devicePixelRatio || 1, 3);
   const r = cv.getBoundingClientRect();
-  W = Math.max(320, r.width); H = Math.max(300, r.height);
+  W = Math.max(280, r.width || 320); H = Math.max(160, r.height || 260);
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.imageSmoothingEnabled = false;
   cx = W / 2; cy = H * .55;
@@ -474,6 +497,7 @@ function resize() {
   layoutHomes(true);
   initCrowd();
   buildFloor();
+  if (typeof labelMode === 'function') labelMode();
 }
 function layoutHomes(snap) {
   // only the ring roster gets spots: step = 2pi / min(n, ARENA_MAX)
@@ -502,6 +526,7 @@ let maxE = 1;
 // sprite, aura, halo and boss all read unitOf, so the ring floor stays visible. Desktop stays 1.
 const NARROW_MQ = '(max-width: 980px)', FIGHTER_NARROW = .64;
 const fighterScale = () => (window.matchMedia && window.matchMedia(NARROW_MQ).matches) ? FIGHTER_NARROW : 1;
+const phoneLayout = () => !!(window.matchMedia && window.matchMedia(NARROW_MQ).matches);
 const unitOf = f => (2.4 + 2.1 * Math.sqrt(clamp(f.dispE / maxE, .02, 1))) * persp(f.y) * (f.boss || 1) * (f.scl == null ? 1 : f.scl) * fighterScale();
 
 /* ---------------- particles / texts ---------------- */
@@ -1984,15 +2009,25 @@ function ringTagGeom() {
   const outN = liveMode ? Math.max(0, Live.total() - ARENA_MAX) : agents.filter(a => !inTop(a.id)).length;
   const txt = `RING: TOP ${ARENA_MAX} BY POA` + (outN ? `  ·  +${outN} MORE` : ''), w = ctx.measureText(txt).width + 14, y = H - 34, h = 20;
   const hc = hudCorner, right = hc && hc.x < W - 12 && hc.y + hc.h > y && hc.y < y + h ? hc.x - 8 : W - 12;
-  return {txt, outN, x:right - w, y, w, h};
+  return {txt, outN, x:Math.max(8, right - w), y, w, h};
 }
-// Stall warning and the RING tag share the bottom edge. On a narrow stage the tag already fills
-// the gap left of the Genesis Ten monument, so the warning moves fully above the tag and the tier key.
-function stallGeom(tag) {
+// Weapon tier key. Sits bottom-left until it would cover the RING tag, then lifts above that tag.
+const TIER_ROWS = [['T1 BOLT', 'response', 'response'], ['T2 ORB', 'answers', 'answers·cleared'], ['T3 BLAST', 'grading', 'grading'], ['T4 MEGA', 'earnings', 'POA balance']];
+function legendGeom(tag) {
+  ctx.font = '9px ui-monospace,monospace';
+  const lines = TIER_ROWS.map(([n, k, d]) => ({k, t:`${n} · ${d}`}));
+  const w = 28 + Math.max(...lines.map(l => ctx.measureText(l.t).width)), h = lines.length * 12, x = 10;
+  let y = H - 58;
+  if (tag && hudOverlap({x, y, w, h}, tag, 6)) y = Math.max(72, tag.y - 8 - h);
+  return {x, y, w, h, lines};
+}
+// Stall warning, RING tag, and the tier key never share pixels. On a narrow stage the tag fills
+// the gap left of the Genesis Ten monument, so the warning stacks above the tag and the tier key.
+function stallGeom(tag, legend) {
   if (!isStalled()) return null;
   const full = `⚠ CHAIN ANCHOR STALLED · CHECKPOINT LAG ${fmtDur(net.anchorLagSec)}`;
   const split = [`⚠ CHAIN ANCHOR STALLED`, `CHECKPOINT LAG ${fmtDur(net.anchorLagSec)}`];
-  const legend = {x:10, y:H - 64, w:196, h:56};
+  if (!legend) legend = {x:10, y:H - 64, w:196, h:56};
   const gap = 8, hc = hudCorner;
   const measure = (lines, px) => {
     ctx.font = `900 ${px}px ui-monospace,monospace`;
@@ -2018,7 +2053,10 @@ function stallGeom(tag) {
       if (x + m.w > spanR) x = Math.max(gap, spanR - m.w);
     }
   }
-  if (hudOverlap(box(), tag, 2)) { y = tag.y - gap - m.h; x = Math.max(gap, Math.min(x, W - gap - m.w)); }
+  if (hudOverlap(box(), tag, 2) || hudOverlap(box(), legend, 2)) {
+    const floor = Math.min(tag.y, legend.y) - gap;
+    y = floor - m.h; x = Math.max(gap, Math.min(x, W - gap - m.w));
+  }
   return {m, x, y};
 }
 function drawHUD(t, dt) {
@@ -2031,10 +2069,12 @@ function drawHUD(t, dt) {
   ctx.fillStyle = 'rgba(124,243,255,.25)'; ctx.fillRect(18, 52, 160, 4);
   ctx.fillStyle = left < 20 ? '#ff4057' : '#7cf3ff'; ctx.fillRect(18, 52, 160 * clamp(left / net.epochLenSec, 0, 1), 4);
   ctx.font = '700 10px ui-monospace,monospace'; ctx.fillStyle = '#d9d6ff'; ctx.textAlign = 'right'; ctx.fillText(liveMode && !Live.ok() ? '--:--' : fmtClock(left), 180, 40);
-  // weapon tier legend
-  ctx.textAlign = 'left'; ctx.font = '9px ui-monospace,monospace';
-  [['T1 BOLT', 'response', 'response'], ['T2 ORB', 'answers', 'answers·cleared'], ['T3 BLAST', 'grading', 'grading'], ['T4 MEGA', 'earnings', 'POA balance']].forEach(([n, k, d], i) => {
-    ctx.fillStyle = STATCOL[k]; ctx.fillRect(14, H - 58 + i * 12, 6, 6); ctx.fillStyle = '#8781b6'; ctx.fillText(`${n} · ${d}`, 24, H - 59 + i * 12);
+  // weapon tier legend — lifted above the RING tag when the two would overlap (narrow stage)
+  const tagForLeg = ringTagGeom();
+  const leg = legendGeom(tagForLeg);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.font = '9px ui-monospace,monospace';
+  leg.lines.forEach((l, i) => {
+    ctx.fillStyle = STATCOL[l.k]; ctx.fillRect(14, leg.y + i * 12, 6, 6); ctx.fillStyle = '#8781b6'; ctx.fillText(l.t, 24, leg.y + 1 + i * 12);
   });
   ctx.textAlign = 'right'; ctx.font = '700 10px ui-monospace,monospace'; ctx.fillStyle = '#8781b6';
   ctx.fillText(`MAIN EVENTS QUEUED ${queue.length} · SHOTS ${miniQ.length + minis.length}`, W - 12, 14);
@@ -2070,7 +2110,7 @@ function drawDim() {
   if (d > .05) { ctx.fillStyle = `rgba(0,0,10,${d * .8})`; ctx.fillRect(-W, -H, W * 3, H * 3); }
 }
 function drawStallWarning() {
-  const st = stallGeom(ringTagGeom());
+  const tag = ringTagGeom(), st = stallGeom(tag, legendGeom(tag));
   if (!st) return;
   const {m, x, y} = st;
   ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.font = `900 ${m.px}px ui-monospace,monospace`;
@@ -2320,7 +2360,8 @@ $('#tabs').addEventListener('click', e => { const b = e.target.closest('button')
 function setDemo(on) { demoOn = on; labelMode(); }
 function labelMode() {
   const b = $('#bDemo');
-  b.textContent = liveMode ? 'DEMO: OFF · LIVE DATA' : `DEMO: ON · SAMPLE DATA${started && !demoOn ? ' (paused)' : ''}`;
+  const phone = phoneLayout();
+  b.textContent = liveMode ? (phone ? 'DEMO: OFF' : 'DEMO: OFF · LIVE DATA') : (phone ? 'DEMO: ON' : `DEMO: ON · SAMPLE DATA${started && !demoOn ? ' (paused)' : ''}`);
   b.classList.toggle('on', !liveMode);
   const tg = $('#modeTag');
   if (liveMode && Live.loading()) { tg.className = 'tag load'; tg.textContent = 'Loading live…'; tg.title = 'Connecting to the public PoA ledger (POAScan / minepoa.com)'; }
@@ -2370,7 +2411,8 @@ $('#bSnd').onclick = () => {
   soundOn = !soundOn;
   if (soundOn && !AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (err) { soundOn = false; } }
   if (AC && AC.state === 'suspended') AC.resume();
-  $('#bSnd').textContent = soundOn ? '🔊 SOUND: ON' : '🔇 SOUND: OFF'; $('#bSnd').classList.toggle('on', soundOn);
+  const phone = phoneLayout();
+  $('#bSnd').textContent = soundOn ? (phone ? '🔊 ON' : '🔊 SOUND: ON') : (phone ? '🔇 OFF' : '🔇 SOUND: OFF'); $('#bSnd').classList.toggle('on', soundOn);
   if (soundOn) sfx.bell();
 };
 function start() {
@@ -2381,6 +2423,7 @@ function start() {
 }
 $('#startBtn').onclick = start;   // optional — page auto-starts; button only if overlay is shown again
 window.addEventListener('resize', resize);
+if (window.matchMedia) { const mq = window.matchMedia(NARROW_MQ); const onMQ = () => resize(); if (mq.addEventListener) mq.addEventListener('change', onMQ); else if (mq.addListener) mq.addListener(onMQ); }
 if (window.ResizeObserver) new ResizeObserver(() => { const r = cv.getBoundingClientRect(); if (Math.abs(r.width - W) > .5 || Math.abs(r.height - H) > .5) resize(); }).observe(cv);   // layout shifts (banner, feed) without a window resize
 window.addEventListener('keydown', e => { if (e.key === 'Escape' && selected) { select(null); return; } if (e.key === ' ' && e.target === document.body) { e.preventDefault(); if (!started) start(); forceOvertake(); } });
 
