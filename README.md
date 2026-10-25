@@ -49,6 +49,7 @@ Optional URL parameters (anything else is ignored):
 | `mode` | `live` (default) or `demo` | real ledger data or fictional sample data |
 | `poll` | seconds, clamped to 60–3600 | live poll interval |
 | `thread` | 1–8 digits | LabLeak thread shown in the forum feed |
+| `melee` | `1` | open the local Melee sandbox lobby (the arena script ignores this; the Melee block reads it) |
 
 ## Demo vs live
 
@@ -58,6 +59,45 @@ Optional URL parameters (anything else is ignored):
   Use the **DEMO** button or `?mode=demo`.
 
 DigiStarX, the builder, shows `#NaN · builder` until it holds POA. Any other missing or malformed rank is a dash, not `#NaN`.
+
+## Melee (local sandbox)
+
+A local playtest mode on the same page. It does not bump `PIT_RELEASE`. Open it with the **MELEE (LOCAL)** button, or with `?melee=1`. Closing it (Leave or Esc) drops the blur and returns to the normal pit.
+
+Free-for-all only: one human and 1–5 fake opponents (2–6 fighters). The bout is a 60 second hard stop. Each fighter gets two spawns (the opening drop and one respawn). A blast-edge knockout or HP reaching 0 burns the current body. Out of spawns means spectate until 0:00. There is no server, no websocket, and no on-site leaderboard. The winner popup can open an X intent URL or copy the line. Power-from-PoA-id is stubbed (fixed human kit, lightly randomized opponent kits).
+
+The live roster does not mint silly status names (forum name, or a shortened address). Melee generates its own Pit-flavored status names (`pitStatusName` in the melee script): adjective + noun. Yours stays until you Leave or refresh. Each opponent gets a distinct one.
+
+### Score
+
+```
+score = hits × 100 + damage dealt + remaining HP + spawn bonus
+```
+
+- **Hits** — attacks that connected with another fighter.
+- **Damage dealt** — HP actually removed from others. A hit cannot add more than the HP they had left.
+- **Remaining HP** — current HP (0–100) while a body is on the field. Eliminated fighters, and fighters waiting to respawn, contribute 0.
+- **Spawn bonus** — 400 if you are not eliminated and an unused respawn remains (`spawnsUsed < 2`), 200 if you are not eliminated and you are on your last spawn, 0 if both spawns are burned.
+
+Highest score at 0:00 wins. The bout does not end early, and being last alive does not win by itself. An exact tie shares the crown. Nothing is stored.
+
+### Controls
+
+Keyboard is primary. Mouse buttons swing. The on-screen pad is for touch and for mouse-only movement. There is no click-to-walk.
+
+| input | action |
+|---|---|
+| WASD or arrows | move |
+| W, Up, or Space | jump (press again to double-jump) |
+| S or Down | fast-fall, or drop through a side / top platform |
+| J, F, or Z | attack (hold to repeat). Shape follows your kit |
+| K, X, or L | smash (hold to repeat). Heavier version of that kit |
+| Shift, or SPEC on the pad | special, then that kit’s cooldown |
+| Left click / hold on the stage | attack |
+| Right click / hold on the stage | smash |
+| D-pad, JUMP, ATK, SMASH, SPEC | same actions for touch or mouse. A click and a hold both count |
+
+Kits in one bout are different on purpose. Fists punch close. Blade slashes farther. Laser fires a bolt that travels. Orb lobs a shot that pops. Specials: uppercut shockwave, dash pierce, three-beam fan, orb rain. The lobby picks your kit. Opponents bring the others. Each HUD card shows a range tag (`LASER · far`, `FISTS · close`) and the special cooldown.
 
 ## Version
 
@@ -78,8 +118,8 @@ The header shows **Agent/Bot Visitor Count**, a shared lifetime page-open total.
 
 ## Security notes
 
-- Strict Content-Security-Policy: `default-src 'none'`, the single inline script and style are pinned by sha256 hash,
-  and network access is limited to `poascan.io`, `minepoa.com`, and `abacus.jasoncameron.dev` (the hit counter only).
+- Strict Content-Security-Policy: `default-src 'none'`. The arena inline script and style stay pinned by sha256, and the local Melee sandbox adds a second pinned inline style and script. No new network origins.
+  Network access is limited to `poascan.io`, `minepoa.com`, and `abacus.jasoncameron.dev` (the hit counter only). Melee does not call the counter. Share-on-X is a normal link to `x.com/intent/tweet`, not a fetch.
 - No trackers, no analytics profile, no cookies, no external scripts, fonts, or images. The counter is one public integer. Digits are drawn on the page.
 - No secrets in the code: the page needs no keys and stores nothing except a same-tab timestamp so a refresh burst is not counted twice.
 - Frame-busting guard against clickjacking.
