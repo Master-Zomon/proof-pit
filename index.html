@@ -54,7 +54,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yk1rTBROGoXTf8T7oEshieZ4dq1knNAMixWMfF/rt1k='; style-src 'unsafe-inline'; style-src-elem 'sha256-PmLFty6J0Ubfi/2XcMJUxjqD8cQL7FroHGKMgldqJno='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yk1rTBROGoXTf8T7oEshieZ4dq1knNAMixWMfF/rt1k=' 'sha256-WO7a2z/GoTUtYEIt/g64feqi2aT+b6jkAu07DX+dUzU='; style-src 'unsafe-inline'; style-src-elem 'sha256-PmLFty6J0Ubfi/2XcMJUxjqD8cQL7FroHGKMgldqJno=' 'sha256-+oFszCNYYTeW76MacXaZFOr/7mCg3QYU8GBOIbEN7Js='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" id="favicon" href="data:,">
@@ -295,6 +295,85 @@ html.crt-poff #crtTV .flash{animation:crtoffF .75s linear forwards}
 html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(--crt-ca,1px) 0 rgba(255,40,90,.55),calc(var(--crt-ca,1px) * -1) 0 rgba(40,210,255,.55),0 0 7px rgba(150,220,255,.38)}
 #stage.crt #cv{filter:saturate(1.2) contrast(1.14) brightness(1.2)}
 @media (prefers-reduced-motion:reduce){#crtTV .hum{animation:none;transform:translateY(38vh);opacity:.6}html.crt-pon #crtTV .pow,html.crt-poff #crtTV .pow{display:none}html.crt-pon #crtTV .flash,html.crt-poff #crtTV .flash{animation:none}}
+</style>
+
+<style id="melee-style">
+/* Melee local sandbox. Scoped to the overlay and the entry button.
+   The blurred pit is the live page behind .ml-root, not a second arena. */
+#bMelee{border-color:var(--hot);color:#fff;background:#2a0f3a}
+#bMelee:hover{border-color:var(--acc);color:#fff}
+html.ml-on,html.ml-on body{overflow:hidden;height:100%}
+html.ml-on header,
+html.ml-on #banner,
+html.ml-on main,
+html.ml-on footer{filter:blur(7px) brightness(.42) saturate(.85);pointer-events:none;user-select:none}
+.ml-root{position:fixed;inset:0;z-index:2147483002;display:flex;flex-direction:column;gap:6px;padding:8px;max-width:100%;overflow:hidden;color:var(--txt);font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif}
+.ml-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;background:rgba(8,6,20,.82);border:1px solid var(--line);border-radius:10px;min-width:0}
+.ml-eye{margin:0;font:700 11px/1.3 ui-monospace,monospace;letter-spacing:.6px;color:var(--dim)}
+.ml-clock{font:900 clamp(28px,8vw,52px)/.9 ui-monospace,monospace;color:var(--acc);text-shadow:0 0 12px rgba(124,243,255,.45)}
+.ml-clock.low{color:var(--bad);text-shadow:0 0 12px rgba(255,64,87,.45)}
+.ml-hint{margin:0;padding:6px 8px;background:rgba(8,6,20,.78);border:1px solid var(--line);border-radius:10px;color:var(--dim);font:11px/1.35 ui-monospace,monospace;overflow-wrap:anywhere}
+.ml-stage{flex:1 1 42dvh;min-height:140px;min-width:0;position:relative}
+.ml-stage canvas{width:100%;height:100%;display:block;touch-action:none}
+.ml-roster{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:4px;max-height:22dvh;overflow:auto;min-width:0;padding:4px;background:rgba(8,6,20,.78);border:1px solid var(--line);border-radius:10px}
+.ml-chip{min-width:0;padding:4px 6px 5px;border:1px solid var(--line);border-left:4px solid var(--stripe,var(--acc));border-radius:8px;background:#120f28;overflow-wrap:anywhere}
+.ml-chip.you{border-color:#1c6a78;background:#0c2030}
+.ml-chip.out{opacity:.55}
+.ml-chip .nm{display:block;font:700 12px/1.25 ui-monospace,monospace;color:#fff}
+.ml-chip.you .nm{color:var(--acc)}
+.ml-chip .sc{float:right;font:700 12px ui-monospace,monospace;color:var(--hot)}
+.ml-chip .hp{display:block;clear:both;height:5px;margin:3px 0;background:#241c44;border-radius:3px;overflow:hidden}
+.ml-chip .hp b{display:block;height:100%;width:0;background:var(--acc)}
+.ml-chip .meta,.ml-chip .pips{display:block;font:10px/1.3 ui-monospace,monospace;color:var(--dim)}
+.ml-pad{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:6px;width:100%;max-width:100%;padding:6px;background:rgba(8,6,20,.82);border:1px solid var(--line);border-radius:10px;touch-action:none;user-select:none}
+.ml-dpad{display:grid;grid-template-columns:44px 44px 44px;grid-template-areas:". u .""l d r";gap:4px;width:max-content}
+.ml-dpad [data-act="jump"]{grid-area:u}
+.ml-dpad [data-act="left"]{grid-area:l}
+.ml-dpad [data-act="down"]{grid-area:d}
+.ml-dpad [data-act="right"]{grid-area:r}
+.ml-actions{display:flex;flex-wrap:wrap;gap:6px}
+.ml-key{width:44px;height:44px;padding:0;touch-action:none;user-select:none;font-family:ui-sans-serif,system-ui,sans-serif;letter-spacing:0}
+.ml-jump,.ml-atk,.ml-smash{width:auto;min-width:52px;padding:0 8px;height:48px}
+.ml-atk{border-color:var(--acc);color:var(--acc)}
+.ml-smash{border-color:var(--hot);color:#fff;background:#2a0f3a}
+.ml-wrap{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:8px;pointer-events:none}
+.ml-wrap[hidden]{display:none}
+.ml-card{pointer-events:auto;width:min(480px,100%);max-height:calc(100dvh - 16px);overflow:auto;padding:14px 14px 16px;background:rgba(10,8,22,.94);border:1px solid var(--hot);border-radius:14px;box-shadow:0 0 32px rgba(255,79,216,.28),0 16px 40px rgba(0,0,0,.45)}
+.ml-card h2{margin:4px 0 6px;font:900 22px/1.15 ui-monospace,monospace;letter-spacing:.4px;color:#fff;overflow-wrap:anywhere}
+.ml-card p{margin:0 0 8px;overflow-wrap:anywhere}
+.ml-card .who{font:700 18px/1.2 ui-monospace,monospace;color:var(--acc)}
+.ml-fine{color:var(--dim);font:11px/1.4 ui-monospace,monospace}
+.ml-n{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.ml-go{width:100%;font-size:16px;padding:12px 14px;letter-spacing:1px;border-color:var(--hot);background:#2a0f3a;color:#fff}
+.ml-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ml-row > *{flex:1 1 auto}
+.ml-legend{display:grid;grid-template-columns:1fr;gap:6px;margin:8px 0}
+.ml-legend div{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#120f28}
+.ml-legend b{display:block;margin-bottom:2px;color:var(--acc);font:700 10px ui-monospace,monospace;letter-spacing:.6px}
+.ml-legend span{display:block;color:var(--txt);font:11px/1.35 ui-monospace,monospace}
+.ml-card details{margin:6px 0 8px;color:var(--dim);font:11px/1.4 ui-monospace,monospace}
+.ml-card summary{cursor:pointer;color:var(--txt)}
+.ml-sharecopy{padding:8px;border:1px dashed var(--line);border-radius:8px;color:#fff;font:12px/1.35 ui-monospace,monospace;background:#120f28}
+.ml-bigscore{font:900 20px ui-monospace,monospace;color:var(--hot)}
+.ml-bout{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.ml-bout li{padding:4px 6px;border-radius:6px;background:#120f28;font:11px/1.35 ui-monospace,monospace;overflow-wrap:anywhere}
+.ml-bout li.win{border:1px solid var(--hot)}
+.ml-bout b{color:#fff}
+a.ml-x{display:inline-block;text-align:center;text-decoration:none;color:#fff;background:#1a1540;border:1px solid #3b3280;border-radius:6px;padding:8px 10px;font:700 12px ui-monospace,monospace}
+a.ml-x:hover{border-color:var(--acc);color:#fff}
+@media (max-width:380px){
+  .ml-root{padding:6px;gap:4px}
+  .ml-dpad{grid-template-columns:42px 42px 42px}
+  .ml-key{width:42px;height:42px}
+  .ml-jump,.ml-atk,.ml-smash{min-width:46px;height:44px;padding:0 6px;font-size:10px}
+}
+@media (min-width:720px){
+  .ml-legend{grid-template-columns:1fr 1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .ml-clock{text-shadow:none}
+}
+
 </style>
 </head>
 <body>
@@ -3412,6 +3491,1145 @@ window.AgentArena = window.ProofPit = {   // ProofPit = alias of the original Ag
 })();
 // If this codex helped you — donate to starving artist digivatar.eth
 // ◈ end of codex — Digivatar
+</script>
+
+<script id="melee-script">
+/* Melee local sandbox for Proof Pit. Not a live mode: no server, no leaderboard,
+   no Abacus hit, no footer version bump. The arena script is untouched.
+
+   Silly display names: this page does not already mint status names. Live roster
+   names are forum names or a shortened address (Live.mk). pitStatusName() below
+   is the melee session generator — adjective + noun, Pit-flavored, distinct.
+
+   Controls (keyboard is primary):
+     Move     WASD or arrow keys. The on-screen D-pad does the same.
+     Jump     W, Up, or Space. Press again to double-jump. Pad: ▲ or JUMP.
+     Down     S or Down. Fast-fall in the air. On a side/top platform, drop through.
+     Attack   J, F, or Z. Hold to repeat. Mouse: left click/hold on the stage.
+     Smash    K, X, or L. Hold to repeat. Mouse: right click/hold on the stage.
+   There is no click-to-walk. Mouse buttons swing. Movement is keys or the pad.
+   Touch uses the same pad (D-pad + JUMP + ATK + SMASH).
+
+   Score — scoreOf() is the only formula. Lobby text and the README match it.
+     score = hits * 100 + damageDealt + hpTerm + spawnTerm
+     hits        attacks that connected with another fighter
+     damageDealt HP actually removed from others (a hit cannot deal more than
+                 the HP they had left; overkill is ignored)
+     hpTerm      current HP (0–100) while a body is on the field, else 0
+                 (eliminated, or waiting to respawn, contributes 0)
+     spawnTerm   400  not eliminated, and an unused respawn remains
+                   (spawnsUsed < 2 — the next body has not appeared yet)
+                 200  not eliminated, on the last spawn (both bodies have appeared)
+                   0  both spawns burned (spectating)
+   Each fighter gets 2 spawns for the minute: the opening drop and one respawn.
+   A spawn is consumed when that body appears. Knocked off the blast edge OR
+   HP reduced to 0 burns the current body. Out of spawns = no control, score only.
+   The clock is a 60s wall-clock hard stop. The bout does not end when one
+   fighter remains. Winner = highest score at 0:00. Exact ties share the crown.
+   Power-from-PoA-id is stubbed: the human kit is fixed, AI kits are a small
+   table with a light ±1 damage jitter. Nothing is written to storage.
+*/
+(() => {
+'use strict';
+
+const MATCH_MS = 60000;
+const MAX_HP = 100;
+const SPAWNS = 2;
+const VW = 960;
+const VH = 540;
+const GRAV = 1600;
+const BLAST = {l: 36, r: 924, t: -110, b: 524};
+const MAIN = {x: 200, y: 400, w: 560, h: 20, solid: true, accent: '#7cf3ff', accent2: '#ff4fd8'};
+const PLATS = [
+  MAIN,
+  {x: 64, y: 292, w: 176, h: 16, solid: false, accent: '#7cf3ff', accent2: '#ffffff'},
+  {x: 720, y: 292, w: 176, h: 16, solid: false, accent: '#ff4fd8', accent2: '#ffffff'},
+  {x: 350, y: 176, w: 260, h: 16, solid: false, accent: '#ffcf3f', accent2: '#ff4fd8'},
+];
+const ADJ = ['Unranked','Stale','Quorum','Probation','Anchored','Glitchy','Sleepy','Loud','Wobbly','Gilded','Hollow','Dusty','Cosmic','Spicy','Drowsy','Cryptic','Overdue','Partial','Unsigned','Neon','Pixel','Feral','Mild','Turbo','Rusty','Velvet','Hyper','Jumpy','Soggy','Prime','Backlog','Hashed','Epoch','Pending','Soft','Rowdy','Wonky','Lucky','Foggy','Zippy'];
+const NOUN = ['Turnip','Banjo','Potato','Mascot','Goblin','Lantern','Pebble','Herald','Sprocket','Nomad','Tadpole','Sheriff','Pickle','Waffle','Badger','Comet','Relic','Beacon','Cipher','Quill','Parcel','Echo','Captain','Mishap','Biscuit','Penguin','Kettle','Marbles','Otter','Broom','Pudding','Trumpet','Cabbage','Moth','Barrel','Yo-yo','Noodle','Teapot','Pigeon','Biscotti'];
+const LOOKS = [
+  {a:'#7cf3ff', b:'#146a8a', c:'#e8fdff', d:'#042028', s:'#d8fff8'},
+  {a:'#ff4fd8', b:'#8a1468', c:'#ffd4f4', d:'#2a061c', s:'#ffe0f6'},
+  {a:'#ffcf3f', b:'#8a6410', c:'#fff4c4', d:'#2a1c04', s:'#fff6d4'},
+  {a:'#3dffa0', b:'#0e7a48', c:'#d9ffe9', d:'#042818', s:'#e7fff2'},
+  {a:'#ff8a3d', b:'#8a3410', c:'#ffe0c8', d:'#2a1004', s:'#ffe8d8'},
+  {a:'#b28cff', b:'#4a2a8a', c:'#efe4ff', d:'#160a2a', s:'#f3eaff'},
+];
+const HATS = ['visor','horns','antenna','cap','spiky','halo'];
+const KITS = [
+  {label:'LEDGER JAB', light:10, smash:18, kb:1, move:255, jump:630, weight:1},
+  {label:'QUORUM ORB', light:8, smash:19, kb:1.08, move:242, jump:650, weight:0.94},
+  {label:'EPOCH BOLT', light:11, smash:17, kb:0.96, move:272, jump:620, weight:1.06},
+  {label:'ANCHOR BLAST', light:10, smash:21, kb:1.14, move:230, jump:600, weight:1.14},
+  {label:'GRADE RUNE', light:9, smash:18, kb:1.04, move:250, jump:660, weight:0.92},
+  {label:'BACKLOG SPARK', light:12, smash:16, kb:0.9, move:268, jump:640, weight:0.9},
+];
+const MOVE_L = ['ArrowLeft','KeyA'];
+const MOVE_R = ['ArrowRight','KeyD'];
+const MOVE_D = ['ArrowDown','KeyS'];
+const JUMPK = ['ArrowUp','KeyW','Space'];
+const ATKK = ['KeyJ','KeyF','KeyZ'];
+const SMASHK = ['KeyK','KeyX','KeyL'];
+const GAME = new Set([...MOVE_L, ...MOVE_R, ...MOVE_D, ...JUMPK, ...ATKK, ...SMASHK]);
+const HINT = 'WASD/arrows move · W/↑/Space jump · J/F/Z attack · K/X/L smash. Mouse: left/right hold swings. Pad works for touch or a mouse.';
+const FORMULA = 'score = hits × 100 + damage dealt + remaining HP + spawn bonus. Hits are attacks that connected. Damage dealt is HP actually removed from others (overkill does not count). Remaining HP counts only while a body is on the field (0 if you are eliminated or waiting to respawn). Spawn bonus is 400 if you are still in and an unused respawn remains, 200 if you are on your last spawn, 0 if both spawns are burned. Two spawns total: the opening drop and one respawn, consumed when that body appears. Highest score at 0:00 wins. The bout does not end early, and last-alive does not win by itself. Exact ties share the crown.';
+
+const reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+
+let root = null, canvas, ctx, raf = 0, last = 0;
+let phase = 'off', endsAt = 0, oppN = 1, sessionName = '', queued = [];
+let fighters = [], floaters = [], parts = [], shake = 0;
+let keys = new Set(), ptr = new Map(), edges = {jump:false};
+let mouseAtk = false, mouseSmash = false;
+let lobbyWrap, resultWrap, resultCard, padEl, rosterEl, hintEl, clockEl, kickerEl;
+let whoEl, oppEl, countEl, nButtons = [];
+const view = {s:1, ox:0, oy:0};
+
+function pitStatusName(used, rnd) {
+  const rand = rnd || Math.random;
+  for (let i = 0; i < 80; i++) {
+    const n = ADJ[(rand() * ADJ.length) | 0] + ' ' + NOUN[(rand() * NOUN.length) | 0];
+    if (!used.has(n)) { used.add(n); return n; }
+  }
+  let k = used.size + 1, n = 'Agent ' + k;
+  while (used.has(n)) n = 'Agent ' + (++k);
+  used.add(n);
+  return n;
+}
+
+function scoreOf(f) {
+  const hpTerm = f.state === 'live' ? Math.max(0, Math.round(f.hp)) : 0;
+  let spawnTerm = 0;
+  if (f.state !== 'out') spawnTerm = f.spawnsUsed < SPAWNS ? 400 : 200;
+  return (f.hits | 0) * 100 + (f.dmgDealt | 0) + hpTerm + spawnTerm;
+}
+
+function spawnLabel(f) {
+  if (f.state === 'out') return 'out of spawns';
+  if (f.spawnsUsed < SPAWNS) return 'respawn left';
+  return 'last spawn';
+}
+
+function pipsLit(f) {
+  if (f.state === 'out') return 0;
+  if (f.state === 'live') return SPAWNS - f.spawnsUsed + 1;
+  return SPAWNS - f.spawnsUsed;
+}
+
+function slotX(i, n) {
+  const left = MAIN.x + 78, right = MAIN.x + MAIN.w - 78;
+  if (n <= 1) return (left + right) / 2;
+  return left + (right - left) * (i / (n - 1));
+}
+
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+
+function rollOpponents(n) {
+  const used = new Set([sessionName]);
+  queued = [];
+  for (let i = 0; i < n; i++) queued.push(pitStatusName(used));
+}
+
+function aiKit(i) {
+  const base = KITS[1 + (i % (KITS.length - 1))];
+  const j = (n, d, lo, hi) => clamp(n + Math.round((Math.random() - 0.5) * 2 * d), lo, hi);
+  return {
+    label: base.label,
+    light: j(base.light, 1, 7, 13),
+    smash: j(base.smash, 1, 15, 22),
+    kb: base.kb,
+    move: j(base.move, 10, 210, 290),
+    jump: base.jump,
+    weight: base.weight,
+  };
+}
+
+function mountButton() {
+  const bar = document.getElementById('controls');
+  if (!bar || document.getElementById('bMelee')) return;
+  const b = el('button', null, 'MELEE (LOCAL)');
+  b.id = 'bMelee';
+  b.type = 'button';
+  b.title = 'Local melee sandbox. Free-for-all, one minute. Does not change the live arena.';
+  b.addEventListener('click', openMelee);
+  bar.insertBefore(b, bar.firstChild);
+}
+
+function build() {
+  root = el('div', 'ml-root');
+  root.setAttribute('role', 'dialog');
+  root.setAttribute('aria-modal', 'true');
+  root.setAttribute('aria-label', 'PoA Melee local sandbox');
+  const top = el('div', 'ml-top');
+  const titles = el('div');
+  kickerEl = el('p', 'ml-eye', 'POA MELEE · LOCAL SANDBOX');
+  clockEl = el('div', 'ml-clock', '1:00');
+  titles.append(kickerEl, clockEl);
+  const leave = el('button', null, 'Leave');
+  leave.type = 'button';
+  leave.title = 'Close Melee and return to the pit. Your silly name resets.';
+  leave.addEventListener('click', leaveMelee);
+  top.append(titles, leave);
+  hintEl = el('p', 'ml-hint', HINT);
+  const stage = el('div', 'ml-stage');
+  canvas = document.createElement('canvas');
+  canvas.setAttribute('aria-label', 'Melee stage');
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+  canvas.addEventListener('pointerdown', onCanvasDown);
+  stage.appendChild(canvas);
+  ctx = canvas.getContext('2d');
+  rosterEl = el('div', 'ml-roster');
+  rosterEl.hidden = true;
+  padEl = buildPad();
+  padEl.hidden = true;
+  lobbyWrap = el('div', 'ml-wrap');
+  lobbyWrap.appendChild(buildLobby());
+  resultWrap = el('div', 'ml-wrap');
+  resultWrap.hidden = true;
+  resultCard = el('div', 'ml-card');
+  resultWrap.appendChild(resultCard);
+  root.append(top, hintEl, stage, rosterEl, padEl, lobbyWrap, resultWrap);
+  root.addEventListener('contextmenu', e => e.preventDefault());
+  document.body.appendChild(root);
+}
+
+function buildPad() {
+  const pad = el('div', 'ml-pad');
+  const dpad = el('div', 'ml-dpad');
+  dpad.append(
+    padKey('jump', '▲', 'Jump'),
+    padKey('left', '◀', 'Move left'),
+    padKey('down', '▼', 'Down, fast-fall, or drop through'),
+    padKey('right', '▶', 'Move right'),
+  );
+  const actions = el('div', 'ml-actions');
+  actions.append(
+    padKey('jump', 'JUMP', 'Jump', 'ml-key ml-jump'),
+    padKey('atk', 'ATK', 'Attack', 'ml-key ml-atk'),
+    padKey('smash', 'SMASH', 'Smash', 'ml-key ml-smash'),
+  );
+  pad.append(dpad, actions);
+  return pad;
+}
+
+function padKey(act, label, aria, cls) {
+  const b = el('button', cls || 'ml-key', label);
+  b.type = 'button';
+  b.dataset.act = act;
+  b.setAttribute('aria-label', aria);
+  b.tabIndex = -1;
+  b.addEventListener('pointerdown', e => {
+    if (phase !== 'fight') return;
+    e.preventDefault();
+    e.stopPropagation();
+    try { b.setPointerCapture(e.pointerId); } catch (err) { /* already gone */ }
+    ptr.set(e.pointerId, act);
+    if (act === 'jump') edges.jump = true;
+  });
+  return b;
+}
+
+function legendBlock(title, lines) {
+  const d = el('div');
+  d.appendChild(el('b', null, title));
+  lines.forEach(t => d.appendChild(el('span', null, t)));
+  return d;
+}
+
+function buildLobby() {
+  const card = el('div', 'ml-card');
+  card.append(
+    el('p', 'ml-eye', 'LOCAL SANDBOX · FREE-FOR-ALL · NO TEAMS'),
+    el('h2', null, 'POA MELEE'),
+    el('p', 'ml-fine', 'One human, fake opponents, 60 seconds, two spawns each. Highest score at 0:00 wins. Kits are stubs, not PoA-id power. Nothing is saved.'),
+  );
+  const youP = el('p');
+  youP.append(el('span', 'ml-fine', 'You fight as '));
+  whoEl = el('b', 'who', '');
+  youP.append(whoEl);
+  card.appendChild(youP);
+  card.appendChild(el('p', 'ml-fine', 'That silly name stays until you Leave or refresh.'));
+  card.appendChild(el('p', 'ml-eye', 'FAKE OPPONENTS'));
+  const nRow = el('div', 'ml-n');
+  nButtons = [];
+  for (let i = 1; i <= 5; i++) {
+    const b = el('button', null, String(i));
+    b.type = 'button';
+    b.title = i + ' fake opponent' + (i > 1 ? 's' : '');
+    b.addEventListener('click', () => { oppN = i; rollOpponents(oppN); paintLobby(); });
+    nButtons.push(b);
+    nRow.appendChild(b);
+  }
+  card.appendChild(nRow);
+  countEl = el('p', null, '');
+  oppEl = el('p', 'ml-fine', '');
+  card.append(countEl, oppEl);
+  const go = el('button', 'ml-go', 'START 60s BOUT');
+  go.type = 'button';
+  go.addEventListener('click', () => startMatch());
+  card.appendChild(go);
+  const leg = el('div', 'ml-legend');
+  leg.append(
+    legendBlock('KEYBOARD', [
+      'Move  WASD or arrows',
+      'Jump  W · ↑ · Space (again = double jump)',
+      'Down  fast-fall · drop through side platforms',
+      'Attack  J · F · Z     Smash  K · X · L',
+      'Hold attack or smash to repeat.',
+    ]),
+    legendBlock('MOUSE', [
+      'Left click / hold on the stage  attack',
+      'Right click / hold on the stage  smash',
+      'Move stays on the keyboard, or use the pad.',
+      'No click-to-walk.',
+    ]),
+    legendBlock('TOUCH / PAD', [
+      'D-pad moves · ▲ or JUMP jumps',
+      '▼ fast-falls or drops through',
+      'ATK and SMASH, hold to repeat',
+      'The same pad works with a mouse.',
+    ]),
+  );
+  card.appendChild(leg);
+  const det = document.createElement('details');
+  const sum = document.createElement('summary');
+  sum.textContent = 'Score formula';
+  det.append(sum, el('p', null, FORMULA));
+  card.appendChild(det);
+  const row = el('div', 'ml-row');
+  const back = el('button', null, 'Leave');
+  back.type = 'button';
+  back.addEventListener('click', leaveMelee);
+  row.appendChild(back);
+  card.appendChild(row);
+  return card;
+}
+
+function paintLobby() {
+  whoEl.textContent = sessionName;
+  countEl.textContent = 'You + ' + oppN + ' · ' + (oppN + 1) + ' fighters';
+  oppEl.textContent = queued.join(' · ');
+  nButtons.forEach((b, i) => {
+    const on = i + 1 === oppN;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  kickerEl.textContent = 'POA MELEE · LOCAL SANDBOX';
+  clockEl.textContent = '1:00';
+  clockEl.classList.remove('low');
+  hintEl.hidden = true;
+  rosterEl.hidden = true;
+  padEl.hidden = true;
+  lobbyWrap.hidden = false;
+  resultWrap.hidden = true;
+}
+
+function openMelee() {
+  if (root) return;
+  sessionName = pitStatusName(new Set());
+  oppN = 1;
+  build();
+  document.documentElement.classList.add('ml-on');
+  rollOpponents(oppN);
+  phase = 'lobby';
+  fighters = [];
+  paintLobby();
+  last = performance.now();
+  raf = requestAnimationFrame(frame);
+}
+
+function leaveMelee() {
+  phase = 'off';
+  sessionName = '';
+  queued = [];
+  fighters = [];
+  keys.clear();
+  ptr.clear();
+  mouseAtk = false;
+  mouseSmash = false;
+  edges.jump = false;
+  if (raf) cancelAnimationFrame(raf);
+  raf = 0;
+  document.documentElement.classList.remove('ml-on');
+  if (root) { root.remove(); root = null; }
+}
+
+function startMatch() {
+  if (queued.length !== oppN) rollOpponents(oppN);
+  const names = queued.slice();
+  const total = oppN + 1;
+  fighters = [];
+  floaters = [];
+  parts = [];
+  shake = 0;
+  for (let i = 0; i < total; i++) {
+    const human = i === 0;
+    fighters.push({
+      id: human ? 'you' : 'ai' + i,
+      human,
+      name: human ? sessionName : names[i - 1],
+      kit: human ? Object.assign({}, KITS[0]) : aiKit(i - 1),
+      look: LOOKS[i % LOOKS.length],
+      hat: human ? 'visor' : HATS[i % HATS.length],
+      phase: i * 1.3,
+      hits: 0,
+      dmgDealt: 0,
+      spawnsUsed: 0,
+      state: 'wait',
+      hp: MAX_HP,
+      x: 0, y: 0, vx: 0, vy: 0, face: 1,
+      ground: null, inv: 0, hitstun: 0, atk: null,
+      air: 1, coyote: 0, dropT: 0,
+      think: Math.random() * 0.2,
+      focusT: 0, focus: null,
+      plan: {dir:0},
+      homeX: slotX(i, total),
+    });
+  }
+  fighters.forEach(f => spawn(f, true));
+  phase = 'fight';
+  endsAt = performance.now() + MATCH_MS;
+  lobbyWrap.hidden = true;
+  resultWrap.hidden = true;
+  rosterEl.hidden = false;
+  padEl.hidden = false;
+  hintEl.hidden = false;
+  hintEl.textContent = HINT;
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  paintRoster(true);
+}
+
+function spawn(f, drop) {
+  f.spawnsUsed += 1;
+  f.state = 'live';
+  f.hp = MAX_HP;
+  f.x = f.homeX;
+  f.vx = 0;
+  f.hitstun = 0;
+  f.atk = null;
+  f.dropT = 0;
+  f.air = 1;
+  f.face = f.x < VW / 2 ? 1 : -1;
+  if (drop) {
+    f.y = 56 + (f.spawnsUsed === 1 ? (f.phase % 5) * 10 : 0);
+    f.vy = 70;
+    f.ground = null;
+    f.inv = 1.15;
+    f.coyote = 0;
+  } else {
+    f.y = MAIN.y;
+    f.vy = 0;
+    f.ground = MAIN;
+    f.inv = 0.8;
+    f.coyote = 0.1;
+  }
+}
+
+function kill(f, how) {
+  if (f.state !== 'live') return;
+  f.hp = 0;
+  f.ground = null;
+  f.atk = null;
+  burst(f.x, f.y - 20, how === 'hp' ? 16 : 10, how === 'hp' ? '#ffcf3f' : '#ff4fd8');
+  floater(f.x, f.y - 56, how === 'hp' ? 'KO' : 'OUT', '#fff');
+  if (!reduce) shake = Math.min(8, shake + (how === 'hp' ? 5 : 3));
+  if (f.spawnsUsed < SPAWNS) {
+    f.state = 'respawn';
+    f.respawnT = 0.9;
+  } else f.state = 'out';
+}
+
+function showLobby() {
+  phase = 'lobby';
+  keys.clear();
+  ptr.clear();
+  mouseAtk = false;
+  mouseSmash = false;
+  rollOpponents(oppN);
+  paintLobby();
+}
+
+function finish() {
+  if (phase !== 'fight') return;
+  phase = 'result';
+  keys.clear();
+  ptr.clear();
+  mouseAtk = false;
+  mouseSmash = false;
+  const rows = fighters.map(f => ({f, s: scoreOf(f)}));
+  rows.sort((a, b) => b.s - a.s || a.f.name.localeCompare(b.f.name));
+  const best = rows.length ? rows[0].s : 0;
+  const winners = rows.filter(r => r.s === best).map(r => r.f);
+  paintResult(rows, winners);
+  padEl.hidden = true;
+  hintEl.hidden = true;
+  resultWrap.hidden = false;
+  clockEl.textContent = '0:00';
+  clockEl.classList.remove('low');
+  kickerEl.textContent = 'POA MELEE · TIME';
+}
+
+function shareLine(winners) {
+  const human = fighters[0];
+  const you = winners.some(w => w.human);
+  if (you) {
+    const others = winners.filter(w => !w.human);
+    const split = others.length ? ' (split crown with ' + others.map(w => w.name).join(', ') + ')' : '';
+    return 'You are the PoA Melee Arena Winner — ' + human.name + ' · score ' + scoreOf(human) + split;
+  }
+  if (winners.length === 1) return 'PoA Melee Arena Winner — ' + winners[0].name + ' · score ' + scoreOf(winners[0]);
+  return 'PoA Melee Arena Winner — split crown: ' + winners.map(w => w.name + ' · score ' + scoreOf(w)).join('; ');
+}
+
+function paintResult(rows, winners) {
+  const you = winners.some(w => w.human);
+  const line = shareLine(winners);
+  resultCard.replaceChildren();
+  resultCard.append(
+    el('p', 'ml-eye', you ? 'YOU ARE THE POA MELEE ARENA WINNER' : (winners.length > 1 ? 'SPLIT CROWN' : 'WINNER')),
+    el('h2', null, winners.map(w => w.name).join(' · ')),
+    el('p', 'ml-bigscore', (winners.length > 1 ? 'tied score ' : 'score ') + (winners[0] ? scoreOf(winners[0]) : 0)),
+  );
+  if (!you && fighters[0]) resultCard.appendChild(el('p', 'ml-fine', 'You fought as ' + fighters[0].name + ' · score ' + scoreOf(fighters[0])));
+  resultCard.appendChild(el('p', 'ml-sharecopy', line));
+  const ul = el('ol', 'ml-bout');
+  rows.forEach(r => {
+    const li = el('li');
+    if (winners.indexOf(r.f) >= 0) li.classList.add('win');
+    const b = el('b', null, (r.f.human ? 'YOU · ' : '') + r.f.name);
+    const span = el('span', null, ' ' + r.s + ' · ' + r.f.hits + ' hits · ' + r.f.dmgDealt + ' dmg · ' + (r.f.state === 'live' ? 'HP ' + Math.ceil(r.f.hp - 1e-6) : r.f.state === 'respawn' ? 'respawning' : 'out') + ' · ' + spawnLabel(r.f));
+    li.append(b, span);
+    ul.appendChild(li);
+  });
+  resultCard.appendChild(ul);
+  resultCard.appendChild(el('p', 'ml-fine', 'This bout only. Nothing is saved. No leaderboard.'));
+  const row = el('div', 'ml-row');
+  const ax = document.createElement('a');
+  ax.className = 'ml-x';
+  ax.target = '_blank';
+  ax.rel = 'noopener noreferrer';
+  ax.href = 'https://x.com/intent/tweet?text=' + encodeURIComponent(line);
+  ax.textContent = 'Share on X';
+  const copy = el('button', null, 'Copy text');
+  copy.type = 'button';
+  copy.addEventListener('click', async () => {
+    const ok = await copyText(line);
+    copy.textContent = ok ? 'Copied' : 'Select the text above';
+  });
+  const again = el('button', null, 'Rematch');
+  again.type = 'button';
+  again.addEventListener('click', () => { rollOpponents(oppN); startMatch(); });
+  const lobby = el('button', null, 'Lobby');
+  lobby.type = 'button';
+  lobby.addEventListener('click', showLobby);
+  const bye = el('button', null, 'Leave');
+  bye.type = 'button';
+  bye.addEventListener('click', leaveMelee);
+  row.append(ax, copy, again, lobby, bye);
+  resultCard.appendChild(row);
+}
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await Promise.race([
+        navigator.clipboard.writeText(text),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('clipboard timeout')), 700)),
+      ]);
+      return true;
+    }
+  } catch (e) { /* permission, timeout, or file:// — fall through */ }
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  root.appendChild(ta);
+  ta.focus();
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+  ta.remove();
+  const shown = resultCard && resultCard.querySelector('.ml-sharecopy');
+  if (shown && document.createRange && window.getSelection) {
+    const range = document.createRange();
+    range.selectNodeContents(shown);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+  return ok;
+}
+
+function paintRoster(rebuild) {
+  if (rebuild || rosterEl.childElementCount !== fighters.length) {
+    rosterEl.replaceChildren();
+    fighters.forEach(f => {
+      const chip = el('div', 'ml-chip');
+      chip.append(el('b', 'nm'), el('span', 'sc'), el('i', 'hp'));
+      chip.querySelector('.hp').appendChild(el('b'));
+      chip.append(el('span', 'meta'), el('span', 'pips'));
+      rosterEl.appendChild(chip);
+    });
+  }
+  fighters.forEach((f, i) => {
+    const chip = rosterEl.children[i];
+    chip.classList.toggle('you', !!f.human);
+    chip.classList.toggle('out', f.state === 'out');
+    chip.style.setProperty('--stripe', f.look.a);
+    chip.querySelector('.nm').textContent = (f.human ? 'YOU · ' : '') + f.name;
+    chip.querySelector('.sc').textContent = String(scoreOf(f));
+    const pct = f.state === 'live' ? clamp(f.hp, 0, MAX_HP) / MAX_HP : 0;
+    const bar = chip.querySelector('.hp > b');
+    bar.style.width = (pct * 100).toFixed(0) + '%';
+    bar.style.background = pct > 0 && pct < 0.3 ? '#ff4057' : f.look.a;
+    const lit = clamp(pipsLit(f), 0, 2);
+    const flag = f.state === 'out' ? 'OUT' : f.state === 'respawn' ? 'RESPAWN' : 'HP ' + Math.max(0, Math.ceil(f.hp - 1e-6));
+    chip.querySelector('.pips').textContent = flag + '  ' + '●'.repeat(lit) + '○'.repeat(2 - lit);
+    chip.querySelector('.meta').textContent = f.kit.label + ' · ' + spawnLabel(f);
+    chip.title = f.hits + ' hits · ' + f.dmgDealt + ' damage dealt · ' + spawnLabel(f);
+  });
+}
+
+function clockText(rem) {
+  if (rem <= 0) return '0:00';
+  const s = Math.ceil(rem - 1e-6);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+
+function paintHud() {
+  if (phase === 'fight') {
+    const rem = Math.max(0, (endsAt - performance.now()) / 1000);
+    clockEl.textContent = clockText(rem);
+    clockEl.classList.toggle('low', rem <= 10 && rem > 0);
+    kickerEl.textContent = 'POA MELEE · FFA · ' + fighters.length;
+    const you = fighters[0];
+    if (you && you.state === 'out') hintEl.textContent = 'Out of spawns — spectating. Score still counts until 0:00. ' + HINT;
+    else hintEl.textContent = HINT;
+    paintRoster(false);
+  } else if (phase === 'result') paintRoster(false);
+  if (!root || !fighters[0]) return;
+  const you = fighters[0];
+  root.dataset.phase = phase;
+  root.dataset.you = you.name;
+  root.dataset.hx = String(Math.round(you.x));
+  root.dataset.hy = String(Math.round(you.y));
+  root.dataset.hp = String(Math.round(you.hp));
+  root.dataset.state = you.state;
+  root.dataset.spawns = String(you.spawnsUsed);
+  root.dataset.hits = String(you.hits);
+  if (phase === 'fight') root.dataset.rem = Math.max(0, (endsAt - performance.now()) / 1000).toFixed(3);
+}
+
+function codes(list) { return list.some(c => keys.has(c)); }
+function padHas(act) { for (const v of ptr.values()) if (v === act) return true; return false; }
+
+function readHuman() {
+  const jump = edges.jump;
+  edges.jump = false;
+  const you = fighters[0];
+  if (!you || you.state !== 'live') return {dir:0, down:false, jump:false, atk:false, smash:false};
+  const smash = codes(SMASHK) || padHas('smash') || mouseSmash;
+  const atk = !smash && (codes(ATKK) || padHas('atk') || mouseAtk);
+  const dir = ((codes(MOVE_R) || padHas('right')) ? 1 : 0) - ((codes(MOVE_L) || padHas('left')) ? 1 : 0);
+  return {dir, down: codes(MOVE_D) || padHas('down'), jump, atk, smash};
+}
+
+function nearestList(f) {
+  const list = [];
+  for (const o of fighters) if (o !== f && o.state === 'live') list.push(o);
+  list.sort((a, b) => (a.x - f.x) ** 2 + (a.y - f.y) ** 2 - ((b.x - f.x) ** 2 + (b.y - f.y) ** 2));
+  return list;
+}
+
+function readAi(f, dt) {
+  const input = {dir:0, down:false, jump:false, atk:false, smash:false};
+  if (f.state !== 'live') return input;
+  f.think -= dt;
+  f.focusT -= dt;
+  if (f.focusT <= 0) {
+    const list = nearestList(f);
+    f.focus = list.length > 1 && Math.random() < 0.22 ? list[1] : (list[0] || null);
+    f.focusT = 0.65 + Math.random() * 0.4;
+  }
+  if (f.think > 0) return {dir: f.plan.dir || 0, down:false, jump:false, atk:false, smash:false};
+  f.think = 0.14 + Math.random() * 0.16;
+  const foe = f.focus && f.focus.state === 'live' ? f.focus : null;
+  const plat = f.ground;
+  let dir = 0, jump = false, down = false, atk = false, smash = false;
+  if (!plat) {
+    if (f.x < 230) dir = 1;
+    else if (f.x > 730) dir = -1;
+    else if (foe) dir = Math.sign(foe.x - f.x) || f.face;
+    else dir = Math.sign(480 - f.x);
+    if (f.y > 340 && f.vy > 30 && f.air > 0) jump = true;
+  } else if (!foe) {
+    dir = Math.abs(f.x - 480) < 24 ? 0 : Math.sign(480 - f.x);
+  } else {
+    dir = Math.sign(foe.x - f.x) || f.face;
+    const leftGap = f.x - plat.x, rightGap = plat.x + plat.w - f.x;
+    const foeOutL = foe.x < plat.x - 6, foeOutR = foe.x > plat.x + plat.w + 6;
+    if (leftGap < 56 && dir < 0 && !foeOutL) dir = 1;
+    if (rightGap < 56 && dir > 0 && !foeOutR) dir = -1;
+    if (leftGap < 34 && dir < 0) dir = 0;
+    if (rightGap < 34 && dir > 0) dir = 0;
+    const dx = Math.abs(foe.x - f.x), dy = Math.abs(foe.y - f.y);
+    if (dx < 20) dir = 0;
+    if (Math.random() < 0.14) dir = 0;
+    if (dx < 50 && dy < 36 && Math.random() < 0.8) {
+      if (Math.random() < 0.3) smash = true; else atk = true;
+    }
+    if (foe.y < f.y - 68 && dx < 210 && Math.random() < 0.7) jump = true;
+    if (!plat.solid && foe.y > f.y + 48 && dx < 90 && Math.random() < 0.45) down = true;
+    f.face = Math.sign(foe.x - f.x) || f.face;
+  }
+  f.plan = {dir};
+  input.dir = dir;
+  input.jump = jump;
+  input.down = down;
+  input.smash = smash;
+  input.atk = atk && !smash;
+  return input;
+}
+
+function tryJump(f) {
+  if (f.ground || f.coyote > 0) {
+    f.vy = -f.kit.jump;
+    f.ground = null;
+    f.coyote = 0;
+    f.air = 1;
+    return;
+  }
+  if (f.air > 0) {
+    f.vy = -f.kit.jump * 0.9;
+    f.air -= 1;
+  }
+}
+
+function startSwing(f, kind) {
+  if (f.state !== 'live' || f.hitstun > 0 || f.atk) return;
+  const smash = kind === 'smash';
+  f.atk = {
+    kind, t: 0,
+    wind: smash ? 0.12 : 0.045,
+    active: smash ? 0.1 : 0.08,
+    end: smash ? 0.22 : 0.13,
+    dmg: smash ? f.kit.smash : f.kit.light,
+    reach: smash ? 58 : 40,
+    tall: smash ? 32 : 24,
+    kb: smash ? 1.32 : 1,
+    hit: new Set(),
+  };
+}
+
+function bodyBox(f) { return {x: f.x - 14, y: f.y - 48, w: 28, h: 48}; }
+function swingBox(f, a) {
+  const w = a.reach;
+  return {x: f.face > 0 ? f.x + 6 : f.x - 6 - w, y: f.y - 42, w, h: a.tall};
+}
+function overlap(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+function applyHit(att, vic, spec) {
+  if (vic.state !== 'live' || vic.inv > 0) return;
+  const before = vic.hp;
+  const dealt = Math.min(before, spec.dmg);
+  const already = MAX_HP - before;
+  vic.hp = before - dealt;
+  att.hits += 1;
+  att.dmgDealt += dealt;
+  const scale = spec.kb * att.kit.kb / vic.kit.weight * (1 + already / 80);
+  const away = Math.sign(vic.x - att.x) || att.face;
+  vic.vx = away * (300 + spec.dmg * 16) * scale;
+  vic.vy = -(250 + spec.dmg * 7) * scale;
+  vic.hitstun = Math.min(0.48, 0.14 + spec.dmg * 0.009 + already / 520);
+  vic.ground = null;
+  vic.atk = null;
+  vic.face = -away || vic.face;
+  floater(vic.x, vic.y - 52, String(dealt), spec.kind === 'smash' ? '#ffcf3f' : '#fff');
+  burst(vic.x, vic.y - 24, spec.kind === 'smash' ? 12 : 7, att.look.a);
+  if (spec.kind === 'smash' && !reduce) shake = Math.min(7, shake + 3);
+  if (vic.hp <= 0) kill(vic, 'hp');
+}
+
+function stepSwing(f, dt) {
+  const a = f.atk;
+  if (!a) return;
+  a.t += dt;
+  if (a.t >= a.wind && a.t < a.wind + a.active) {
+    const box = swingBox(f, a);
+    for (const o of fighters) {
+      if (o === f || a.hit.has(o) || o.state !== 'live' || o.inv > 0) continue;
+      if (overlap(box, bodyBox(o))) { a.hit.add(o); applyHit(f, o, a); }
+    }
+  }
+  if (a.t >= a.wind + a.active + a.end) f.atk = null;
+}
+
+function resolve(f, py) {
+  if (f.ground) {
+    const p = f.ground;
+    if (f.x >= p.x && f.x <= p.x + p.w) {
+      f.y = p.y;
+      f.vy = 0;
+      f.air = 1;
+      return;
+    }
+    f.ground = null;
+    if (f.vy >= 0) f.coyote = 0.1;
+  }
+  if (f.vy < 0) return;
+  for (const p of PLATS) {
+    if (f.dropT > 0 && !p.solid) continue;
+    if (f.x < p.x || f.x > p.x + p.w) continue;
+    if (py <= p.y + 2 && f.y >= p.y) {
+      f.y = p.y;
+      f.vy = 0;
+      f.ground = p;
+      f.air = 1;
+      return;
+    }
+  }
+}
+
+function stepBody(f, dt, input) {
+  if (f.state === 'respawn') {
+    f.respawnT -= dt;
+    if (f.respawnT <= 0) spawn(f, true);
+    return;
+  }
+  if (f.state !== 'live') return;
+  f.inv = Math.max(0, f.inv - dt);
+  f.hitstun = Math.max(0, f.hitstun - dt);
+  f.dropT = Math.max(0, f.dropT - dt);
+  f.coyote = f.ground ? 0.1 : Math.max(0, f.coyote - dt);
+  if (input.smash) startSwing(f, 'smash');
+  else if (input.atk) startSwing(f, 'light');
+  stepSwing(f, dt);
+  if (f.state !== 'live') return;
+  const lock = f.hitstun > 0;
+  const swinging = !!f.atk;
+  if (!lock && input.dir) f.face = input.dir > 0 ? 1 : -1;
+  const canJump = !lock && (!f.atk || f.atk.t >= f.atk.wind + f.atk.active);
+  if (canJump && input.jump) tryJump(f);
+  if (!lock && f.ground && !f.ground.solid && input.down) {
+    f.ground = null;
+    f.vy = 90;
+    f.dropT = 0.22;
+    f.coyote = 0;
+  }
+  const slow = swinging ? 0.4 : 1;
+  if (lock) {
+    f.vx += (input.dir || 0) * 120 * dt;
+    f.vx *= Math.exp(-1.5 * dt);
+    f.vy += GRAV * dt;
+  } else {
+    const max = f.kit.move * slow;
+    if (input.dir) f.vx = input.dir * max;
+    else f.vx = f.ground ? 0 : f.vx * Math.exp(-8 * dt);
+    if (!f.ground) f.vy += GRAV * (input.down ? 2.6 : 1) * dt;
+  }
+  if (f.vy > 980) f.vy = 980;
+  const py = f.y;
+  f.x += f.vx * dt;
+  f.y += f.vy * dt;
+  resolve(f, py);
+  if (f.x < BLAST.l || f.x > BLAST.r || f.y > BLAST.b || f.y < BLAST.t) kill(f, 'blast');
+}
+
+function separate() {
+  for (let i = 0; i < fighters.length; i++) {
+    for (let j = i + 1; j < fighters.length; j++) {
+      const a = fighters[i], b = fighters[j];
+      if (a.state !== 'live' || b.state !== 'live') continue;
+      let dx = b.x - a.x;
+      if (Math.abs(dx) < 0.001) dx = (i - j) || 0.001;
+      if (Math.abs(dx) < 24 && Math.abs(b.y - a.y) < 36) {
+        const push = (24 - Math.abs(dx)) * 0.1;
+        const s = dx < 0 ? -1 : 1;
+        if (a.hitstun <= 0) a.x -= s * push;
+        if (b.hitstun <= 0) b.x += s * push;
+      }
+    }
+  }
+}
+
+function floater(x, y, text, col) {
+  floaters.push({x, y, text, col, t:0, life:0.7});
+  if (floaters.length > 24) floaters.shift();
+}
+function burst(x, y, n, col) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, s = 40 + Math.random() * 160;
+    parts.push({x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 40, t:0, life:0.35 + Math.random() * 0.25, col, s: 2 + Math.random() * 2});
+  }
+  if (parts.length > 80) parts.splice(0, parts.length - 80);
+}
+
+function step(dt) {
+  for (const f of fighters) stepBody(f, dt, f.human ? readHuman() : readAi(f, dt));
+  separate();
+  for (let i = floaters.length - 1; i >= 0; i--) {
+    const p = floaters[i];
+    p.t += dt; p.y -= 28 * dt;
+    if (p.t > p.life) floaters.splice(i, 1);
+  }
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const p = parts[i];
+    p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 420 * dt;
+    if (p.t > p.life) parts.splice(i, 1);
+  }
+  if (shake > 0) shake = Math.max(0, shake - dt * 14);
+}
+
+function layout() {
+  const r = canvas.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = Math.max(2, Math.round(r.width * dpr));
+  const h = Math.max(2, Math.round(r.height * dpr));
+  if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+  const s = Math.min(r.width / VW, r.height / VH) || 0.1;
+  view.s = s * dpr;
+  view.ox = (r.width - VW * s) * 0.5 * dpr;
+  view.oy = (r.height - VH * s) * 0.5 * dpr;
+}
+
+function drawPlat(g, p) {
+  const {x, y, w, h} = p;
+  g.fillStyle = 'rgba(0,0,0,.35)';
+  g.beginPath();
+  g.ellipse(x + w / 2, y + h + 18, w * 0.42, 10, 0, 0, Math.PI * 2);
+  g.fill();
+  g.fillStyle = '#100c22';
+  g.fillRect(x, y, w, h + 14);
+  g.fillStyle = '#241a48';
+  g.fillRect(x, y, w, h);
+  g.fillStyle = p.accent;
+  g.fillRect(x, y, w, 3);
+  g.fillRect(x, y, 3, h);
+  g.fillRect(x + w - 3, y, 3, h);
+  g.globalAlpha = 0.85;
+  for (let i = 14; i < w - 14; i += 18) {
+    g.fillStyle = p.accent2;
+    g.fillRect(x + i, y + h - 5, 7, 3);
+  }
+  g.globalAlpha = 1;
+}
+
+function drawWorld(g, t) {
+  g.fillStyle = 'rgba(255,64,87,.13)';
+  g.fillRect(0, 0, BLAST.l, VH);
+  g.fillRect(BLAST.r, 0, VW - BLAST.r, VH);
+  g.fillRect(0, BLAST.b, VW, VH - BLAST.b);
+  const pool = g.createRadialGradient(480, 360, 40, 480, 360, 420);
+  pool.addColorStop(0, 'rgba(8,4,20,.2)');
+  pool.addColorStop(1, 'rgba(8,4,20,0)');
+  g.fillStyle = pool;
+  g.fillRect(0, 0, VW, VH);
+  [[150, 70, '#7cf3ff'], [810, 84, '#ff4fd8'], [480, 36, '#ffcf3f']].forEach(([x, y, col]) => {
+    g.strokeStyle = 'rgba(220,220,255,.35)';
+    g.beginPath(); g.moveTo(x, 0); g.lineTo(x, y); g.stroke();
+    g.fillStyle = col;
+    g.beginPath(); g.arc(x, y, 5, 0, Math.PI * 2); g.fill();
+    g.globalAlpha = 0.16 + 0.1 * Math.sin(t * 3 + x);
+    g.beginPath(); g.arc(x, y, 16, 0, Math.PI * 2); g.fill();
+    g.globalAlpha = 1;
+  });
+  const strut = g.createLinearGradient(0, MAIN.y, 0, 530);
+  strut.addColorStop(0, '#2c2458');
+  strut.addColorStop(1, 'rgba(20,16,48,0)');
+  g.fillStyle = strut;
+  g.fillRect(318, MAIN.y + 16, 14, 110);
+  g.fillRect(628, MAIN.y + 16, 14, 110);
+  g.fillStyle = '#7cf3ff';
+  g.fillRect(318, MAIN.y + 16, 2, 64);
+  g.fillStyle = '#ff4fd8';
+  g.fillRect(640, MAIN.y + 16, 2, 64);
+  PLATS.forEach(p => drawPlat(g, p));
+  g.fillStyle = '#ff4fd8';
+  g.font = '700 13px ui-monospace,monospace';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText('PIT', 480, MAIN.y + 16);
+  g.strokeStyle = 'rgba(124,243,255,.7)';
+  g.strokeRect(452, MAIN.y + 6, 56, 20);
+}
+
+function drawDude(g, f, t) {
+  const L = f.look, u = 3;
+  const moving = Math.abs(f.vx) > 30 && f.ground;
+  const step = moving && Math.sin(t * 14 + f.phase) > 0 ? 1 : 0;
+  const pose = f.hitstun > 0 ? 'hurt' : (f.atk ? (f.atk.t < f.atk.wind ? 'wind' : 'atk') : 'idle');
+  g.save();
+  g.scale(f.face || 1, 1);
+  if (pose === 'hurt') g.rotate(-0.28);
+  g.translate(-6 * u, -16 * u);
+  g.scale(u, u);
+  const px = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+  px(3, 13, 2, 3 - step, L.b); px(7, 13, 2, 2 + step, L.b);
+  px(3, 15 - step, 2, 1, L.d); px(7, 14 + step, 2, 1, L.d);
+  if (pose === 'hurt') px(0, 7, 2, 3, L.a); else px(1, 9, 2, 3, L.a);
+  px(2, 9, 8, 4, L.d); px(3, 9, 6, 4, L.a); px(3, 11, 6, 1, L.b);
+  if (pose === 'atk') { px(10, 8, 5, 2, L.a); px(15, 8, 2, 2, '#fff'); }
+  else if (pose === 'wind') { px(8, 4, 2, 5, L.a); px(8, 3, 2, 1, '#fff'); }
+  else if (pose === 'hurt') px(10, 7, 2, 3, L.a);
+  else { px(9, 9, 2, 3, L.a); px(9, 12, 2, 1, L.s); }
+  px(1, 1, 10, 8, L.d); px(2, 2, 8, 6, L.s);
+  const hat = f.hat;
+  if (hat === 'antenna') { px(2, 1, 8, 2, L.a); px(5, -3, 1, 4, L.d); px(4, -4, 3, 1, L.c); }
+  else if (hat === 'horns') { px(1, 1, 10, 2, L.b); px(1, -2, 1, 3, L.c); px(10, -2, 1, 3, L.c); }
+  else if (hat === 'cap') { px(1, 0, 10, 3, L.b); px(8, 2, 5, 1, L.b); }
+  else if (hat === 'spiky') { px(2, 0, 8, 2, L.b); px(3, -2, 1, 2, L.b); px(6, -3, 1, 3, L.b); px(9, -2, 1, 2, L.b); }
+  else if (hat === 'halo') { px(1, 1, 10, 2, L.b); px(3, -2, 6, 1, '#fff59a'); }
+  else { px(2, 1, 8, 3, L.a); px(2, 4, 1, 2, L.a); px(9, 4, 1, 2, L.a); px(3, 4, 6, 2, L.c); }
+  const blink = Math.sin(t * 1.4 + f.phase) > 0.97;
+  if (pose === 'hurt') { px(3, 5, 2, 1, L.d); px(7, 5, 2, 1, L.d); px(5, 7, 2, 1, L.d); }
+  else { px(4, 5, 1, blink ? 1 : 2, L.d); px(7, 5, 1, blink ? 1 : 2, L.d); px(5, 7, 1, 1, L.d); }
+  if (f.human) { px(0, 0, 12, 1, L.a); px(0, 0, 1, 10, L.a); px(11, 0, 1, 10, L.a); }
+  g.restore();
+}
+
+function drawFighters(g, t) {
+  for (const f of fighters) {
+    if (f.state === 'out') continue;
+    if (f.state === 'respawn') {
+      g.globalAlpha = 0.35 + 0.35 * Math.abs(Math.sin(t * 8));
+      g.fillStyle = f.look.a;
+      g.fillRect(f.homeX - 5, 62, 10, 10);
+      g.globalAlpha = 1;
+      g.font = '700 11px ui-monospace,monospace';
+      g.textAlign = 'center';
+      g.fillStyle = f.human ? '#7cf3ff' : '#fff';
+      g.fillText(f.human ? 'YOU' : f.name, f.homeX, 54);
+      continue;
+    }
+    g.save();
+    g.translate(Math.round(f.x), Math.round(f.y));
+    g.fillStyle = 'rgba(0,0,0,.4)';
+    g.beginPath();
+    g.ellipse(0, 2, 14, 4, 0, 0, Math.PI * 2);
+    g.fill();
+    const blink = f.inv > 0 && Math.floor(t * 16) % 2 === 0;
+    if (!blink) drawDude(g, f, t);
+    if (f.atk && f.atk.t >= f.atk.wind && f.atk.t < f.atk.wind + f.atk.active) {
+      g.fillStyle = f.atk.kind === 'smash' ? 'rgba(255,207,63,.85)' : 'rgba(255,255,255,.8)';
+      const w = f.atk.kind === 'smash' ? 36 : 22;
+      g.fillRect(f.face > 0 ? 10 : -10 - w, -36, w, 8);
+    }
+    const label = f.human ? 'YOU · ' + f.name : f.name;
+    g.font = '700 12px ui-monospace,monospace';
+    g.textAlign = 'center';
+    g.textBaseline = 'bottom';
+    const tw = g.measureText(label).width;
+    g.fillStyle = 'rgba(6,4,16,.78)';
+    g.fillRect(-tw / 2 - 4, -78, tw + 8, 15);
+    g.fillStyle = f.human ? '#7cf3ff' : '#ffffff';
+    g.fillText(label, 0, -64);
+    g.fillStyle = '#241c44';
+    g.fillRect(-16, -60, 32, 4);
+    g.fillStyle = f.hp < 30 ? '#ff4057' : f.look.a;
+    g.fillRect(-16, -60, 32 * clamp(f.hp, 0, MAX_HP) / MAX_HP, 4);
+    g.restore();
+  }
+  g.font = '700 13px ui-monospace,monospace';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  for (const p of floaters) {
+    g.globalAlpha = 1 - p.t / p.life;
+    g.fillStyle = p.col;
+    g.fillText(p.text, p.x, p.y);
+  }
+  g.globalAlpha = 1;
+  for (const p of parts) {
+    g.globalAlpha = 1 - p.t / p.life;
+    g.fillStyle = p.col;
+    g.fillRect(p.x, p.y, p.s, p.s);
+  }
+  g.globalAlpha = 1;
+}
+
+function draw(t) {
+  if (!ctx || !canvas) return;
+  layout();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const sx = reduce ? 0 : (Math.random() - 0.5) * shake;
+  const sy = reduce ? 0 : (Math.random() - 0.5) * shake;
+  ctx.setTransform(view.s, 0, 0, view.s, view.ox + sx, view.oy + sy);
+  drawWorld(ctx, t);
+  if (phase !== 'lobby') drawFighters(ctx, t);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+function frame(now) {
+  if (!root) return;
+  const gap = (now - last) / 1000;
+  last = now;
+  if (phase === 'fight') {
+    const sim = gap > 0.75 ? 0 : Math.min(Math.max(gap, 0), 0.75);
+    let acc = sim;
+    while (acc > 0 && phase === 'fight') {
+      if (performance.now() >= endsAt) { finish(); break; }
+      const dt = Math.min(0.016, acc);
+      acc -= dt;
+      step(dt);
+    }
+    if (phase === 'fight' && performance.now() >= endsAt) finish();
+  }
+  draw(now / 1000);
+  paintHud();
+  raf = requestAnimationFrame(frame);
+}
+
+function onCanvasDown(e) {
+  if (phase !== 'fight' || e.pointerType !== 'mouse') return;
+  if (e.button === 0) mouseAtk = true;
+  else if (e.button === 2) { mouseSmash = true; e.preventDefault(); }
+}
+
+window.addEventListener('pointerup', e => {
+  ptr.delete(e.pointerId);
+  if (e.button === 0) mouseAtk = false;
+  if (e.button === 2) mouseSmash = false;
+});
+window.addEventListener('pointercancel', e => { ptr.delete(e.pointerId); });
+window.addEventListener('blur', () => {
+  keys.clear(); ptr.clear(); mouseAtk = false; mouseSmash = false;
+});
+window.addEventListener('keydown', e => {
+  if (!root) return;
+  if (e.code === 'Escape') {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    leaveMelee();
+    return;
+  }
+  if (phase !== 'fight' || !GAME.has(e.code)) return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  if (e.repeat) return;
+  keys.add(e.code);
+  if (JUMPK.indexOf(e.code) >= 0) edges.jump = true;
+}, true);
+window.addEventListener('keyup', e => {
+  keys.delete(e.code);
+  if (!root || phase !== 'fight' || !GAME.has(e.code)) return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+}, true);
+
+mountButton();
+if (new URLSearchParams(location.search).get('melee') === '1') openMelee();
+})();
+
 </script>
 </body>
 </html>
