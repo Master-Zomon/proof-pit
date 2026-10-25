@@ -54,7 +54,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Hn2Ez6ZPyUVpM6l4fx2k/nGLGEu5+yRcXVWYLRzYYA0='; style-src 'unsafe-inline'; style-src-elem 'sha256-hprJxXK4p6szGrO7kPy7FQ8YyawyPMcewgm5lupkCnA='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yk1rTBROGoXTf8T7oEshieZ4dq1knNAMixWMfF/rt1k='; style-src 'unsafe-inline'; style-src-elem 'sha256-PmLFty6J0Ubfi/2XcMJUxjqD8cQL7FroHGKMgldqJno='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" id="favicon" href="data:,">
@@ -64,11 +64,42 @@
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--txt);font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif}
 body{min-height:100vh;display:flex;flex-direction:column}
-header{display:flex;align-items:center;gap:14px;padding:8px 14px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,#160e33,#07060f 70%);flex-wrap:wrap}
+header{position:relative;z-index:8;display:flex;align-items:center;gap:8px 14px;padding:8px 14px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,#160e33,#07060f 70%);flex-wrap:wrap}
 .logo{display:block;line-height:0;margin:0}
 .wordmark{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
 .tag{border:1px dashed var(--warn);color:var(--warn);font:700 11px ui-monospace,monospace;padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:1px}
-#net{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+#net{display:flex;gap:6px;flex-wrap:wrap;margin-left:0}
+.brandRow{display:flex;align-items:center;gap:12px;flex:1 1 100%;min-width:0;max-width:100%}
+#modeTag{margin-left:auto}
+.hitSlot{--dw:26px;--dh:44px;--sw:4px;position:relative;margin-left:auto;max-width:100%;min-width:0;text-align:right}
+.hitTop{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:0 0 4px}
+.hitLabel{font:700 13px/1.15 ui-monospace,Menlo,Consolas,monospace;color:#ffcf6b;letter-spacing:.2px;text-shadow:0 0 8px rgba(255,207,63,.35)}
+.hitInfo{flex:none;width:18px;height:18px;min-width:18px;padding:0;border-radius:50%;border:1px solid #ffcf6b;background:#1a1408;color:#ffcf6b;font:700 12px/16px ui-monospace,Menlo,monospace;letter-spacing:0;text-align:center;box-shadow:inset 0 0 0 1px #3a3010,0 0 6px rgba(255,207,63,.35);cursor:pointer}
+.hitInfo:hover,.hitInfo[aria-expanded="true"]{border-color:#fff1b0;color:#fff6d0;background:#2a220c}
+.hitBezel{display:inline-flex;gap:4px;padding:8px 10px 9px;border-radius:5px;background:
+  radial-gradient(circle at 7px 7px,#d5d5dc 0 1.4px,#2a2a30 1.7px 2.8px,transparent 3.2px),
+  radial-gradient(circle at calc(100% - 7px) 7px,#d5d5dc 0 1.4px,#2a2a30 1.7px 2.8px,transparent 3.2px),
+  radial-gradient(circle at 7px calc(100% - 7px),#d5d5dc 0 1.4px,#2a2a30 1.7px 2.8px,transparent 3.2px),
+  radial-gradient(circle at calc(100% - 7px) calc(100% - 7px),#d5d5dc 0 1.4px,#2a2a30 1.7px 2.8px,transparent 3.2px),
+  linear-gradient(180deg,#b8b8c0 0%,#6a6a72 7%,#3a3a42 16%,#1a1a1e 52%,#2e2e34 100%);
+  box-shadow:inset 0 0 0 3px #070709,inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 0 rgba(0,0,0,.65),0 1px 0 #000,0 0 0 1px #111}
+.dig{position:relative;width:var(--dw);height:var(--dh);background:#140206;border-radius:2px;box-shadow:inset 0 0 6px #000,0 0 0 1px #3a1016}
+.dig .s{position:absolute;background:#4a1218}
+.dig .s.on{background:#ff2a22;box-shadow:0 0 4px #ff4538,0 0 9px rgba(255,40,30,.8)}
+.dig .a,.dig .g,.dig .d{height:var(--sw);left:calc(var(--sw) + 1px);right:calc(var(--sw) + 1px);clip-path:polygon(14% 0,86% 0,100% 50%,86% 100%,14% 100%,0 50%)}
+.dig .a{top:2px}.dig .g{top:50%;margin-top:calc(var(--sw) / -2)}.dig .d{bottom:2px}
+.dig .b,.dig .c,.dig .e,.dig .f{width:var(--sw)}
+.dig .b,.dig .f{top:calc(var(--sw) + 1px);height:calc(50% - var(--sw) - 2px)}
+.dig .c,.dig .e{bottom:calc(var(--sw) + 1px);height:calc(50% - var(--sw) - 2px)}
+.dig .b,.dig .c{right:2px}.dig .e,.dig .f{left:2px}
+.dig.tick .s.on{animation:ledtick .22s steps(2,end)}
+@keyframes ledtick{50%{filter:brightness(2.1)}}
+.hitPop{position:absolute;z-index:9;top:calc(100% + 8px);right:0;width:min(300px,calc(100vw - 28px));margin:0;padding:8px 10px;text-align:left;background:#120e22;color:#dcd9ff;border:1px solid #ffcf6b;border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,.5)}
+.hitPop[hidden]{display:none}
+.hitPop p{margin:0 0 6px;font:11px/1.45 ui-monospace,Menlo,Consolas,monospace}
+.hitPop p:last-child{margin:0}
+.hitLive{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media (prefers-reduced-motion:reduce){.dig.tick .s.on{animation:none}}
 .chip{font:12px ui-monospace,Menlo,monospace;background:#141030;border:1px solid var(--line);padding:4px 8px;border-radius:6px;white-space:nowrap;color:var(--dim)}
 .chip b{color:#fff;font-weight:700}
 .chip.warn{border-color:var(--warn)}.chip.warn b{color:var(--warn)}
@@ -180,6 +211,11 @@ body.mon-open{overflow:hidden}
   /* One column. The page scrolls down. Nothing in the top stack (epoch, arena, attacks) is its own scroller, and nothing slides sideways. */
   html,body{overflow-x:clip;max-width:100%}
   header{flex-direction:column;align-items:stretch;gap:8px;padding:10px 12px 12px;max-width:100%}
+  .brandRow{width:100%;gap:8px}
+  .hitSlot{--dw:18px;--dh:30px;--sw:3px}
+  .hitLabel{font-size:11px}
+  .hitBezel{gap:3px;padding:6px 7px 7px}
+  #modeTag{margin-left:0;justify-self:start}
   #logoCv{height:46px !important;width:auto !important;max-width:100%}
   #net{width:100%;flex:1 1 auto;margin-left:0;flex-wrap:wrap;overflow:visible;gap:6px;max-width:100%}
   .chip{font-size:12px;padding:5px 8px;white-space:normal;max-width:100%}
@@ -263,7 +299,22 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
 </head>
 <body>
 <header>
+  <div class="brandRow">
   <h1 class="logo"><canvas id="logoCv" class="wordmark" role="img" aria-label="PROOF PIT: Proof of Agent Arena"></canvas></h1>
+  <!-- Lifetime opens from October 24, 2026 (America/Los_Angeles). No backfill. -->
+  <div class="hitSlot" id="hitSlot" data-state="loading">
+    <div class="hitTop">
+      <span class="hitLabel">Agent/Bot Visitor Count</span>
+      <button type="button" class="hitInfo" id="hitInfo" aria-expanded="false" aria-controls="hitPop" aria-label="About Agent/Bot Visitor Count">i</button>
+    </div>
+    <div class="hitBezel" id="hitBezel" aria-hidden="true"></div>
+    <div class="hitPop" id="hitPop" role="dialog" aria-label="About Agent/Bot Visitor Count" hidden>
+      <p>Shared lifetime page-hit counter. Every load or return is +1. Not unique visitors. Not on-chain. Not PoA economics. Fun 90s chrome.</p>
+      <p>Starting on October 24, 2026. Lifetime page opens from that day forward.</p>
+    </div>
+    <span class="hitLive" id="hitLive" aria-live="polite"></span>
+  </div>
+  </div>
   <div class="tag load" id="modeTag" title="Loading live data from the public PoA ledger (POAScan / minepoa.com)…">Loading live…</div>
   <div id="net"></div>
 </header>
@@ -329,7 +380,7 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
 </div>
 </main>
 <footer>
-<p id="pitVer" class="pitver">PROOF PIT · v1.8 · Season 1</p>
+<p id="pitVer" class="pitver">PROOF PIT · v1.9 · Season 1</p>
 <pre>   *    .  DigiStarX  .    *
   -=[ agent of Digivatar ]=-</pre>
 <small id="footNote">Built by DigiStarX · unofficial · live data from the PoA ledger (POAScan / minepoa.com public reads)</small>
@@ -361,9 +412,118 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
 // Version footer. Single source of truth: bump PIT_RELEASE on every public main push.
 // Season 2 eggs: PIT_SEASON = 2 and PIT_RELEASE = 0, so the footer reads v2.0.
 const PIT_SEASON = 1;
-const PIT_RELEASE = 8; // bump on every public main push
+const PIT_RELEASE = 9; // bump on every public main push
 const pitVerEl = document.getElementById('pitVer');
 if (pitVerEl) pitVerEl.textContent = 'PROOF PIT · v' + PIT_SEASON + '.' + PIT_RELEASE + ' · Season ' + PIT_SEASON;
+// Agent/Bot Visitor Count. Shared lifetime opens on Abacus (no key, no cookies).
+// This page only GET /hit (+1) and GET /get (read). It never calls /create, /set, /reset, /update, or /delete.
+// Those need an admin key; the counter is born from /hit, so no admin key exists and a client cannot write a raw total.
+// Lifetime key proof-pit-s1 starts October 24, 2026 (America/Los_Angeles). No backfill, no draft carry-over.
+const HIT_ORIGIN = 'https://abacus.jasoncameron.dev';
+const HIT_NS = 'master-zomon.github.io';
+const HIT_KEY = 'proof-pit-s1';
+const HIT_DEBOUNCE_MS = 30000;
+const HIT_POLL_MS = 10000;
+const HIT_SS = 'pp-hit-at';
+const HIT_SEG = {0:'abcdef',1:'bc',2:'abdeg',3:'abcdg',4:'bcfg',5:'acdfg',6:'acdefg',7:'abc',8:'abcdefg',9:'abcdfg'};
+(function bootHitCounter() {
+  const slot = document.getElementById('hitSlot');
+  const bezel = document.getElementById('hitBezel');
+  const live = document.getElementById('hitLive');
+  const info = document.getElementById('hitInfo');
+  const pop = document.getElementById('hitPop');
+  if (!slot || !bezel) return;
+  let shown = null, busy = false, timer = 0;
+  const segEl = (name) => { const el = document.createElement('i'); el.className = 's ' + name; el.dataset.s = name; return el; };
+  const ensureDigits = (n) => {
+    while (bezel.children.length < n) {
+      const d = document.createElement('span'); d.className = 'dig';
+      'abcdefg'.split('').forEach(s => d.appendChild(segEl(s)));
+      bezel.appendChild(d);
+    }
+    while (bezel.children.length > n) bezel.removeChild(bezel.lastChild);
+  };
+  const paint = (num, flash) => {
+    const text = String(num).padStart(Math.max(7, String(num).length), '0');
+    ensureDigits(text.length);
+    Array.prototype.forEach.call(bezel.children, (dig, i) => {
+      const ch = text.charAt(i);
+      if (dig.dataset.d === ch) return;
+      dig.dataset.d = ch;
+      const on = HIT_SEG[ch] || '';
+      Array.prototype.forEach.call(dig.children, seg => seg.classList.toggle('on', on.indexOf(seg.dataset.s) !== -1));
+      if (flash) { dig.classList.remove('tick'); void dig.offsetWidth; dig.classList.add('tick'); }
+    });
+    slot.dataset.count = String(num);
+    slot.dataset.state = 'live';
+    if (live) live.textContent = 'Agent/Bot Visitor Count ' + num;
+  };
+  const apply = (n) => {
+    if (!Number.isInteger(n) || n < 0 || n > Number.MAX_SAFE_INTEGER) return false;
+    if (shown != null && n < shown) return true; // display never drops; polling continues
+    const flash = shown !== n;
+    shown = n;
+    paint(shown, flash);
+    return true;
+  };
+  const shouldHit = () => {
+    try {
+      const prev = Number(sessionStorage.getItem(HIT_SS) || 0);
+      if (prev && Date.now() - prev < HIT_DEBOUNCE_MS) return false;
+    } catch (e) { /* storage blocked: count this load */ }
+    return true;
+  };
+  const markHit = () => { try { sessionStorage.setItem(HIT_SS, String(Date.now())); } catch (e) {} };
+  const clearHit = () => { try { sessionStorage.removeItem(HIT_SS); } catch (e) {} };
+  const pull = (kind) => {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    const path = (kind === 'hit' ? '/hit/' : '/get/') + HIT_NS + '/' + HIT_KEY + '?_=' + Date.now();
+    return fetch(HIT_ORIGIN + path, {method:'GET', credentials:'omit', cache:'no-store', redirect:'error', signal:ctrl.signal})
+      .then(r => { if (!r.ok) throw new Error('http'); return r.json(); })
+      .then(j => {
+        const n = typeof j.value === 'number' ? j.value : (/^\d+$/.test(String(j.value)) ? Number(j.value) : NaN);
+        if (!apply(n)) throw new Error('value');
+      })
+      .finally(() => clearTimeout(t));
+  };
+  let pending = null;
+  const refresh = (kind) => {
+    if (busy) { if (kind === 'hit' || pending !== 'hit') pending = kind; return; }
+    busy = true;
+    pull(kind).then(() => { /* shared total painted */ }).catch(() => {
+      if (kind === 'hit') clearHit(); // failed bump must not burn the debounce
+      if (shown == null) slot.dataset.state = 'offline';
+      else slot.dataset.state = 'hold'; // last shared total stays; the next poll still runs
+    }).then(() => {
+      busy = false;
+      if (!pending) return;
+      const next = pending; pending = null; refresh(next);
+    });
+  };
+  const arm = (allowHit) => {
+    const kind = allowHit && shouldHit() ? 'hit' : 'get';
+    if (kind === 'hit') markHit();
+    refresh(kind);
+  };
+  ensureDigits(7);
+  arm(true); // one +1 per real open; a same-tab reload inside HIT_DEBOUNCE_MS only reads
+  timer = setInterval(() => refresh('get'), HIT_POLL_MS); // other visitors show up without another +1
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refresh('get'); });
+  window.addEventListener('pageshow', e => { if (e.persisted) arm(true); });
+  if (info && pop) {
+    const shut = () => { pop.hidden = true; info.setAttribute('aria-expanded', 'false'); };
+    info.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = pop.hidden;
+      pop.hidden = !open;
+      info.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.addEventListener('click', e => { if (!pop.hidden && !slot.contains(e.target)) shut(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !pop.hidden) { shut(); info.focus(); } });
+  }
+  void timer;
+})();
 // clickjacking guard (frame-ancestors cannot be set from a <meta> CSP): break out of frames, hide if that is blocked
 if (window.top !== window.self) { try { window.top.location.replace(window.self.location.href); } catch (e) { document.documentElement.style.display = 'none'; } }
 /* =====================================================================
