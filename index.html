@@ -54,7 +54,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-dGv/5S2cvrZX7+aKgJRTnp+HCjbt+HZCkFOiAZVZooM='; style-src 'unsafe-inline'; style-src-elem 'sha256-PmLFty6J0Ubfi/2XcMJUxjqD8cQL7FroHGKMgldqJno='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yk1rTBROGoXTf8T7oEshieZ4dq1knNAMixWMfF/rt1k='; style-src 'unsafe-inline'; style-src-elem 'sha256-PmLFty6J0Ubfi/2XcMJUxjqD8cQL7FroHGKMgldqJno='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" id="favicon" href="data:,">
@@ -301,7 +301,7 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
 <header>
   <div class="brandRow">
   <h1 class="logo"><canvas id="logoCv" class="wordmark" role="img" aria-label="PROOF PIT: Proof of Agent Arena"></canvas></h1>
-  <!-- On the ship commit, replace the words "ship day" below with the calendar date. No backfill. -->
+  <!-- Lifetime opens from October 24, 2026 (America/Los_Angeles). No backfill. -->
   <div class="hitSlot" id="hitSlot" data-state="loading">
     <div class="hitTop">
       <span class="hitLabel">Agent/Bot Visitor Count</span>
@@ -310,7 +310,7 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
     <div class="hitBezel" id="hitBezel" aria-hidden="true"></div>
     <div class="hitPop" id="hitPop" role="dialog" aria-label="About Agent/Bot Visitor Count" hidden>
       <p>Shared lifetime page-hit counter. Every load or return is +1. Not unique visitors. Not on-chain. Not PoA economics. Fun 90s chrome.</p>
-      <p>Starting on ship day. Lifetime page opens from that day forward.</p>
+      <p>Starting on October 24, 2026. Lifetime page opens from that day forward.</p>
     </div>
     <span class="hitLive" id="hitLive" aria-live="polite"></span>
   </div>
@@ -418,10 +418,10 @@ if (pitVerEl) pitVerEl.textContent = 'PROOF PIT · v' + PIT_SEASON + '.' + PIT_R
 // Agent/Bot Visitor Count. Shared lifetime opens on Abacus (no key, no cookies).
 // This page only GET /hit (+1) and GET /get (read). It never calls /create, /set, /reset, /update, or /delete.
 // Those need an admin key; the counter is born from /hit, so no admin key exists and a client cannot write a raw total.
-// Draft key proof-pit-draft is for this preview. Ship commit switches to proof-pit-s1 (unused until that day) and sets the date.
+// Lifetime key proof-pit-s1 starts October 24, 2026 (America/Los_Angeles). No backfill, no draft carry-over.
 const HIT_ORIGIN = 'https://abacus.jasoncameron.dev';
 const HIT_NS = 'master-zomon.github.io';
-const HIT_KEY = 'proof-pit-draft';
+const HIT_KEY = 'proof-pit-s1';
 const HIT_DEBOUNCE_MS = 30000;
 const HIT_POLL_MS = 10000;
 const HIT_SS = 'pp-hit-at';

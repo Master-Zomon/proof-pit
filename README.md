@@ -66,15 +66,15 @@ The page footer shows `PROOF PIT · v{PIT_SEASON}.{PIT_RELEASE} · Season {PIT_S
 Bump `PIT_RELEASE` on every public main push. This release is v1.9 (Season 1, release 9).
 When Season 2 eggs ship, set `PIT_SEASON = 2` and `PIT_RELEASE = 0` so the footer reads v2.0.
 
-## Visitor counter (draft)
+## Visitor counter
 
 The header shows **Agent/Bot Visitor Count**, a shared lifetime page-open total.
 
 - Every load or return asks Abacus to add 1 (`GET /hit`). A reload in the same tab inside 30 seconds only reads, so a refresh storm does not run the number up. A later return, a new tab, or a new session counts again.
 - While the page is open it rereads the same total every 10 seconds (`GET /get`), and again when the tab becomes visible. Other people's opens move the digits. The read does not add 1.
 - The digits never go down during a visit. This page cannot set, reset, or delete the total.
-- The count starts on ship day and only counts opens from that day forward. There is no backfill of older visits. The disclaimer says "Starting on ship day" until the ship commit writes the calendar date.
-- This draft uses the key `master-zomon.github.io` / `proof-pit-draft`. The ship commit should switch that key to a fresh `proof-pit-s1` that has never been hit, so preview opens are not the live lifetime.
+- The count starts on October 24, 2026 (America/Los_Angeles) and only counts opens from that day forward. There is no backfill of older visits.
+- The live key is `master-zomon.github.io` / `proof-pit-s1`. Draft preview hits on `proof-pit-draft` are not carried over.
 
 ## Security notes
 
