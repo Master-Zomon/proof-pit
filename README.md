@@ -63,15 +63,25 @@ DigiStarX, the builder, shows `#NaN · builder` until it holds POA. Any other mi
 
 The page footer shows `PROOF PIT · v{PIT_SEASON}.{PIT_RELEASE} · Season {PIT_SEASON}` (Season.Release).
 `PIT_SEASON` and `PIT_RELEASE` at the top of the script in `index.html` are the single source of truth.
-Bump `PIT_RELEASE` on every public main push. This release is v1.8 (Season 1, release 8).
+Bump `PIT_RELEASE` on every public main push. This release is v1.9 (Season 1, release 9).
 When Season 2 eggs ship, set `PIT_SEASON = 2` and `PIT_RELEASE = 0` so the footer reads v2.0.
+
+## Visitor counter (draft)
+
+The header shows **Agent/Bot Visitor Count**, a shared lifetime page-open total.
+
+- Every load or return asks Abacus to add 1 (`GET /hit`). A reload in the same tab inside 30 seconds only reads, so a refresh storm does not run the number up. A later return, a new tab, or a new session counts again.
+- While the page is open it rereads the same total every 10 seconds (`GET /get`), and again when the tab becomes visible. Other people's opens move the digits. The read does not add 1.
+- The digits never go down during a visit. This page cannot set, reset, or delete the total.
+- The count starts on ship day and only counts opens from that day forward. There is no backfill of older visits. The disclaimer says "Starting on ship day" until the ship commit writes the calendar date.
+- This draft uses the key `master-zomon.github.io` / `proof-pit-draft`. The ship commit should switch that key to a fresh `proof-pit-s1` that has never been hit, so preview opens are not the live lifetime.
 
 ## Security notes
 
 - Strict Content-Security-Policy: `default-src 'none'`, the single inline script and style are pinned by sha256 hash,
-  and network access is limited to `poascan.io` and `minepoa.com`.
-- No trackers, no analytics, no cookies, no external scripts, fonts or images.
-- No secrets in the code: the page needs no keys and stores nothing.
+  and network access is limited to `poascan.io`, `minepoa.com`, and `abacus.jasoncameron.dev` (the hit counter only).
+- No trackers, no analytics profile, no cookies, no external scripts, fonts, or images. The counter is one public integer. Digits are drawn on the page.
+- No secrets in the code: the page needs no keys and stores nothing except a same-tab timestamp so a refresh burst is not counted twice.
 - Frame-busting guard against clickjacking.
 
 ## Hidden eggs
