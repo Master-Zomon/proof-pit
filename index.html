@@ -54,7 +54,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yk1rTBROGoXTf8T7oEshieZ4dq1knNAMixWMfF/rt1k=' 'sha256-ejtjnAbyS+e4z6Z6QxtQnHH/5Z4ySndJ28mH7OXz+HU='; style-src 'unsafe-inline'; style-src-elem 'sha256-PmLFty6J0Ubfi/2XcMJUxjqD8cQL7FroHGKMgldqJno=' 'sha256-VmHyabqDLlrgjuhpL2vd8pYMai0kv+M/Hg14iT8JuWE='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yk1rTBROGoXTf8T7oEshieZ4dq1knNAMixWMfF/rt1k=' 'sha256-hhRORCs8XUUxpfAMYTCN88enLVcAAGB5dbn8v8hSVTg='; style-src 'unsafe-inline'; style-src-elem 'sha256-PmLFty6J0Ubfi/2XcMJUxjqD8cQL7FroHGKMgldqJno=' 'sha256-WPOHIGwMeHCpb+g7mfsaP6A4TLABTy0Ut1EMq5dAa/0='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" id="favicon" href="data:,">
@@ -317,7 +317,7 @@ html.ml-on footer{filter:blur(7px) brightness(.42) saturate(.85);pointer-events:
 .ml-stage{flex:1 1 42dvh;min-height:160px;min-width:0;position:relative;background:#070414;border:1px solid #3a2a78;border-radius:12px;overflow:hidden;box-shadow:0 0 22px rgba(124,243,255,.2),inset 0 0 36px rgba(255,79,216,.14)}
 .ml-stage canvas{width:100%;height:100%;display:block;touch-action:none}
 .ml-roster{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(156px,100%),1fr));gap:6px;max-height:28dvh;overflow:auto;min-width:0;padding:6px;background:rgba(6,4,16,.9);border:1px solid #3a2a78;border-radius:12px;box-shadow:inset 0 0 18px rgba(124,243,255,.08)}
-.ml-chip{min-width:0;display:grid;grid-template-columns:30px 1fr;grid-template-areas:"face top" "face stat" "bar bar" "meta meta";column-gap:6px;row-gap:2px;padding:6px 7px 7px;border:1px solid color-mix(in srgb,var(--stripe,#7cf3ff) 70%,#241848);border-radius:8px;background:linear-gradient(180deg,#16122e,#0c0a18);box-shadow:0 0 10px color-mix(in srgb,var(--stripe,#7cf3ff) 28%,transparent);overflow-wrap:anywhere}
+.ml-chip{min-width:0;display:grid;grid-template-columns:30px 1fr;grid-template-areas:"face top" "face stat" "bar bar" "meta meta" "cd cd";column-gap:6px;row-gap:2px;padding:6px 7px 7px;border:1px solid color-mix(in srgb,var(--stripe,#7cf3ff) 70%,#241848);border-radius:8px;background:linear-gradient(180deg,#16122e,#0c0a18);box-shadow:0 0 10px color-mix(in srgb,var(--stripe,#7cf3ff) 28%,transparent);overflow-wrap:anywhere}
 .ml-chip.you{background:linear-gradient(180deg,#102838,#0c0a18)}
 .ml-chip.out{opacity:.5}
 .ml-chip .face{grid-area:face;width:30px;height:30px;border-radius:4px;background:linear-gradient(var(--stripe,#7cf3ff),var(--stripe,#7cf3ff)) 9px 5px/12px 8px no-repeat,linear-gradient(var(--stripe,#7cf3ff),var(--stripe,#7cf3ff)) 6px 15px/18px 9px no-repeat,#07060f;box-shadow:0 0 8px var(--stripe,#7cf3ff),inset 0 0 0 1px #000}
@@ -333,7 +333,9 @@ html.ml-on footer{filter:blur(7px) brightness(.42) saturate(.85);pointer-events:
 .ml-chip .pips .off{opacity:.28}
 .ml-chip .hp{grid-area:bar;display:block;height:6px;margin:1px 0;background:#1a1438;border-radius:3px;overflow:hidden;box-shadow:inset 0 0 0 1px #000}
 .ml-chip .hp b{display:block;height:100%;width:0;background:var(--stripe,#7cf3ff);box-shadow:0 0 8px var(--stripe,#7cf3ff)}
-.ml-chip .meta{grid-area:meta;font:10px/1.3 ui-monospace,monospace;color:var(--dim)}
+.ml-chip .meta,.ml-chip .cd{grid-area:meta;font:10px/1.3 ui-monospace,monospace;color:var(--dim)}
+.ml-chip .cd{grid-area:cd;color:#ffcf3f}
+.ml-chip .cd.wait{color:var(--dim)}
 .ml-pad{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:6px;width:100%;max-width:100%;padding:6px;background:rgba(8,6,20,.9);border:1px solid #3a2a78;border-radius:10px;touch-action:none;user-select:none;box-shadow:0 0 14px rgba(255,79,216,.12)}
 .ml-dpad{display:grid;grid-template-columns:44px 44px 44px;grid-template-areas:". u .""l d r";gap:4px;width:max-content}
 .ml-dpad [data-act="jump"]{grid-area:u}
@@ -345,6 +347,7 @@ html.ml-on footer{filter:blur(7px) brightness(.42) saturate(.85);pointer-events:
 .ml-jump,.ml-atk,.ml-smash{width:auto;min-width:52px;padding:0 8px;height:48px}
 .ml-atk{border-color:var(--acc);color:var(--acc)}
 .ml-smash{border-color:var(--hot);color:#fff;background:#2a0f3a}
+.ml-special{border-color:#ffcf3f;color:#ffcf3f;background:#2a2208}
 .ml-wrap{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:8px;pointer-events:none}
 .ml-wrap[hidden]{display:none}
 .ml-card{pointer-events:auto;width:min(480px,100%);max-height:calc(100dvh - 16px);overflow:auto;padding:14px 14px 16px;background:rgba(10,8,22,.94);border:1px solid var(--hot);border-radius:14px;box-shadow:0 0 32px rgba(255,79,216,.28),0 16px 40px rgba(0,0,0,.45)}
@@ -3519,9 +3522,15 @@ window.AgentArena = window.ProofPit = {   // ProofPit = alias of the original Ag
      Jump     W, Up, or Space. Press again to double-jump. Pad: ▲ or JUMP.
      Down     S or Down. Fast-fall in the air. On a side/top platform, drop through.
      Attack   J, F, or Z. Hold to repeat. Mouse: left click/hold on the stage.
+              Shape follows the kit: fists (short), blade (longer slash),
+              laser (bolt with travel), orb (lob).
      Smash    K, X, or L. Hold to repeat. Mouse: right click/hold on the stage.
+              A heavier version of that same kit shape.
+     Special  Shift, or the SPEC pad button. One move per kit, then a cooldown:
+              fists uppercut a shockwave, laser fans three beams, blade dash-pierces,
+              orb drops three orbs ahead.
    There is no click-to-walk. Mouse buttons swing. Movement is keys or the pad.
-   Touch uses the same pad (D-pad + JUMP + ATK + SMASH).
+   Touch uses the same pad (D-pad + JUMP + ATK + SMASH + SPEC).
    A click counts: if a pad press or a mouse swing ends before the next frame,
    it stays down for a short pulse (TAP_MS) so a tap still moves or swings.
    Holding keeps the action until release. Jump is one press, then press again.
@@ -3542,8 +3551,8 @@ window.AgentArena = window.ProofPit = {   // ProofPit = alias of the original Ag
    HP reduced to 0 burns the current body. Out of spawns = no control, score only.
    The clock is a 60s wall-clock hard stop. The bout does not end when one
    fighter remains. Winner = highest score at 0:00. Exact ties share the crown.
-   Power-from-PoA-id is stubbed: the human kit is fixed, AI kits are a small
-   table with a light ±1 damage jitter. Nothing is written to storage.
+   Power-from-PoA-id is stubbed. The lobby picks the human kit (default Ledger Jab).
+   AI kits are the other archetypes, with a light damage jitter. Nothing is written to storage.
    Stage art is canvas paint on this page (neon decks, girders, signage).
    Fighters are kit-colored silhouettes with Pit silly names. No teams.
 */
@@ -3576,21 +3585,28 @@ const LOOKS = [
 ];
 const HATS = ['visor','horns','antenna','cap','spiky','halo'];
 const KITS = [
-  {label:'LEDGER JAB', light:10, smash:18, kb:1, move:255, jump:630, weight:1},
-  {label:'QUORUM ORB', light:8, smash:19, kb:1.08, move:242, jump:650, weight:0.94},
-  {label:'EPOCH BOLT', light:11, smash:17, kb:0.96, move:272, jump:620, weight:1.06},
-  {label:'ANCHOR BLAST', light:10, smash:21, kb:1.14, move:230, jump:600, weight:1.14},
-  {label:'GRADE RUNE', light:9, smash:18, kb:1.04, move:250, jump:660, weight:0.92},
-  {label:'BACKLOG SPARK', light:12, smash:16, kb:0.9, move:268, jump:640, weight:0.9},
+  {id:'jab', label:'LEDGER JAB', tag:'FISTS · close', arch:'fist', light:10, smash:18, special:16, kb:1, move:255, jump:630, weight:1, cd:4.2},
+  {id:'orb', label:'QUORUM ORB', tag:'ORB · lob', arch:'orb', light:8, smash:14, special:11, kb:1.05, move:242, jump:650, weight:0.94, cd:5},
+  {id:'laser', label:'EPOCH BOLT', tag:'LASER · far', arch:'laser', light:9, smash:13, special:8, kb:0.92, move:272, jump:620, weight:1.06, cd:5.2},
+  {id:'blade', label:'ANCHOR BLADE', tag:'BLADE · reach', arch:'blade', light:11, smash:20, special:15, kb:1.12, move:236, jump:600, weight:1.12, cd:4.6},
+  {id:'rune', label:'GRADE RUNE', tag:'ORB · lob', arch:'orb', light:9, smash:14, special:12, kb:1.02, move:250, jump:660, weight:0.92, cd:5},
+  {id:'spark', label:'BACKLOG SPARK', tag:'LASER · far', arch:'laser', light:8, smash:12, special:8, kb:0.9, move:268, jump:640, weight:0.9, cd:4.8},
 ];
+const KIT_BLURB = {
+  fist: 'Short punches. Special: uppercut shockwave.',
+  blade: 'Long slash. Special: dash pierce.',
+  laser: 'Bolt with travel time. Special: three-beam fan.',
+  orb: 'Lobbed orb that pops. Special: three orbs fall ahead.',
+};
 const MOVE_L = ['ArrowLeft','KeyA'];
 const MOVE_R = ['ArrowRight','KeyD'];
 const MOVE_D = ['ArrowDown','KeyS'];
 const JUMPK = ['ArrowUp','KeyW','Space'];
 const ATKK = ['KeyJ','KeyF','KeyZ'];
 const SMASHK = ['KeyK','KeyX','KeyL'];
-const GAME = new Set([...MOVE_L, ...MOVE_R, ...MOVE_D, ...JUMPK, ...ATKK, ...SMASHK]);
-const HINT = 'WASD/arrows move · W/↑/Space jump · J/F/Z attack · K/X/L smash. Mouse: left/right hold swings. Pad works for touch or a mouse.';
+const SPECK = ['ShiftLeft','ShiftRight'];
+const GAME = new Set([...MOVE_L, ...MOVE_R, ...MOVE_D, ...JUMPK, ...ATKK, ...SMASHK, ...SPECK]);
+const HINT = 'J/F/Z attack · K/X/L smash · Shift or SPEC special. Attack shape follows the kit. Mouse: left attack, right smash.';
 const FORMULA = 'score = hits × 100 + damage dealt + remaining HP + spawn bonus. Hits are attacks that connected. Damage dealt is HP actually removed from others (overkill does not count). Remaining HP counts only while a body is on the field (0 if you are eliminated or waiting to respawn). Spawn bonus is 400 if you are still in and an unused respawn remains, 200 if you are on your last spawn, 0 if both spawns are burned. Two spawns total: the opening drop and one respawn, consumed when that body appears. Highest score at 0:00 wins. The bout does not end early, and last-alive does not win by itself. Exact ties share the crown.';
 
 const reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -3598,14 +3614,15 @@ const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 
 let root = null, canvas, ctx, raf = 0, last = 0;
 let phase = 'off', endsAt = 0, oppN = 1, sessionName = '', queued = [];
-let fighters = [], floaters = [], parts = [], rings = [], shake = 0, flash = 0;
-let keys = new Set(), ptr = new Map(), edges = {jump:false};
+let fighters = [], floaters = [], parts = [], rings = [], shots = [], shake = 0, flash = 0, hitstop = 0;
+let humanKit = 0;
+let keys = new Set(), ptr = new Map(), edges = {jump:false, special:false};
 let pressAt = new Map(), latch = new Map();
 let mouseAtk = false, mouseSmash = false, mouseAtkUntil = 0, mouseSmashUntil = 0;
 const TAP_MS = 200;
 const OPPOSE = {left:'right', right:'left', atk:'smash', smash:'atk'};
 let lobbyWrap, resultWrap, resultCard, padEl, rosterEl, hintEl, clockEl, kickerEl;
-let whoEl, oppEl, countEl, nButtons = [];
+let whoEl, oppEl, countEl, kitBlurb, nButtons = [], kitButtons = [];
 const view = {s:1, ox:0, oy:0};
 
 function pitStatusName(used, rnd) {
@@ -3658,18 +3675,31 @@ function rollOpponents(n) {
   for (let i = 0; i < n; i++) queued.push(pitStatusName(used));
 }
 
-function aiKit(i) {
-  const base = KITS[1 + (i % (KITS.length - 1))];
-  const j = (n, d, lo, hi) => clamp(n + Math.round((Math.random() - 0.5) * 2 * d), lo, hi);
-  return {
-    label: base.label,
-    light: j(base.light, 1, 7, 13),
-    smash: j(base.smash, 1, 15, 22),
-    kb: base.kb,
-    move: j(base.move, 10, 210, 290),
-    jump: base.jump,
-    weight: base.weight,
+function cloneKit(base, jitter) {
+  const kit = {
+    id: base.id, label: base.label, tag: base.tag, arch: base.arch,
+    light: base.light, smash: base.smash, special: base.special,
+    kb: base.kb, move: base.move, jump: base.jump, weight: base.weight, cd: base.cd,
   };
+  if (jitter) {
+    const j = (n, d, lo, hi) => clamp(n + Math.round((Math.random() - 0.5) * 2 * d), lo, hi);
+    kit.light = j(base.light, 1, 6, 14);
+    kit.smash = j(base.smash, 1, 12, 24);
+    kit.move = j(base.move, 8, 210, 290);
+  }
+  return kit;
+}
+
+function aiKitIndex(i) {
+  const mine = KITS[humanKit].arch;
+  const others = [];
+  const same = [];
+  KITS.forEach((k, idx) => {
+    if (idx === humanKit) return;
+    (k.arch === mine ? same : others).push(idx);
+  });
+  const pool = others.concat(same);
+  return pool[i % pool.length];
 }
 
 function mountButton() {
@@ -3735,6 +3765,7 @@ function buildPad() {
     padKey('jump', 'JUMP', 'Jump', 'ml-key ml-jump'),
     padKey('atk', 'ATK', 'Attack', 'ml-key ml-atk'),
     padKey('smash', 'SMASH', 'Smash', 'ml-key ml-smash'),
+    padKey('special', 'SPEC', 'Special', 'ml-key ml-special'),
   );
   pad.append(dpad, actions);
   return pad;
@@ -3764,6 +3795,7 @@ function notePad(id, act) {
   ptr.set(id, act);
   pressAt.set(id, performance.now());
   if (act === 'jump') edges.jump = true;
+  if (act === 'special') edges.special = true;
 }
 
 function releasePointer(e) {
@@ -3796,6 +3828,7 @@ function clearInput() {
   mouseAtkUntil = 0;
   mouseSmashUntil = 0;
   edges.jump = false;
+  edges.special = false;
 }
 
 function legendBlock(title, lines) {
@@ -3818,6 +3851,21 @@ function buildLobby() {
   youP.append(whoEl);
   card.appendChild(youP);
   card.appendChild(el('p', 'ml-fine', 'That silly name stays until you Leave or refresh.'));
+  card.appendChild(el('p', 'ml-eye', 'YOUR KIT'));
+  const kRow = el('div', 'ml-n');
+  kitButtons = [];
+  KITS.forEach((k, i) => {
+    const b = el('button', null, k.id === 'jab' ? 'JAB' : k.id === 'laser' ? 'BOLT' : k.id.toUpperCase());
+    b.type = 'button';
+    b.dataset.kit = k.id;
+    b.title = k.label + ' — ' + k.tag;
+    b.addEventListener('click', () => { humanKit = i; paintLobby(); });
+    kitButtons.push(b);
+    kRow.appendChild(b);
+  });
+  card.appendChild(kRow);
+  kitBlurb = el('p', 'ml-fine', '');
+  card.appendChild(kitBlurb);
   card.appendChild(el('p', 'ml-eye', 'FAKE OPPONENTS'));
   const nRow = el('div', 'ml-n');
   nButtons = [];
@@ -3844,6 +3892,7 @@ function buildLobby() {
       'Jump  W · ↑ · Space (again = double jump)',
       'Down  fast-fall · drop through side platforms',
       'Attack  J · F · Z     Smash  K · X · L',
+      'Special  Shift (cooldown per kit)',
       'Hold attack or smash to repeat.',
     ]),
     legendBlock('MOUSE', [
@@ -3856,6 +3905,7 @@ function buildLobby() {
       'D-pad moves · ▲ or JUMP jumps',
       '▼ fast-falls or drops through',
       'ATK and SMASH, hold to repeat',
+      'SPEC fires that kit’s special',
       'The same pad works with a mouse.',
     ]),
   );
@@ -3880,6 +3930,13 @@ function paintLobby() {
   countEl.textContent = 'You + ' + oppN + ' · ' + (oppN + 1) + ' fighters';
   oppEl.textContent = 'Fights with you: ' + queued.join(' · ');
   if (root) root.dataset.bout = [sessionName].concat(queued).join('|');
+  const kit = KITS[humanKit];
+  if (kitBlurb) kitBlurb.textContent = kit.label + ' · ' + kit.tag + '. ' + KIT_BLURB[kit.arch];
+  kitButtons.forEach((b, i) => {
+    const on = i === humanKit;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
   nButtons.forEach((b, i) => {
     const on = i + 1 === oppN;
     b.classList.toggle('on', on);
@@ -3929,18 +3986,22 @@ function startMatch() {
   floaters = [];
   parts = [];
   rings = [];
+  shots = [];
   shake = 0;
   flash = 0;
+  hitstop = 0;
   for (let i = 0; i < total; i++) {
     const human = i === 0;
+    const kit = human ? cloneKit(KITS[humanKit], false) : cloneKit(KITS[aiKitIndex(i - 1)], true);
+    const sil = kit.arch === 'blade' ? 1 : kit.arch === 'laser' ? 2 : kit.arch === 'orb' ? 5 : 0;
     fighters.push({
       id: human ? 'you' : 'ai' + i,
       human,
       name: human ? sessionName : names[i - 1],
-      kit: human ? Object.assign({}, KITS[0]) : aiKit(i - 1),
+      kit,
       look: LOOKS[i % LOOKS.length],
-      hat: human ? 'visor' : HATS[i % HATS.length],
-      sil: i % 6,
+      hat: kit.arch === 'laser' ? 'antenna' : kit.arch === 'blade' ? 'horns' : kit.arch === 'orb' ? 'halo' : 'visor',
+      sil,
       phase: i * 1.3,
       hits: 0,
       dmgDealt: 0,
@@ -3950,6 +4011,7 @@ function startMatch() {
       x: 0, y: 0, vx: 0, vy: 0, face: 1,
       ground: null, inv: 0, hitstun: 0, atk: null,
       air: 1, coyote: 0, dropT: 0,
+      specialCd: 0, hurt: 0,
       think: Math.random() * 0.2,
       focusT: 0, focus: null,
       plan: {dir:0},
@@ -4136,7 +4198,7 @@ function paintRoster(rebuild) {
       stat.append(el('b', 'pct'), el('span', 'pips'));
       const hp = el('i', 'hp');
       hp.appendChild(el('b'));
-      chip.append(el('i', 'face'), top, stat, hp, el('span', 'meta'));
+      chip.append(el('i', 'face'), top, stat, hp, el('span', 'meta'), el('span', 'cd'));
       rosterEl.appendChild(chip);
     });
   }
@@ -4160,8 +4222,12 @@ function paintRoster(rebuild) {
     const pips = chip.querySelector('.pips');
     pips.replaceChildren(el('i', lit > 0 ? 'on' : 'off', '●'), el('i', lit > 1 ? 'on' : 'off', '●'));
     const flag = f.state === 'out' ? 'OUT' : f.state === 'respawn' ? 'RESPAWN' : spawnLabel(f);
-    chip.querySelector('.meta').textContent = f.kit.label + ' · ' + flag;
-    chip.title = f.hits + ' hits · ' + f.dmgDealt + ' damage dealt · ' + spawnLabel(f);
+    chip.querySelector('.meta').textContent = f.kit.tag + ' · ' + f.kit.label;
+    const cd = chip.querySelector('.cd');
+    const left = f.specialCd || 0;
+    cd.textContent = left > 0.05 ? 'SPECIAL ' + left.toFixed(1) + 's' : 'SPECIAL ready';
+    cd.classList.toggle('wait', left > 0.05);
+    chip.title = f.hits + ' hits · ' + f.dmgDealt + ' damage dealt · ' + flag + ' · ' + f.kit.tag;
   });
 }
 
@@ -4192,9 +4258,15 @@ function paintHud() {
   root.dataset.state = you.state;
   root.dataset.spawns = String(you.spawnsUsed);
   root.dataset.hits = String(you.hits);
+  root.dataset.hitsum = String(fighters.reduce((n, f) => n + f.hits, 0));
   root.dataset.names = fighters.map(f => f.name).join('|');
   if (phase === 'fight') root.dataset.rem = Math.max(0, (endsAt - performance.now()) / 1000).toFixed(3);
   root.dataset.swing = you.atk ? you.atk.kind : '';
+  root.dataset.kit = you.kit.arch;
+  root.dataset.tag = you.kit.tag;
+  root.dataset.shots = String(shots.length);
+  root.dataset.cd = (you.specialCd || 0).toFixed(2);
+  root.dataset.arks = fighters.map(f => f.kit.arch).join('|');
   paintPad();
 }
 
@@ -4217,12 +4289,14 @@ function readHuman() {
   const jump = edges.jump;
   edges.jump = false;
   const you = fighters[0];
-  if (!you || you.state !== 'live') return {dir:0, down:false, jump:false, atk:false, smash:false};
+  if (!you || you.state !== 'live') return {dir:0, down:false, jump:false, atk:false, smash:false, special:false};
   const now = performance.now();
-  const smash = codes(SMASHK) || padHas('smash') || mouseSmash || now < mouseSmashUntil;
-  const atk = !smash && (codes(ATKK) || padHas('atk') || mouseAtk || now < mouseAtkUntil);
+  const special = edges.special;
+  edges.special = false;
+  const smash = !special && (codes(SMASHK) || padHas('smash') || mouseSmash || now < mouseSmashUntil);
+  const atk = !special && !smash && (codes(ATKK) || padHas('atk') || mouseAtk || now < mouseAtkUntil);
   const dir = ((codes(MOVE_R) || padHas('right')) ? 1 : 0) - ((codes(MOVE_L) || padHas('left')) ? 1 : 0);
-  return {dir, down: codes(MOVE_D) || padHas('down'), jump, atk, smash};
+  return {dir, down: codes(MOVE_D) || padHas('down'), jump, atk, smash, special};
 }
 
 function nearestList(f) {
@@ -4233,7 +4307,7 @@ function nearestList(f) {
 }
 
 function readAi(f, dt) {
-  const input = {dir:0, down:false, jump:false, atk:false, smash:false};
+  const input = {dir:0, down:false, jump:false, atk:false, smash:false, special:false};
   if (f.state !== 'live') return input;
   f.think -= dt;
   f.focusT -= dt;
@@ -4242,11 +4316,11 @@ function readAi(f, dt) {
     f.focus = list.length > 1 && Math.random() < 0.22 ? list[1] : (list[0] || null);
     f.focusT = 0.65 + Math.random() * 0.4;
   }
-  if (f.think > 0) return {dir: f.plan.dir || 0, down:false, jump:false, atk:false, smash:false};
+  if (f.think > 0) return {dir: f.plan.dir || 0, down:false, jump:false, atk:false, smash:false, special:false};
   f.think = 0.14 + Math.random() * 0.16;
   const foe = f.focus && f.focus.state === 'live' ? f.focus : null;
   const plat = f.ground;
-  let dir = 0, jump = false, down = false, atk = false, smash = false;
+  let dir = 0, jump = false, down = false, atk = false, smash = false, special = false;
   if (!plat) {
     if (f.x < 230) dir = 1;
     else if (f.x > 730) dir = -1;
@@ -4264,11 +4338,16 @@ function readAi(f, dt) {
     if (leftGap < 34 && dir < 0) dir = 0;
     if (rightGap < 34 && dir > 0) dir = 0;
     const dx = Math.abs(foe.x - f.x), dy = Math.abs(foe.y - f.y);
+    const arch = f.kit.arch;
+    const ranged = arch === 'laser' || arch === 'orb';
     if (dx < 20) dir = 0;
     if (Math.random() < 0.14) dir = 0;
-    if (dx < 50 && dy < 36 && Math.random() < 0.8) {
-      if (Math.random() < 0.3) smash = true; else atk = true;
-    }
+    if (ranged && dx < 100) dir = -Math.sign(foe.x - f.x) || -f.face;
+    if (ranged && dx > 70 && dx < 540 && dy < 90 && Math.random() < 0.7) atk = true;
+    else if (arch === 'blade' && dx < 110 && dy < 46 && Math.random() < 0.75) atk = true;
+    else if (!ranged && dx < 52 && dy < 40 && Math.random() < 0.8) atk = true;
+    if (atk && Math.random() < 0.22) { smash = true; atk = false; }
+    if (f.specialCd <= 0 && Math.random() < 0.42 && dx < (ranged ? 500 : 150) && dy < 120) special = true;
     if (foe.y < f.y - 68 && dx < 210 && Math.random() < 0.7) jump = true;
     if (!plat.solid && foe.y > f.y + 48 && dx < 90 && Math.random() < 0.45) down = true;
     f.face = Math.sign(foe.x - f.x) || f.face;
@@ -4277,8 +4356,9 @@ function readAi(f, dt) {
   input.dir = dir;
   input.jump = jump;
   input.down = down;
-  input.smash = smash;
-  input.atk = atk && !smash;
+  input.special = special;
+  input.smash = smash && !special;
+  input.atk = atk && !smash && !special;
   return input;
 }
 
@@ -4296,27 +4376,125 @@ function tryJump(f) {
   }
 }
 
+function blip(freq, dur) {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    if (!blip.ctx) blip.ctx = new AC();
+    const ctxA = blip.ctx;
+    if (ctxA.state === 'suspended') ctxA.resume();
+    const o = ctxA.createOscillator();
+    const g = ctxA.createGain();
+    o.type = freq > 600 ? 'square' : 'triangle';
+    o.frequency.value = freq;
+    g.gain.value = 0.045;
+    o.connect(g);
+    g.connect(ctxA.destination);
+    const t0 = ctxA.currentTime;
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    o.start(t0);
+    o.stop(t0 + dur);
+  } catch (err) { /* autoplay or no audio */ }
+}
+
+function pushShot(f, spec) {
+  shots.push(Object.assign({
+    owner: f, t: 0, hit: new Set(), col: f.look.a, grav: 0, pop: 0,
+  }, spec));
+  if (shots.length > 36) shots.shift();
+}
+
+function fireShot(f, kind) {
+  const smash = kind === 'smash';
+  const arch = f.kit.arch;
+  const dmg = smash ? f.kit.smash : f.kit.light;
+  const face = f.face || 1;
+  burst(f.x + face * 20, f.y - 30, smash ? 8 : 5, f.look.a);
+  if (arch === 'laser') {
+    pushShot(f, {
+      x: f.x + face * 24, y: f.y - 30,
+      vx: face * (smash ? 860 : 680), vy: 0,
+      w: smash ? 34 : 22, h: smash ? 8 : 5,
+      dmg, kb: smash ? 1.15 : 0.8, kind, arch, life: smash ? 0.7 : 0.82,
+    });
+    blip(smash ? 740 : 920, 0.05);
+  } else {
+    pushShot(f, {
+      x: f.x + face * 16, y: f.y - 40,
+      vx: face * (smash ? 280 : 220), vy: smash ? -520 : -400, grav: 980,
+      w: smash ? 20 : 14, h: smash ? 20 : 14,
+      dmg, kb: 1.05, kind, arch: 'orb', life: 1.45, pop: smash ? 46 : 32,
+    });
+    blip(smash ? 220 : 280, 0.07);
+  }
+}
+
+function trySpecial(f) {
+  if (f.state !== 'live' || f.hitstun > 0 || f.specialCd > 0 || f.atk) return;
+  const arch = f.kit.arch;
+  const face = f.face || 1;
+  f.specialCd = f.kit.cd;
+  if (arch === 'fist') {
+    f.atk = {kind:'special', t:0, wind:0.05, active:0.12, end:0.14, dmg:f.kit.special, reach:42, tall:58, kb:1.5, hit:new Set(), arch, yoff:-28};
+    if (f.ground || f.coyote > 0) { f.vy = -360; f.ground = null; f.air = Math.max(0, f.air - 1); }
+    pushShot(f, {x: f.x + face * 28, y: f.y - 6, vx: face * 460, vy: 0, w: 42, h: 18, dmg: f.kit.special, kb: 1.25, kind: 'special', arch: 'wave', col: '#ffcf3f', life: 0.42});
+  } else if (arch === 'blade') {
+    f.atk = {kind:'special', t:0, wind:0.03, active:0.16, end:0.08, dmg:f.kit.special, reach:84, tall:32, kb:1.3, hit:new Set(), arch, dash:640};
+  } else if (arch === 'laser') {
+    f.atk = {kind:'special', t:0, wind:0.06, active:0, end:0.28, dmg:0, reach:0, tall:0, kb:1, hit:new Set(), arch};
+    [-0.32, 0, 0.32].forEach(ang => {
+      const sp = 740;
+      pushShot(f, {
+        x: f.x + face * 22, y: f.y - 30,
+        vx: Math.cos(ang) * sp * face, vy: Math.sin(ang) * sp,
+        w: 26, h: 6, dmg: f.kit.special, kb: 1, kind: 'special', arch: 'laser', life: 0.72,
+      });
+    });
+  } else {
+    f.atk = {kind:'special', t:0, wind:0.04, active:0, end:0.32, dmg:0, reach:0, tall:0, kb:1, hit:new Set(), arch};
+    for (let i = 0; i < 3; i++) {
+      pushShot(f, {
+        x: f.x + face * (50 + i * 78), y: f.y - 170 - i * 24,
+        vx: face * 30, vy: 40, grav: 820,
+        w: 16, h: 16, dmg: f.kit.special, kb: 1.05, kind: 'special', arch: 'orb', col: '#ffcf3f', life: 1.7, pop: 42,
+      });
+    }
+  }
+  blip(arch === 'laser' ? 480 : arch === 'orb' ? 160 : 140, 0.11);
+}
+
 function startSwing(f, kind) {
   if (f.state !== 'live' || f.hitstun > 0 || f.atk) return;
   const smash = kind === 'smash';
+  const arch = f.kit.arch;
+  if (arch === 'laser' || arch === 'orb') {
+    f.atk = {
+      kind, t: 0, wind: 0.03, active: 0, end: smash ? 0.28 : 0.22,
+      dmg: 0, reach: 0, tall: 0, kb: 1, hit: new Set(), arch, shot: false,
+    };
+    return;
+  }
+  const blade = arch === 'blade';
   f.atk = {
     kind, t: 0,
-    wind: smash ? 0.12 : 0.045,
-    active: smash ? 0.1 : 0.08,
-    end: smash ? 0.22 : 0.13,
+    wind: smash ? 0.1 : 0.04,
+    active: smash ? 0.1 : 0.07,
+    end: smash ? 0.18 : (blade ? 0.12 : 0.08),
     dmg: smash ? f.kit.smash : f.kit.light,
-    reach: smash ? 58 : 40,
-    tall: smash ? 32 : 24,
+    reach: blade ? (smash ? 96 : 72) : (smash ? 48 : 34),
+    tall: blade ? (smash ? 36 : 26) : (smash ? 26 : 20),
     kb: smash ? 1.32 : 1,
     hit: new Set(),
+    arch,
   };
 }
 
 function bodyBox(f) { return {x: f.x - 14, y: f.y - 48, w: 28, h: 48}; }
 function swingBox(f, a) {
   const w = a.reach;
-  return {x: f.face > 0 ? f.x + 6 : f.x - 6 - w, y: f.y - 42, w, h: a.tall};
+  return {x: f.face > 0 ? f.x + 6 : f.x - 6 - w, y: f.y - 42 + (a.yoff || 0), w, h: a.tall};
 }
+function shotBox(s) { return {x: s.x - s.w / 2, y: s.y - s.h / 2, w: s.w, h: s.h}; }
 function overlap(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
@@ -4337,13 +4515,19 @@ function applyHit(att, vic, spec) {
   vic.ground = null;
   vic.atk = null;
   vic.face = -away || vic.face;
-  floater(vic.x, vic.y - 52, String(dealt), spec.kind === 'smash' ? '#ffcf3f' : '#fff');
-  burst(vic.x, vic.y - 24, spec.kind === 'smash' ? 12 : 7, att.look.a);
-  if (spec.kind === 'smash') {
-    if (!reduce) { shake = Math.min(8, shake + 4); flash = 0.16; }
-    rings.push({x: vic.x, y: vic.y - 24, t: 0, life: 0.28, col: '#ffcf3f'});
-    if (rings.length > 8) rings.shift();
+  vic.hurt = 0.22;
+  const col = spec.arch === 'laser' ? '#7cf3ff' : spec.arch === 'orb' ? '#ffcf3f' : spec.arch === 'blade' ? '#e8fdff' : spec.arch === 'wave' ? '#ffcf3f' : '#fff';
+  floater(vic.x, vic.y - 70, '-' + dealt, col);
+  burst(vic.x, vic.y - 24, spec.kind === 'light' ? 10 : 16, col);
+  burst(vic.x, vic.y - 24, 4, '#fff');
+  rings.push({x: vic.x, y: vic.y - 24, t: 0, life: spec.kind === 'light' ? 0.2 : 0.32, col});
+  if (rings.length > 12) rings.shift();
+  if (!reduce) {
+    shake = Math.min(9, shake + (spec.kind === 'light' ? 2.6 : 5));
+    hitstop = Math.max(hitstop, spec.kind === 'light' ? 0.04 : 0.07);
+    if (spec.kind !== 'light') flash = Math.max(flash, 0.12);
   }
+  blip(spec.arch === 'laser' ? 640 : spec.kind === 'light' ? 180 : 110, spec.kind === 'light' ? 0.04 : 0.07);
   if (vic.hp <= 0) kill(vic, 'hp');
 }
 
@@ -4351,7 +4535,11 @@ function stepSwing(f, dt) {
   const a = f.atk;
   if (!a) return;
   a.t += dt;
-  if (a.t >= a.wind && a.t < a.wind + a.active) {
+  if ((a.arch === 'laser' || a.arch === 'orb') && a.kind !== 'special' && !a.shot && a.t >= a.wind) {
+    a.shot = true;
+    fireShot(f, a.kind);
+  }
+  if (a.active > 0 && a.t >= a.wind && a.t < a.wind + a.active) {
     const box = swingBox(f, a);
     for (const o of fighters) {
       if (o === f || a.hit.has(o) || o.state !== 'live' || o.inv > 0) continue;
@@ -4359,6 +4547,42 @@ function stepSwing(f, dt) {
     }
   }
   if (a.t >= a.wind + a.active + a.end) f.atk = null;
+}
+
+function popShot(s) {
+  if (s.pop) {
+    const box = {x: s.x - s.pop, y: s.y - s.pop, w: s.pop * 2, h: s.pop * 2};
+    for (const o of fighters) {
+      if (o === s.owner || s.hit.has(o) || o.state !== 'live') continue;
+      if (overlap(box, bodyBox(o))) { s.hit.add(o); applyHit(s.owner, o, s); }
+    }
+    rings.push({x: s.x, y: s.y, t: 0, life: 0.25, col: s.col});
+    burst(s.x, s.y, 8, s.col);
+  }
+}
+
+function stepShots(dt) {
+  for (let i = shots.length - 1; i >= 0; i--) {
+    const s = shots[i];
+    const py = s.y;
+    s.t += dt;
+    s.vy += (s.grav || 0) * dt;
+    s.x += s.vx * dt;
+    s.y += s.vy * dt;
+    if (s.grav && s.vy > 0) {
+      for (const p of PLATS) {
+        if (s.x < p.x || s.x > p.x + p.w) continue;
+        if (py <= p.y && s.y >= p.y) { s.y = p.y; s.t = s.life; }
+      }
+    }
+    const box = shotBox(s);
+    for (const o of fighters) {
+      if (o === s.owner || s.hit.has(o) || o.state !== 'live' || o.inv > 0) continue;
+      if (overlap(box, bodyBox(o))) { s.hit.add(o); applyHit(s.owner, o, s); s.t = s.life; }
+    }
+    if (s.x < -30 || s.x > VW + 30 || s.y > VH + 40 || s.y < -160) s.t = s.life;
+    if (s.t >= s.life) { popShot(s); shots.splice(i, 1); }
+  }
 }
 
 function resolve(f, py) {
@@ -4396,9 +4620,12 @@ function stepBody(f, dt, input) {
   if (f.state !== 'live') return;
   f.inv = Math.max(0, f.inv - dt);
   f.hitstun = Math.max(0, f.hitstun - dt);
+  f.hurt = Math.max(0, (f.hurt || 0) - dt);
+  f.specialCd = Math.max(0, (f.specialCd || 0) - dt);
   f.dropT = Math.max(0, f.dropT - dt);
   f.coyote = f.ground ? 0.1 : Math.max(0, f.coyote - dt);
-  if (input.smash) startSwing(f, 'smash');
+  if (input.special) trySpecial(f);
+  else if (input.smash) startSwing(f, 'smash');
   else if (input.atk) startSwing(f, 'light');
   stepSwing(f, dt);
   if (f.state !== 'live') return;
@@ -4423,6 +4650,10 @@ function stepBody(f, dt, input) {
     if (input.dir) f.vx = input.dir * max;
     else f.vx = f.ground ? 0 : f.vx * Math.exp(-8 * dt);
     if (!f.ground) f.vy += GRAV * (input.down ? 2.6 : 1) * dt;
+  }
+  if (f.atk && f.atk.dash && f.hitstun <= 0 && f.atk.t >= f.atk.wind && f.atk.t < f.atk.wind + f.atk.active) {
+    f.vx = (f.face || 1) * f.atk.dash;
+    f.vy = Math.min(f.vy, 40);
   }
   if (f.vy > 980) f.vy = 980;
   const py = f.y;
@@ -4462,7 +4693,9 @@ function burst(x, y, n, col) {
 }
 
 function step(dt) {
+  if (hitstop > 0) { hitstop = Math.max(0, hitstop - dt); return; }
   for (const f of fighters) stepBody(f, dt, f.human ? readHuman() : readAi(f, dt));
+  stepShots(dt);
   separate();
   for (let i = floaters.length - 1; i >= 0; i--) {
     const p = floaters[i];
@@ -4701,6 +4934,10 @@ function drawDude(g, f, t) {
   } else {
     px(1, 12, 3, 5, L.b);
     px(12, 12, 3, 5, L.a);
+    const arch = f.kit && f.kit.arch;
+    if (arch === 'blade') { px(14, 6, 2, 12, '#e8fdff'); px(13, 5, 4, 2, L.c); }
+    else if (arch === 'laser') { px(14, 12, 7, 3, L.d); px(20, 12, 3, 2, '#fff'); }
+    else if (arch === 'orb') { px(14, 10, 5, 5, L.c); px(15, 11, 3, 3, '#fff'); }
   }
   px(4, 3, 8, 7, L.d);
   px(5, 4, 6, 5, L.s);
@@ -4740,16 +4977,36 @@ function drawFighters(g, t) {
     g.fill();
     const blink = f.inv > 0 && Math.floor(t * 16) % 2 === 0;
     if (!blink) drawDude(g, f, t);
-    if (f.atk && f.atk.t >= f.atk.wind && f.atk.t < f.atk.wind + f.atk.active) {
+    if (f.hurt > 0) {
+      g.globalAlpha = Math.min(0.8, f.hurt * 4);
+      g.fillStyle = '#fff';
+      g.fillRect(-18, -72, 36, 66);
+      g.globalAlpha = 1;
+    }
+    if (f.atk && f.atk.t < f.atk.wind + f.atk.active + 0.08) {
       g.save();
       g.scale(f.face || 1, 1);
-      const smash = f.atk.kind === 'smash';
-      g.strokeStyle = smash ? '#ffcf3f' : f.look.a;
-      g.globalAlpha = smash ? 0.95 : 0.8;
-      g.lineWidth = smash ? 7 : 3;
-      g.beginPath();
-      g.arc(6, -30, smash ? 36 : 24, -1.05, 0.7);
-      g.stroke();
+      const arch = f.kit.arch;
+      const smash = f.atk.kind === 'smash' || f.atk.kind === 'special';
+      if (arch === 'fist' || arch === 'blade') {
+        g.strokeStyle = smash ? '#ffcf3f' : (arch === 'blade' ? '#e8fdff' : f.look.a);
+        g.globalAlpha = 0.9;
+        g.lineWidth = arch === 'blade' ? (smash ? 8 : 5) : (smash ? 6 : 3);
+        g.beginPath();
+        g.arc(8, arch === 'fist' && f.atk.kind === 'special' ? -48 : -32, arch === 'blade' ? (smash ? 46 : 34) : (smash ? 26 : 18), -1.15, 0.85);
+        g.stroke();
+      } else if (arch === 'laser' && f.atk.t < 0.12) {
+        g.fillStyle = '#fff';
+        g.fillRect(8, -36, smash ? 22 : 14, 6);
+        g.fillStyle = f.look.a;
+        g.globalAlpha = 0.7;
+        g.fillRect(6, -40, 10, 14);
+      } else if (arch === 'orb' && f.atk.t < 0.14) {
+        g.fillStyle = f.look.a;
+        g.beginPath();
+        g.arc(16, -36, smash ? 9 : 6, 0, Math.PI * 2);
+        g.fill();
+      }
       g.globalAlpha = 1;
       g.restore();
     }
@@ -4786,7 +5043,7 @@ function drawFighters(g, t) {
     g.fillStyle = 'rgba(255,244,214,' + Math.min(0.45, flash * 2.2).toFixed(3) + ')';
     g.fillRect(0, 0, VW, VH);
   }
-  g.font = '700 13px ui-monospace,monospace';
+  g.font = '900 18px ui-monospace,monospace';
   g.textAlign = 'center';
   g.textBaseline = 'middle';
   for (const p of floaters) {
@@ -4803,6 +5060,46 @@ function drawFighters(g, t) {
   g.globalAlpha = 1;
 }
 
+function drawShots(g) {
+  for (const s of shots) {
+    g.save();
+    g.translate(s.x, s.y);
+    if (s.arch === 'laser') {
+      g.globalAlpha = 0.35;
+      g.fillStyle = s.col;
+      g.fillRect(-s.w, -s.h * 1.4, s.w * 2, s.h * 2.8);
+      g.globalAlpha = 1;
+      g.fillStyle = '#fff';
+      g.fillRect(-s.w / 2, -s.h / 2, s.w, s.h);
+      g.fillStyle = s.col;
+      g.fillRect(-s.w / 2, -1, s.w, 3);
+    } else if (s.arch === 'wave') {
+      g.globalAlpha = 0.9;
+      g.fillStyle = '#fff6c8';
+      g.fillRect(-s.w / 2, -s.h / 2, s.w, s.h);
+      g.fillStyle = '#ffcf3f';
+      g.fillRect(-s.w / 2, -2, s.w, 4);
+      g.globalAlpha = 1;
+    } else {
+      g.globalAlpha = 0.35;
+      g.fillStyle = s.col;
+      g.beginPath();
+      g.arc(0, 0, s.w * 0.9, 0, Math.PI * 2);
+      g.fill();
+      g.globalAlpha = 1;
+      g.fillStyle = s.col;
+      g.beginPath();
+      g.arc(0, 0, s.w * 0.55, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = '#fff';
+      g.beginPath();
+      g.arc(-2, -2, Math.max(2, s.w * 0.22), 0, Math.PI * 2);
+      g.fill();
+    }
+    g.restore();
+  }
+}
+
 function draw(t) {
   if (!ctx || !canvas) return;
   layout();
@@ -4813,7 +5110,7 @@ function draw(t) {
   const sy = reduce ? 0 : (Math.random() - 0.5) * shake;
   ctx.setTransform(view.s, 0, 0, view.s, view.ox + sx, view.oy + sy);
   drawWorld(ctx, t);
-  if (phase !== 'lobby') drawFighters(ctx, t);
+  if (phase !== 'lobby') { drawFighters(ctx, t); drawShots(ctx); }
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   drawStageClock();
 }
@@ -4886,6 +5183,7 @@ window.addEventListener('keydown', e => {
   if (e.repeat) return;
   keys.add(e.code);
   if (JUMPK.indexOf(e.code) >= 0) edges.jump = true;
+  if (SPECK.indexOf(e.code) >= 0) edges.special = true;
 }, true);
 window.addEventListener('keyup', e => {
   keys.delete(e.code);

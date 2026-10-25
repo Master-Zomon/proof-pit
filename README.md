@@ -90,11 +90,14 @@ Keyboard is primary. Mouse buttons swing. The on-screen pad is for touch and for
 | WASD or arrows | move |
 | W, Up, or Space | jump (press again to double-jump) |
 | S or Down | fast-fall, or drop through a side / top platform |
-| J, F, or Z | attack (hold to repeat) |
-| K, X, or L | smash (hold to repeat) |
+| J, F, or Z | attack (hold to repeat). Shape follows your kit |
+| K, X, or L | smash (hold to repeat). Heavier version of that kit |
+| Shift, or SPEC on the pad | special, then that kit’s cooldown |
 | Left click / hold on the stage | attack |
 | Right click / hold on the stage | smash |
-| D-pad, JUMP, ATK, SMASH | same actions for touch or mouse. A click and a hold both count. |
+| D-pad, JUMP, ATK, SMASH, SPEC | same actions for touch or mouse. A click and a hold both count |
+
+Kits in one bout are different on purpose. Fists punch close. Blade slashes farther. Laser fires a bolt that travels. Orb lobs a shot that pops. Specials: uppercut shockwave, dash pierce, three-beam fan, orb rain. The lobby picks your kit. Opponents bring the others. Each HUD card shows a range tag (`LASER · far`, `FISTS · close`) and the special cooldown.
 
 ## Version
 
