@@ -94,7 +94,7 @@ Keyboard is primary. Mouse buttons swing. The on-screen pad is for touch and for
 | K, X, or L | smash (hold to repeat) |
 | Left click / hold on the stage | attack |
 | Right click / hold on the stage | smash |
-| D-pad, JUMP, ATK, SMASH | same actions for touch or mouse |
+| D-pad, JUMP, ATK, SMASH | same actions for touch or mouse. A click and a hold both count. |
 
 ## Version
 
