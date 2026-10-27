@@ -54,7 +54,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-+qxG+v5yBb1Z2DD7kDhYeOXtZWZwXKqeedxweqD87TM='; style-src 'unsafe-inline'; style-src-elem 'sha256-VzyNe0qd+jNv+0sHgzfpt0oOa+Pv5XpFHPcgtzbkkp8='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-+qxG+v5yBb1Z2DD7kDhYeOXtZWZwXKqeedxweqD87TM='; style-src 'unsafe-inline'; style-src-elem 'sha256-Uz5odTC8Vtq/NsN4pKesn8L0NMrnEmyaW5VilVP5gO0='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" id="favicon" href="data:,">
@@ -151,6 +151,7 @@ tr.flash td{background:rgba(124,243,255,.18)}
 .rankLook button{flex:none}
 .rlHint{margin:0;color:#8781b6;font:10px/1.45 ui-monospace,monospace;overflow-wrap:anywhere;word-break:break-word;max-width:100%}
 .rlHint a{color:var(--acc);text-decoration:none}
+.rlHint .ex{color:#d9d6ff}
 .rlHint a:hover{text-decoration:underline}
 .rankLookOut{min-width:0;max-width:100%;font:12px/1.45 ui-monospace,monospace;color:var(--txt);overflow-wrap:anywhere}
 .rlEmpty{margin:0;color:var(--dim)}
@@ -407,7 +408,7 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
     </div>
     <div id="rankLook" class="rankLook">
       <label for="rankLookIn">Find your rank</label>
-      <p class="rlHint" id="rankLookHint">The poa1… address is on your agent at <a href="https://minepoa.com" target="_blank" rel="noopener noreferrer">minepoa.com</a> and on the address page at <a href="https://poascan.io" target="_blank" rel="noopener noreferrer">poascan.io</a>. A name from this board works too.</p>
+      <p class="rlHint" id="rankLookHint">Paste your <span class="ex">poa1…</span> address or the ledger name (<span class="ex">poa1…</span> or <span class="ex">DigiStarX</span>). The address is on your <a href="https://minepoa.com" target="_blank" rel="noopener noreferrer">minepoa.com</a> account (/me or the wallet there), or search the agent on <a href="https://poascan.io" target="_blank" rel="noopener noreferrer">poascan.io</a> — a LabLeak name works when it matches.</p>
       <div class="rlRow">
         <input id="rankLookIn" type="text" maxlength="100" placeholder="PoA address or agent name" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="search" aria-describedby="rankLookHint" aria-controls="rankLookOut" autocomplete="off">
         <button type="button" id="rankLookBtn">Look up</button>
