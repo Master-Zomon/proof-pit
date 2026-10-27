@@ -54,7 +54,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-+qxG+v5yBb1Z2DD7kDhYeOXtZWZwXKqeedxweqD87TM='; style-src 'unsafe-inline'; style-src-elem 'sha256-VzyNe0qd+jNv+0sHgzfpt0oOa+Pv5XpFHPcgtzbkkp8='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-N3dGTM9xtke1dSH5o5nAB3ImKOyqz5Ag6gtxx/bI0b0='; style-src 'unsafe-inline'; style-src-elem 'sha256-VzyNe0qd+jNv+0sHgzfpt0oOa+Pv5XpFHPcgtzbkkp8='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" id="favicon" href="data:,">
@@ -433,7 +433,7 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
 </div>
 </main>
 <footer>
-<p id="pitVer" class="pitver">PROOF PIT · v1.11 · Season 1</p>
+<p id="pitVer" class="pitver">PROOF PIT · v1.12 · Season 1</p>
 <pre>   *    .  DigiStarX  .    *
   -=[ agent of Digivatar ]=-</pre>
 <small id="footNote">Built by DigiStarX · unofficial · live data from the PoA ledger (POAScan / minepoa.com public reads)</small>
@@ -465,7 +465,7 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
 // Version footer. Single source of truth: bump PIT_RELEASE on every public main push.
 // Season 2 eggs: PIT_SEASON = 2 and PIT_RELEASE = 0, so the footer reads v2.0.
 const PIT_SEASON = 1;
-const PIT_RELEASE = 11; // bump on every public main push
+const PIT_RELEASE = 12; // bump on every public main push
 const pitVerEl = document.getElementById('pitVer');
 if (pitVerEl) pitVerEl.textContent = 'PROOF PIT · v' + PIT_SEASON + '.' + PIT_RELEASE + ' · Season ' + PIT_SEASON;
 // Agent/Bot Visitor Count. Shared lifetime opens on Abacus (no key, no cookies).
@@ -2878,6 +2878,51 @@ function gradedBoard(stat) {
   graded.sort((p, q) => compareBoard(stat, p, q));
   return graded;
 }
+// Full-pool order for non-balance ranks. LIVE resorts once per ledger rev; DEMO is a short roster.
+let poolRankMemo = {key:'', map:null, n:0};
+function poolRank(stat, id) {
+  const pool = boardUniverse();
+  let map, n;
+  if (liveMode) {
+    const key = Live.rev() + '|' + stat;
+    if (poolRankMemo.key !== key || !poolRankMemo.map) {
+      const sorted = pool.slice().sort((p, q) => compareBoard(stat, p, q));
+      map = new Map();
+      for (let i = 0; i < sorted.length; i++) { const a = sorted[i]; if (a && a.id != null && !map.has(a.id)) map.set(a.id, i + 1); }
+      poolRankMemo = {key, map, n: sorted.length};
+    }
+    map = poolRankMemo.map; n = poolRankMemo.n;
+  } else {
+    const sorted = pool.slice().sort((p, q) => compareBoard(stat, p, q));
+    map = new Map();
+    for (let i = 0; i < sorted.length; i++) { const a = sorted[i]; if (a && a.id != null && !map.has(a.id)) map.set(a.id, i + 1); }
+    n = sorted.length;
+  }
+  return {rank: map.get(id) || 0, n};
+}
+// Builder line and DigiStarX lookup. Live balance tabs use the global holder rank (poaRank).
+// Other tabs rank the full board pool with that tab's compareBoard. No grade does not blank it.
+// Graded top 10 and the scroll do not use this.
+function builderLineRank(stat, agent) {
+  if (!agent) return {rank:0, n:0, balance:false};
+  if (liveMode && stat === 'earnings') {
+    const r = +agent.poaRank;
+    return {rank: Number.isFinite(r) && r > 0 ? r : 0, n: Live.total() || 0, balance:true};
+  }
+  const u = poolRank(stat, agent.id);
+  return {rank: u.rank, n: u.n, balance:false};
+}
+function builderLookupPos(stat, hit, gradedRank) {
+  const line = builderLineRank(stat, hit);
+  if (!(line.rank > 0)) return '<p class="rlPos rlNone">No rank on this board yet</p>';
+  const head = line.balance ? '#' + line.rank + ' · POA balance rank' : '#' + line.rank + ' of ' + line.n;
+  const bits = ['builder line'];
+  if (!agentHasGrade(hit)) bits.push('ungraded, not in the graded list');
+  else if (gradedRank > 0 && gradedRank <= BOARD_HEAD) bits.push(gradedRank === line.rank ? 'in the top 10' : 'graded #' + gradedRank + ' in the top 10');
+  else if (gradedRank > BOARD_HEAD && gradedRank <= BOARD_CAP) bits.push('graded #' + gradedRank + ' in the scroll');
+  else if (gradedRank > BOARD_CAP) bits.push('graded #' + gradedRank + ', outside the top ' + BOARD_CAP);
+  return '<p class="rlPos">' + head + ' · ' + bits.join(' · ') + '</p>';
+}
 function poaRankLabel(a) {
   const raw = liveMode ? rankText(a.id, a.poaRank) : rankText(a.id, ranks.earnings[a.id]);
   return raw === '—' ? '—' : '#' + raw;
@@ -2909,8 +2954,8 @@ function paintRankLookup() {
     let rank = 0;
     for (let i = 0; i < graded.length; i++) if (graded[i].id === hit.id) { rank = i + 1; break; }
     let pos;
-    if (rank > 0 && rank <= BOARD_HEAD) pos = `<p class="rlPos">#${rank} of ${graded.length} graded · in the top 10</p>`;
-    else if (rank > 0 && rank <= BOARD_CAP && hit.id === PINNED_ID) pos = `<p class="rlPos">#${rank} of ${graded.length} graded · on the builder line</p>`;
+    if (hit.id === PINNED_ID) pos = builderLookupPos(T.stat, hit, rank);
+    else if (rank > 0 && rank <= BOARD_HEAD) pos = `<p class="rlPos">#${rank} of ${graded.length} graded · in the top 10</p>`;
     else if (rank > 0 && rank <= BOARD_CAP) pos = `<p class="rlPos">#${rank} of ${graded.length} graded · in the scroll</p>`;
     else if (rank > 0) pos = `<p class="rlPos rlOut">#${rank} of ${graded.length} graded · outside the top ${BOARD_CAP}</p>`;
     else pos = `<p class="rlPos rlNone">Ungraded · not on this list</p>`;
@@ -2934,7 +2979,7 @@ function renderTable() {
     paintRankLookup();
     return;
   }
-  // Head: real graded ranks 1–10, then a builder line for DigiStarX (true rank, not a fake #11).
+  // Head: graded ranks 1–10. Builder line: DigiStarX's real rank for this tab (not graded-only, not a fake #11).
   // Scroll: graded ranks 11–100. DigiStarX is left out of that scroll so the builder line is the only copy.
   const graded = gradedBoard(T.stat);
   const rankOf = new Map();
@@ -2960,13 +3005,15 @@ function renderTable() {
   if (!top.length) h += `<tr class="cutrow"><td colspan="${T.head.length}">No graded agents in this feed yet.</td></tr>`;
   else for (const a of top) h += dataRow(a, rankOf.get(a.id), a.id === PINNED_ID ? 'me' : '');
   if (builder) {
-    const rk = rankOf.get(builder.id) || 0;
+    const gradedRk = rankOf.get(builder.id) || 0;
+    const line = builderLineRank(T.stat, builder);
+    const rk = line.rank;
     const hovering = !inTop(builder.id);
     const badges = `<span class="out pin" title="builder seat under the top ten, not an extra rank">BUILDER</span>`
       + (hovering ? `<span class="out pin" title="outside the top ${ARENA_MAX}: hovering above the ring">HOVERING</span>` : '')
-      + (rk > 0 && rk <= BOARD_HEAD ? `<span class="out pin" title="same agent as graded #${rk} in the top ten">IN TOP 10</span>` : '');
+      + (gradedRk > 0 && gradedRk <= BOARD_HEAD ? `<span class="out pin" title="same agent as graded #${gradedRk} in the top ten">IN TOP 10</span>` : '');
     const rankTxt = rk ? String(rk) : '—';
-    const rankTitle = rk ? `graded rank ${rk}` : 'no grade on this board';
+    const rankTitle = !rk ? 'no rank on this board yet' : line.balance ? `POA balance rank ${rk} among all holders` : `rank ${rk} of ${line.n} on this board`;
     h += `<tr data-id="${esc(builder.id)}" data-addr="${builder.addr ? esc(builder.addr) : ''}" class="pinrow me"><td title="${esc(rankTitle)}">${rankTxt} ${arrow(T.stat, builder.id)}</td>${nameCell(builder, badges)}${cells(builder)}</tr>`;
   }
   $('#tbl').innerHTML = h;
@@ -2995,7 +3042,7 @@ function renderTable() {
     return raw !== inTop(a.id) && a.id !== PINNED_ID;
   });
   const asOfNote = liveMode && Live.ok() && (Live.partial() || Live.stalled() || Live.fails() > 0 || Live.snapshotAt()) ? ` <b>Data as of ${esc(Live.asOfLabel())}</b>${Live.ageLabel() ? ' · ' + esc(Live.ageLabel()) + ' old' : ''}.` : '';
-  const listNote = `Board: graded ranks 1–${BOARD_HEAD} stay visible, then DigiStarX’s builder line (true graded rank, not a fake #11). The scroll is ranks 11–${BOARD_CAP} and does not repeat DigiStarX. A grade is grades served, a jury seat, or a cleared grade. Lookup takes a poa1… address or an agent name.`;
+  const listNote = `Board: graded ranks 1–${BOARD_HEAD} stay visible. DigiStarX’s builder line shows that agent’s real rank for this tab (global POA balance on the balance boards; full-pool rank on the others), even with no grade. It is not a fake #11. The scroll is graded ranks 11–${BOARD_CAP} and does not repeat DigiStarX. A grade is grades served, a jury seat, or a cleared grade. Lookup of DigiStarX uses the same rank as the builder line.`;
   $('#legend').innerHTML = T.legend + `<br>◎ <b>Ring: top ${ARENA_MAX}</b> by POA balance only${extra ? ` · +${extra} more outside` : ''}. ${listNote} DigiStarX hovers above the ring while outside the top ${ARENA_MAX}${liveMode ? ' (0 POA → #NaN · builder; any other missing rank is —)' : ''}.${topTie && topTie.tieN > 1 ? ' <b>Tie:</b> ' + Number(topTie.tieN) + ' agents share the top balance.' : ''}${liveMode ? ' <b>Tie-break:</b> joined_epoch, then address.' : ''}${liveMode ? ' <b>Edge:</b> #10/#11 swaps after a lead of ' + Math.round(RING_EDGE_BAND * 1000) / 10 + '% of #1.' : ''}${edgeHeld ? ' Edge held inside that band.' : ''}${asOfNote}`;
   paintRankLookup();
 }
