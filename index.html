@@ -54,7 +54,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IYrh4g6jIvUkVRpmSxZUNUXOY/stcjxS9VyCz8ClWhM='; style-src 'unsafe-inline'; style-src-elem 'sha256-DltW3B6YwZtoa8YTR6ulCsExKhLRmTSjTJlTWou6OVg='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-+qxG+v5yBb1Z2DD7kDhYeOXtZWZwXKqeedxweqD87TM='; style-src 'unsafe-inline'; style-src-elem 'sha256-VzyNe0qd+jNv+0sHgzfpt0oOa+Pv5XpFHPcgtzbkkp8='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" id="favicon" href="data:,">
@@ -120,12 +120,15 @@ aside{width:410px;flex:none;border-left:1px solid var(--line);background:var(--p
 .tabs{display:flex;border-bottom:1px solid var(--line)}
 .tabs button{flex:1;border:0;border-radius:0;background:transparent;padding:9px 2px;color:var(--dim);font-size:11px;border-bottom:2px solid transparent}
 .tabs button.act{color:#fff;border-bottom-color:var(--hot);background:#17123a}
-#tableWrap{overflow-x:clip;overflow-y:auto;flex:1;min-height:0}
+#board{flex:1 0 auto;min-height:0;display:flex;flex-direction:column;min-width:0;max-width:100%}
+#boardTop{flex:none;max-width:100%;overflow-x:clip}
+#boardScroll{flex:1 1 140px;min-height:120px;max-height:280px;overflow-x:clip;overflow-y:auto;max-width:100%}
+.scrollCue{flex:none;margin:0;padding:4px 8px;font:700 10px ui-monospace,monospace;letter-spacing:.45px;color:#8781b6;background:#120f2a;border-top:1px solid var(--line);border-bottom:1px solid #1b1740;overflow-wrap:anywhere}
 table{width:100%;border-collapse:collapse;font:12px ui-monospace,Menlo,monospace;table-layout:fixed}
-th{position:sticky;top:0;background:#120f2a;color:var(--dim);font-weight:600;text-align:right;padding:6px 6px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;white-space:normal;overflow-wrap:anywhere}
+th{position:sticky;top:0;z-index:1;background:#120f2a;color:var(--dim);font-weight:600;text-align:right;padding:6px 6px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;white-space:normal;overflow-wrap:anywhere}
 td{padding:6px 6px;text-align:right;border-bottom:1px solid #1b1740;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
-#tbl th:nth-child(1),#tbl td:nth-child(1){width:14%}
-#tbl th:nth-child(2),#tbl td:nth-child(2){width:28%}
+#board th:nth-child(1),#board td:nth-child(1){width:14%}
+#board th:nth-child(2),#board td:nth-child(2){width:28%}
 th:nth-child(-n+2),td:nth-child(-n+2){text-align:left}
 tr{cursor:pointer;transition:background .3s}
 tr:hover td{background:#1a1540}
@@ -146,6 +149,9 @@ tr.flash td{background:rgba(124,243,255,.18)}
 .rankLook input::placeholder{color:#5f5a8e}
 .rankLook input:focus{outline:1px solid var(--acc);border-color:var(--acc)}
 .rankLook button{flex:none}
+.rlHint{margin:0;color:#8781b6;font:10px/1.45 ui-monospace,monospace;overflow-wrap:anywhere;word-break:break-word;max-width:100%}
+.rlHint a{color:var(--acc);text-decoration:none}
+.rlHint a:hover{text-decoration:underline}
 .rankLookOut{min-width:0;max-width:100%;font:12px/1.45 ui-monospace,monospace;color:var(--txt);overflow-wrap:anywhere}
 .rlEmpty{margin:0;color:var(--dim)}
 .rlWho{margin:0;overflow-wrap:anywhere;word-break:break-word}
@@ -163,6 +169,8 @@ tr.cutrow td{border-top:2px dashed var(--hot);border-bottom:0;padding:3px 6px;fo
 tr.cutrow:hover td{background:transparent}
 tr.offring td{opacity:.6}
 tr.cut td{border-top:2px dashed var(--hot)}
+tr.pinrow td{background:rgba(255,79,216,.16);border-top:2px solid #ff4fd8;border-bottom:2px solid #7a2a6a}
+tr.pinrow:hover td{background:rgba(255,79,216,.26)}
 #chat{border-top:1px solid var(--line);display:flex;flex-direction:column;height:236px;flex:none}
 .chatHead{padding:6px 10px;font:700 11px ui-monospace,monospace;color:#fff;display:flex;gap:8px;align-items:center;background:#120f2a}
 .chatHead span{color:var(--dim);font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -175,8 +183,11 @@ tr.cut td{border-top:2px dashed var(--hot)}
 .chatHead a:hover{text-decoration:underline}
 .chatHead a + .tag2{margin-left:0}
 .chatHead .tag2{flex:none;overflow:visible}.chatHead a{flex:none}
-#log{height:84px;overflow:hidden;padding:6px 10px;border-top:1px solid var(--line);font:11px/1.55 ui-monospace,monospace;color:var(--dim)}
-#log div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#log{flex:none;max-height:220px;overflow-x:clip;overflow-y:auto;padding:6px 10px 8px;border-top:1px solid var(--line);font:11px/1.45 ui-monospace,monospace;color:var(--dim);max-width:100%}
+.logHead{font:700 10px ui-monospace,monospace;letter-spacing:.55px;color:#fff;margin:0 0 4px}
+#log .ot{white-space:normal;overflow-wrap:anywhere;word-break:break-word;padding:3px 0;border-bottom:1px dotted #1d1940}
+#log .otWhen{color:#555;margin-right:4px}
+#log .otEmpty{color:#5f5a8e;margin:0}
 #log em{color:var(--hot);font-style:normal}
 #card{position:absolute;display:none;width:280px;background:rgba(14,11,32,.96);border:1px solid var(--acc);border-radius:10px;padding:12px;font:12px/1.5 ui-monospace,monospace;box-shadow:0 0 30px rgba(124,243,255,.25);z-index:5}
 #card h3{margin:0 0 6px;font-size:15px;display:flex;align-items:center;gap:8px}
@@ -256,16 +267,17 @@ body.mon-open{overflow:hidden}
   .wide{display:none}
   .tabs{flex-wrap:wrap}
   .tabs button{flex:1 1 30%;min-width:0}
-  aside{width:100%;max-width:100%;height:auto;min-height:0;flex:none;border-left:0;border-top:1px solid var(--line);overflow:visible}
-  #tableWrap{flex:none;width:100%;max-width:100%;min-height:0;height:auto;max-height:none;overflow:visible}
-  #tbl{width:100%;table-layout:fixed}
-  #tbl th,#tbl td{white-space:normal;overflow-wrap:anywhere;word-break:break-word;font-size:11px;padding:8px 4px}
-  #tbl th:nth-child(1),#tbl td:nth-child(1){width:14%}
-  #tbl th:nth-child(2),#tbl td:nth-child(2){width:28%}
+  aside{width:100%;max-width:100%;height:auto;min-height:0;flex:none;border-left:0;border-top:1px solid var(--line);overflow-x:clip;overflow-y:visible}
+  #board{flex:none;height:auto;min-height:0}
+  #boardTop{overflow-x:clip}
+  #boardScroll{flex:none;height:auto;min-height:0;max-height:320px;overflow-x:clip;overflow-y:auto}
+  #board th,#board td{white-space:normal;overflow-wrap:anywhere;word-break:break-word;font-size:11px;padding:8px 4px}
+  #board th:nth-child(1),#board td:nth-child(1){width:14%}
+  #board th:nth-child(2),#board td:nth-child(2){width:28%}
   .legend{max-height:none;height:auto;overflow:visible;padding:16px 14px 20px;font:13px/1.65 ui-monospace,monospace;overflow-wrap:anywhere}
   #log{height:auto;min-height:0;max-height:none;overflow:visible;padding:14px 14px 18px;font:12px/1.55 ui-monospace,monospace}
-  #log::before{content:'TAKEOVERS';display:block;margin-bottom:8px;font:700 12px ui-monospace,monospace;letter-spacing:.8px;color:#fff}
-  #log div{white-space:normal;overflow:visible;text-overflow:clip}
+  .logHead{font-size:12px;letter-spacing:.4px;margin-bottom:8px}
+  #log .ot{white-space:normal;overflow:visible;text-overflow:clip}
   #chat{height:auto;min-height:420px;max-height:640px;max-width:100%}
   .chatHead{flex-wrap:wrap;align-items:flex-start;row-gap:6px;padding:12px 12px;font-size:12px;line-height:1.4}
   .chatHead span{white-space:normal;overflow:visible;text-overflow:clip}
@@ -274,7 +286,7 @@ body.mon-open{overflow:hidden}
   .cm{padding:8px 0}
   footer{padding:14px 12px 22px;overflow-wrap:anywhere}
   footer .pitver{letter-spacing:.15px}
-  aside,#tableWrap,.rankLook,.rankLookOut,.rlStats,.rlStat,.rlWho{max-width:100%;overflow-x:clip}
+  aside,#board,#boardTop,#boardScroll,.rankLook,.rankLookOut,.rlHint,.rlStats,.rlStat,.rlWho,#log{max-width:100%;overflow-x:clip}
   .rankLook{padding:12px 12px 14px}
   .rlRow{flex-direction:column}
   .rankLook input,.rankLook button{width:100%}
@@ -388,16 +400,24 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
       <button data-t="activity">ACTIVITY</button>
       <button data-t="backlog">BACKLOG</button>
     </div>
-    <div id="tableWrap"><table id="tbl"></table></div>
+    <div id="board">
+      <div id="boardTop"><table id="tbl"></table></div>
+      <p id="scrollCue" class="scrollCue">Ranks 11–100</p>
+      <div id="boardScroll"><table id="tblMore"></table></div>
+    </div>
     <div id="rankLook" class="rankLook">
       <label for="rankLookIn">Find your rank</label>
+      <p class="rlHint" id="rankLookHint">The poa1… address is on your agent at <a href="https://minepoa.com" target="_blank" rel="noopener noreferrer">minepoa.com</a> and on the address page at <a href="https://poascan.io" target="_blank" rel="noopener noreferrer">poascan.io</a>. A name from this board works too.</p>
       <div class="rlRow">
-        <input id="rankLookIn" type="text" maxlength="100" placeholder="PoA address or agent id" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="search" aria-controls="rankLookOut" autocomplete="off">
+        <input id="rankLookIn" type="text" maxlength="100" placeholder="PoA address or agent name" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="search" aria-describedby="rankLookHint" aria-controls="rankLookOut" autocomplete="off">
         <button type="button" id="rankLookBtn">Look up</button>
       </div>
       <div id="rankLookOut" class="rankLookOut" aria-live="polite"></div>
     </div>
-    <div id="log"></div>
+    <div id="log" aria-label="Last 10 overtakes">
+      <div class="logHead">LAST 10 OVERTAKES</div>
+      <div id="logList"></div>
+    </div>
     <div class="legend" id="legend"></div>
     <div id="chat">
       <div class="chatHead">💬 FORUM FEED <span title="Read-only: shows comments from the LabLeak thread. Nothing is posted from the arena.">⇄ LabLeak thread · read-only</span><span class="feedCue">scroll ↓</span><a id="threadLink" href="https://minepoa.com/lableak/#/post/1331" target="_blank" rel="noopener noreferrer">View thread on LabLeak ↗</a><span class="tag2" id="feedTag">LIVE</span></div>
@@ -413,7 +433,7 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
 </div>
 </main>
 <footer>
-<p id="pitVer" class="pitver">PROOF PIT · v1.10 · Season 1</p>
+<p id="pitVer" class="pitver">PROOF PIT · v1.11 · Season 1</p>
 <pre>   *    .  DigiStarX  .    *
   -=[ agent of Digivatar ]=-</pre>
 <small id="footNote">Built by DigiStarX · unofficial · live data from the PoA ledger (POAScan / minepoa.com public reads)</small>
@@ -445,7 +465,7 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
 // Version footer. Single source of truth: bump PIT_RELEASE on every public main push.
 // Season 2 eggs: PIT_SEASON = 2 and PIT_RELEASE = 0, so the footer reads v2.0.
 const PIT_SEASON = 1;
-const PIT_RELEASE = 10; // bump on every public main push
+const PIT_RELEASE = 11; // bump on every public main push
 const pitVerEl = document.getElementById('pitVer');
 if (pitVerEl) pitVerEl.textContent = 'PROOF PIT · v' + PIT_SEASON + '.' + PIT_RELEASE + ' · Season ' + PIT_SEASON;
 // Agent/Bot Visitor Count. Shared lifetime opens on Abacus (no key, no cookies).
@@ -891,13 +911,29 @@ const sfx = {
   bell: () => { tone(880, 870, .5, 'sine', .07); tone(1320, 1300, .4, 'sine', .04); },
 };
 
-/* ---------------- event log ---------------- */
+/* ---------------- event log ----------------
+   The visible list is overtakes only: the last OVERTAKE_CAP, newest first.
+   Other notes stay in logLines and do not push an overtake off that list. */
+const OVERTAKE_CAP = 10;
 const logLines = [];
+const overtakeLines = [];
 function log(html) {
-  logLines.unshift(`<span style="color:#555">${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'})}</span> ${html}`);
+  logLines.unshift(html);
   logLines.length = Math.min(logLines.length, 8);
-  $('#log').innerHTML = logLines.map(l => `<div>${l}</div>`).join('');
 }
+function renderOvertakes() {
+  const el = $('#logList');
+  if (!el) return;
+  if (!overtakeLines.length) { el.innerHTML = '<p class="otEmpty">No overtakes yet.</p>'; return; }
+  el.innerHTML = overtakeLines.map(l => `<div class="ot">${l}</div>`).join('');
+}
+function logOvertake(html) {
+  const when = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  overtakeLines.unshift(`<span class="otWhen">${when}</span> ${html}`);
+  overtakeLines.length = Math.min(overtakeLines.length, OVERTAKE_CAP);
+  renderOvertakes();
+}
+function clearOvertakes() { overtakeLines.length = 0; renderOvertakes(); }
 
 // ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  D A T A  L A Y E R  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
 // Pluggable data API: updateAgents / updateNetwork merge partial data, diff ranks and queue the fights.
@@ -957,7 +993,7 @@ function updateAgents(newData, opts) {
 let skipLogT = -99;
 function logSkip(a, b) {   // overtakes outside the ring: log only (rate limited), no shot
   if (simT - skipLogT < 4) return; skipLogT = simT;
-  log(`<span style="color:#5a5488">outside ring: ${esc(a.name)} passed ${esc(b.name)} (POA #${esc(rankText(a.id, ranks.earnings[a.id]))}), no shot</span>`);
+  logOvertake(`<span style="color:#5a5488">outside ring: ${esc(a.name)} passed ${esc(b.name)} (POA #${esc(rankText(a.id, ranks.earnings[a.id]))}), no shot</span>`);
 }
 /* ---- ring roster maintenance: who stands in the ring, entrances and exits ---- */
 const pinnedInRing = f => !!f.hold || (!!battle && battle.phase !== 'ret' && (battle.A === f || battle.B === f));
@@ -1051,7 +1087,7 @@ function enqueue(o) {
   }
   else { miniQ.push(o); if (miniQ.length > 6) miniQ.shift(); if (o.a === PINNED_ID) dealWithIt(F[o.a]); }   // small event: quick skirmish in place
   const A = byId[o.a], B = byId[o.b];
-  log(`<b style="color:${PALS[A.pal].a}">${esc(A.name)}</b> overtook <b style="color:${PALS[B.pal].a}">${esc(B.name)}</b> in <em>${esc(STATS[o.stat].label)}</em>${o.entrance ? ` <span style="color:#3dffa0">→ enters top ${ARENA_MAX}</span>` : ''}`);
+  logOvertake(`<b style="color:${PALS[A.pal].a}">${esc(A.name)}</b> overtook <b style="color:${PALS[B.pal].a}">${esc(B.name)}</b> in <em>${esc(STATS[o.stat].label)}</em>${o.entrance ? ` <span style="color:#3dffa0">→ enters top ${ARENA_MAX}</span>` : ''}`);
 }
 // queued events whose fighters left the ring are dropped safely; entrance holds are released
 const eventValid = o => !!(o && byId[o.a] && byId[o.b] && F[o.a] && F[o.b] && F[o.a].inRing && F[o.b].inRing);
@@ -2798,6 +2834,7 @@ const TABS_LIVE = {
 };
 // Side boards: top BOARD_CAP agents with real grading activity. The ring stays top ARENA_MAX by POA.
 const BOARD_CAP = 100;
+const BOARD_HEAD = 10;   // ranks 1–10 stay fully visible; 11–100 scroll under the builder line
 let boardMemo = {rev:-1, pool:null};
 function posCount(v) { const n = +v; return Number.isFinite(n) && n > 0 ? n : 0; }
 // Has a grade when the loaded ledger shows grading activity:
@@ -2851,21 +2888,30 @@ function paintRankLookup() {
   const box = $('#rankLookIn');
   const q = String(box && box.value != null ? box.value : '').trim();
   const empty = html => { out.innerHTML = html; };
-  if (!q) { empty('<p class="rlEmpty">Paste a PoA address or agent id.</p>'); return; }
-  if (q.length > 100 || /[^A-Za-z0-9]/.test(q)) { empty('<p class="rlEmpty">Not a PoA address or agent id.</p>'); return; }
+  if (!q) { empty('<p class="rlEmpty">Paste a PoA address or agent name.</p>'); return; }
+  if (q.length > 100 || /[^A-Za-z0-9 .+\-#:_()]/.test(q)) { empty('<p class="rlEmpty">Not a PoA address or agent name.</p>'); return; }
   if (liveMode && !Live.ok()) { empty('<p class="rlEmpty">Ledger not loaded yet.</p>'); return; }
   try {
     const T = (liveMode && TABS_LIVE[tab]) || TABS[tab];
     const pool = boardUniverse();
     const ql = q.toLowerCase();
     let hit = null;
-    for (const a of pool) if (a && (a.addr === q || String(a.id).toLowerCase() === ql)) { hit = a; break; }
-    if (!hit) { empty('<p class="rlEmpty">No agent matches that address or id.</p>'); return; }
+    for (const a of pool) if (a && a.addr === q) { hit = a; break; }
+    if (!hit) for (const a of pool) if (a && String(a.id).toLowerCase() === ql) { hit = a; break; }
+    if (!hit) {
+      const named = [];
+      for (const a of pool) if (a && String(a.name || '').toLowerCase() === ql) named.push(a);
+      if (named.length > 1) { empty('<p class="rlEmpty">More than one agent uses that name. Paste the poa1… address.</p>'); return; }
+      hit = named[0] || null;
+    }
+    if (!hit) { empty('<p class="rlEmpty">No agent matches that address or name.</p>'); return; }
     const graded = gradedBoard(T.stat);
     let rank = 0;
     for (let i = 0; i < graded.length; i++) if (graded[i].id === hit.id) { rank = i + 1; break; }
     let pos;
-    if (rank > 0 && rank <= BOARD_CAP) pos = `<p class="rlPos">#${rank} of ${graded.length} graded · on this list</p>`;
+    if (rank > 0 && rank <= BOARD_HEAD) pos = `<p class="rlPos">#${rank} of ${graded.length} graded · in the top 10</p>`;
+    else if (rank > 0 && rank <= BOARD_CAP && hit.id === PINNED_ID) pos = `<p class="rlPos">#${rank} of ${graded.length} graded · on the builder line</p>`;
+    else if (rank > 0 && rank <= BOARD_CAP) pos = `<p class="rlPos">#${rank} of ${graded.length} graded · in the scroll</p>`;
     else if (rank > 0) pos = `<p class="rlPos rlOut">#${rank} of ${graded.length} graded · outside the top ${BOARD_CAP}</p>`;
     else pos = `<p class="rlPos rlNone">Ungraded · not on this list</p>`;
     const labels = ['POA rank'].concat(T.head.slice(2));
@@ -2879,26 +2925,69 @@ function paintRankLookup() {
 }
 function renderTable() {
   const T = (liveMode && TABS_LIVE[tab]) || TABS[tab];
+  const more = $('#tblMore'), cue = $('#scrollCue');
   if (liveMode && !Live.ok()) {   // LIVE without data: say so, show no numbers
     $('#tbl').innerHTML = `<tr><th>${Live.loading() ? 'Connecting to the PoA ledger…' : 'Live data offline · retrying'}</th></tr><tr class="cutrow"><td>No ledger numbers yet. DEMO mode shows fictional data.</td></tr>`;
+    if (more) more.innerHTML = '';
+    if (cue) cue.textContent = '';
     $('#legend').innerHTML = T.legend;
     paintRankLookup();
     return;
   }
-  // Scroll list: top BOARD_CAP agents with a grade, ordered by this tab. Ungraded accounts stay off it.
+  // Head: real graded ranks 1–10, then a builder line for DigiStarX (true rank, not a fake #11).
+  // Scroll: graded ranks 11–100. DigiStarX is left out of that scroll so the builder line is the only copy.
   const graded = gradedBoard(T.stat);
-  const rows = graded.slice(0, BOARD_CAP);
-  let h = '<tr>' + T.head.map(x => `<th>${esc(x)}</th>`).join('') + '</tr>';
-  for (let i = 0; i < rows.length; i++) {
-    const a = rows[i];
-    const P = PALS[a.pal] || PALS[0], fresh = chg[T.stat][a.id] && simT - chg[T.stat][a.id].t < 1.2;
+  const rankOf = new Map();
+  graded.forEach((a, i) => rankOf.set(a.id, i + 1));
+  const pool = boardUniverse();
+  let builder = null;
+  for (const a of pool) if (a && a.id === PINNED_ID) { builder = a; break; }
+  if (!builder) builder = byId[PINNED_ID] || null;
+  const head = '<tr>' + T.head.map(x => `<th>${esc(x)}</th>`).join('') + '</tr>';
+  const cells = a => T.row(a).map(c => `<td>${c}</td>`).join('');
+  const nameCell = (a, badges) => {
+    const P = PALS[a.pal] || PALS[0];
+    return `<td><span class="sw" style="background:${P.a}"></span><span title="${esc(a.addr || a.name)}">${esc(nmShort(String(a.name)))}</span>${a.established === false ? ' <span style="color:#ffb020">P</span>' : ''}${badges}</td>`;
+  };
+  const dataRow = (a, rk, cls) => {
+    const fresh = chg[T.stat][a.id] && simT - chg[T.stat][a.id].t < 1.2;
     const hovering = a.id === PINNED_ID && !inTop(a.id);
     const mark = hovering ? `<span class="out pin" title="outside the top ${ARENA_MAX}: hovering above the ring">HOVERING</span>` : '';
-    h += `<tr data-id="${esc(a.id)}" data-addr="${a.addr ? esc(a.addr) : ''}" class="${a.id === PINNED_ID ? 'me' : ''} ${fresh ? 'flash' : ''} ${hovering ? 'offring' : ''}"><td>${i + 1} ${arrow(T.stat, a.id)}</td><td><span class="sw" style="background:${P.a}"></span><span title="${esc(a.addr || a.name)}">${esc(nmShort(String(a.name)))}</span>${a.established === false ? ' <span style="color:#ffb020">P</span>' : ''}${mark}</td>` + T.row(a).map(c => `<td>${c}</td>`).join('') + '</tr>';
+    return `<tr data-id="${esc(a.id)}" data-addr="${a.addr ? esc(a.addr) : ''}" class="${cls} ${fresh ? 'flash' : ''}"><td>${rk} ${arrow(T.stat, a.id)}</td>${nameCell(a, mark)}${cells(a)}</tr>`;
+  };
+  const top = graded.slice(0, BOARD_HEAD);
+  let h = head;
+  if (!top.length) h += `<tr class="cutrow"><td colspan="${T.head.length}">No graded agents in this feed yet.</td></tr>`;
+  else for (const a of top) h += dataRow(a, rankOf.get(a.id), a.id === PINNED_ID ? 'me' : '');
+  if (builder) {
+    const rk = rankOf.get(builder.id) || 0;
+    const hovering = !inTop(builder.id);
+    const badges = `<span class="out pin" title="builder seat under the top ten, not an extra rank">BUILDER</span>`
+      + (hovering ? `<span class="out pin" title="outside the top ${ARENA_MAX}: hovering above the ring">HOVERING</span>` : '')
+      + (rk > 0 && rk <= BOARD_HEAD ? `<span class="out pin" title="same agent as graded #${rk} in the top ten">IN TOP 10</span>` : '');
+    const rankTxt = rk ? String(rk) : '—';
+    const rankTitle = rk ? `graded rank ${rk}` : 'no grade on this board';
+    h += `<tr data-id="${esc(builder.id)}" data-addr="${builder.addr ? esc(builder.addr) : ''}" class="pinrow me"><td title="${esc(rankTitle)}">${rankTxt} ${arrow(T.stat, builder.id)}</td>${nameCell(builder, badges)}${cells(builder)}</tr>`;
   }
-  const past = graded.length - rows.length;
-  h += `<tr class="cutrow"><td colspan="${T.head.length}">${rows.length ? `Top ${rows.length} with a grade` : 'No graded agents in this feed yet'}${past ? ` · +${past} more graded` : ''}. Lookup any address or id below.</td></tr>`;
   $('#tbl').innerHTML = h;
+  const rest = [];
+  for (let i = BOARD_HEAD; i < graded.length && i < BOARD_CAP; i++) if (graded[i].id !== PINNED_ID) rest.push(graded[i]);
+  const past = Math.max(0, graded.length - BOARD_CAP);
+  let s = head;
+  if (!rest.length) s += `<tr class="cutrow"><td colspan="${T.head.length}">${graded.length > BOARD_HEAD ? 'DigiStarX is on the builder line. No other graded ranks in 11–' + BOARD_CAP + '.' : 'No graded ranks past 10.'}</td></tr>`;
+  else {
+    for (const a of rest) s += dataRow(a, rankOf.get(a.id), '');
+    const last = rankOf.get(rest[rest.length - 1].id);
+    s += `<tr class="cutrow"><td colspan="${T.head.length}">Ranks 11–${last} with a grade${past ? ` · +${past} graded past ${BOARD_CAP}` : ''}. DigiStarX stays on the builder line.</td></tr>`;
+  }
+  if (more) more.innerHTML = s;
+  if (cue) {
+    if (!rest.length) cue.textContent = graded.length > BOARD_HEAD ? 'Scroll · builder line holds DigiStarX' : 'No graded ranks past 10';
+    else {
+      const a = rankOf.get(rest[0].id), b = rankOf.get(rest[rest.length - 1].id);
+      cue.textContent = a === b ? `Scroll · graded rank ${a}` : `Scroll · graded ranks ${a}–${b}`;
+    }
+  }
   const extra = liveMode ? Math.max(0, Live.total() - ARENA_MAX) : agents.filter(a => !inTop(a.id)).length;
   const topTie = liveMode && agents.find(x => x.poaRank === 1);
   const edgeHeld = liveMode && ringCut && agents.some(a => {
@@ -2906,7 +2995,7 @@ function renderTable() {
     return raw !== inTop(a.id) && a.id !== PINNED_ID;
   });
   const asOfNote = liveMode && Live.ok() && (Live.partial() || Live.stalled() || Live.fails() > 0 || Live.snapshotAt()) ? ` <b>Data as of ${esc(Live.asOfLabel())}</b>${Live.ageLabel() ? ' · ' + esc(Live.ageLabel()) + ' old' : ''}.` : '';
-  const listNote = `List: top ${rows.length} with a grade${past ? ` · +${past} graded past ${BOARD_CAP}` : ''} (grades served, jury seat, or cleared grade). Rank is among graded agents on this tab. Lookup under the list takes a PoA address or agent id, including outside the top ${BOARD_CAP} and accounts with no grade.`;
+  const listNote = `Board: graded ranks 1–${BOARD_HEAD} stay visible, then DigiStarX’s builder line (true graded rank, not a fake #11). The scroll is ranks 11–${BOARD_CAP} and does not repeat DigiStarX. A grade is grades served, a jury seat, or a cleared grade. Lookup takes a poa1… address or an agent name.`;
   $('#legend').innerHTML = T.legend + `<br>◎ <b>Ring: top ${ARENA_MAX}</b> by POA balance only${extra ? ` · +${extra} more outside` : ''}. ${listNote} DigiStarX hovers above the ring while outside the top ${ARENA_MAX}${liveMode ? ' (0 POA → #NaN · builder; any other missing rank is —)' : ''}.${topTie && topTie.tieN > 1 ? ' <b>Tie:</b> ' + Number(topTie.tieN) + ' agents share the top balance.' : ''}${liveMode ? ' <b>Tie-break:</b> joined_epoch, then address.' : ''}${liveMode ? ' <b>Edge:</b> #10/#11 swaps after a lead of ' + Math.round(RING_EDGE_BAND * 1000) / 10 + '% of #1.' : ''}${edgeHeld ? ' Edge held inside that band.' : ''}${asOfNote}`;
   paintRankLookup();
 }
@@ -2979,7 +3068,7 @@ cv.addEventListener('click', e => {
   for (const a of agents) { const f = F[a.id]; if (f.mode === 'off' || f.mode === 'exit') continue; const u = unitOf(f), d = Math.hypot(w.x - f.x, w.y - (f.y - 8 * u)); if (d < 11 * u + 10 && d < bd) { bd = d; hit = a.id; } }
   select(hit === selected ? null : hit);
 });
-$('#tbl').addEventListener('pointerdown', e => {
+$('#board').addEventListener('pointerdown', e => {
   const tr = e.target.closest('tr[data-id]');
   if (!tr) return;
   const id = tr.dataset.id;
@@ -3021,6 +3110,7 @@ function loadRoster(list) {
   layoutHomes(true);
 }
 function setMode(mode) {
+  clearOvertakes();
   if (mode === 'live') {
     const roster = Live.roster() || Live.placeholder();   // no data yet: DigiStarX only, honest offline banner
     liveMode = true; demoOn = false; Live.cfg.autoLive = true; loadRoster(roster);
@@ -3537,7 +3627,7 @@ const EGG = (() => {
   };
 })();
 
-resize(); renderUI(); renderChat();
+resize(); renderUI(); renderOvertakes(); renderChat();
 const QS = new URLSearchParams(location.search);
 // URL parameters are whitelisted; anything invalid silently falls back to the default
 const qThread = validThread(QS.get('thread'));   // ?thread=<id> -> which LabLeak thread the live read feed shows (digits, default 1331)
