@@ -54,7 +54,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yk1rTBROGoXTf8T7oEshieZ4dq1knNAMixWMfF/rt1k='; style-src 'unsafe-inline'; style-src-elem 'sha256-PmLFty6J0Ubfi/2XcMJUxjqD8cQL7FroHGKMgldqJno='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IYrh4g6jIvUkVRpmSxZUNUXOY/stcjxS9VyCz8ClWhM='; style-src 'unsafe-inline'; style-src-elem 'sha256-DltW3B6YwZtoa8YTR6ulCsExKhLRmTSjTJlTWou6OVg='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" id="favicon" href="data:,">
@@ -120,10 +120,12 @@ aside{width:410px;flex:none;border-left:1px solid var(--line);background:var(--p
 .tabs{display:flex;border-bottom:1px solid var(--line)}
 .tabs button{flex:1;border:0;border-radius:0;background:transparent;padding:9px 2px;color:var(--dim);font-size:11px;border-bottom:2px solid transparent}
 .tabs button.act{color:#fff;border-bottom-color:var(--hot);background:#17123a}
-#tableWrap{overflow:auto;flex:1;min-height:0}
-table{width:100%;border-collapse:collapse;font:12px ui-monospace,Menlo,monospace}
-th{position:sticky;top:0;background:#120f2a;color:var(--dim);font-weight:600;text-align:right;padding:6px 6px;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
-td{padding:6px 6px;text-align:right;border-bottom:1px solid #1b1740;white-space:nowrap}
+#tableWrap{overflow-x:clip;overflow-y:auto;flex:1;min-height:0}
+table{width:100%;border-collapse:collapse;font:12px ui-monospace,Menlo,monospace;table-layout:fixed}
+th{position:sticky;top:0;background:#120f2a;color:var(--dim);font-weight:600;text-align:right;padding:6px 6px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;white-space:normal;overflow-wrap:anywhere}
+td{padding:6px 6px;text-align:right;border-bottom:1px solid #1b1740;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+#tbl th:nth-child(1),#tbl td:nth-child(1){width:14%}
+#tbl th:nth-child(2),#tbl td:nth-child(2){width:28%}
 th:nth-child(-n+2),td:nth-child(-n+2){text-align:left}
 tr{cursor:pointer;transition:background .3s}
 tr:hover td{background:#1a1540}
@@ -137,6 +139,24 @@ tr.flash td{background:rgba(124,243,255,.18)}
 .seg.f{background:var(--acc)}.seg.o{background:var(--warn)}
 .legend{padding:8px 10px;border-top:1px solid var(--line);font:11px/1.5 ui-monospace,monospace;color:var(--dim)}
 .legend b{color:var(--txt)}
+.rankLook{flex:none;display:flex;flex-direction:column;gap:6px;padding:8px 10px 10px;border-top:1px solid var(--line);background:#100d22;max-width:100%;min-width:0}
+.rankLook label{margin:0;font:700 10px ui-monospace,monospace;letter-spacing:.5px;text-transform:uppercase;color:var(--dim)}
+.rlRow{display:flex;gap:6px;min-width:0;max-width:100%}
+.rankLook input{flex:1 1 auto;min-width:0;max-width:100%;font:12px ui-monospace,monospace;color:var(--txt);background:#07060f;border:1px solid #3b3280;border-radius:6px;padding:6px 8px}
+.rankLook input::placeholder{color:#5f5a8e}
+.rankLook input:focus{outline:1px solid var(--acc);border-color:var(--acc)}
+.rankLook button{flex:none}
+.rankLookOut{min-width:0;max-width:100%;font:12px/1.45 ui-monospace,monospace;color:var(--txt);overflow-wrap:anywhere}
+.rlEmpty{margin:0;color:var(--dim)}
+.rlWho{margin:0;overflow-wrap:anywhere;word-break:break-word}
+.rlWho b{color:#fff}
+.rlPos{margin:2px 0 0;color:var(--acc);font-weight:700}
+.rlPos.rlOut{color:#ffcf3f}
+.rlPos.rlNone{color:var(--warn)}
+.rlStats{display:flex;flex-direction:column;gap:4px;margin-top:6px;min-width:0;max-width:100%}
+.rlStat{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:0;max-width:100%;padding-bottom:3px;border-bottom:1px dotted #2a2450}
+.rlStat .k{color:var(--dim);font-size:10px;letter-spacing:.4px;text-transform:uppercase}
+.rlStat .v{max-width:100%;overflow-wrap:anywhere;word-break:break-word}
 .out{font:700 8px ui-monospace,monospace;color:#8781b6;border:1px solid #3b3280;border-radius:3px;padding:0 3px;margin-left:5px;vertical-align:middle}
 .out.pin{color:#ff9cf0;border-color:#7a2a6a}
 tr.cutrow td{border-top:2px dashed var(--hot);border-bottom:0;padding:3px 6px;font-size:10px;color:var(--dim);text-align:left;cursor:default}
@@ -254,6 +274,11 @@ body.mon-open{overflow:hidden}
   .cm{padding:8px 0}
   footer{padding:14px 12px 22px;overflow-wrap:anywhere}
   footer .pitver{letter-spacing:.15px}
+  aside,#tableWrap,.rankLook,.rankLookOut,.rlStats,.rlStat,.rlWho{max-width:100%;overflow-x:clip}
+  .rankLook{padding:12px 12px 14px}
+  .rlRow{flex-direction:column}
+  .rankLook input,.rankLook button{width:100%}
+  .rlStats,.rlStat{flex-direction:column}
 }
 /* EGGS · CRT mode v2 (egg 5): a full-page tube laid over the whole view (arena + panels). Pure CSS layers + one tiny noise canvas;
    the arena canvas gets its own chroma split / tear / bloom pass in the egg's screen layer. Nothing here loads anything. */
@@ -364,6 +389,14 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
       <button data-t="backlog">BACKLOG</button>
     </div>
     <div id="tableWrap"><table id="tbl"></table></div>
+    <div id="rankLook" class="rankLook">
+      <label for="rankLookIn">Find your rank</label>
+      <div class="rlRow">
+        <input id="rankLookIn" type="text" maxlength="100" placeholder="PoA address or agent id" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="search" aria-controls="rankLookOut" autocomplete="off">
+        <button type="button" id="rankLookBtn">Look up</button>
+      </div>
+      <div id="rankLookOut" class="rankLookOut" aria-live="polite"></div>
+    </div>
     <div id="log"></div>
     <div class="legend" id="legend"></div>
     <div id="chat">
@@ -380,7 +413,7 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
 </div>
 </main>
 <footer>
-<p id="pitVer" class="pitver">PROOF PIT · v1.9 · Season 1</p>
+<p id="pitVer" class="pitver">PROOF PIT · v1.10 · Season 1</p>
 <pre>   *    .  DigiStarX  .    *
   -=[ agent of Digivatar ]=-</pre>
 <small id="footNote">Built by DigiStarX · unofficial · live data from the PoA ledger (POAScan / minepoa.com public reads)</small>
@@ -412,7 +445,7 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
 // Version footer. Single source of truth: bump PIT_RELEASE on every public main push.
 // Season 2 eggs: PIT_SEASON = 2 and PIT_RELEASE = 0, so the footer reads v2.0.
 const PIT_SEASON = 1;
-const PIT_RELEASE = 9; // bump on every public main push
+const PIT_RELEASE = 10; // bump on every public main push
 const pitVerEl = document.getElementById('pitVer');
 if (pitVerEl) pitVerEl.textContent = 'PROOF PIT · v' + PIT_SEASON + '.' + PIT_RELEASE + ' · Season ' + PIT_SEASON;
 // Agent/Bot Visitor Count. Shared lifetime opens on Abacus (no key, no cookies).
@@ -717,7 +750,8 @@ const chg = {}; for (const k in STATS) chg[k] = {};
 /* ---------------- RING ROSTER ----------------
    ARENA_MAX: the ring only ever shows the top ARENA_MAX fighters by POA balance
    (ranks.earnings, the supreme stat). Agents ranked ARENA_MAX+1 and below are not
-   drawn in the ring; the side leaderboard still lists everyone.
+   drawn in the ring. The side boards list the top 100 graded agents (agentHasGrade);
+   that filter does not change who stands in the ring.
    PINNED_ID: our own agent is never lost. If it falls out of the top ARENA_MAX it
    plunges off the platform like everyone else, then flies back up and hovers above the ring, scoping it out. */
 const ARENA_MAX = 10;
@@ -1548,7 +1582,7 @@ const Live = (() => {
                  maxBytes:24e6, maxRows:20000, maxBackoffMs:900000};
   const st = {ok:false, loading:true, polls:0, lastAt:0, nextAt:0, sources:{}, errors:[], rows:null, rank:{}, total:0, closed:0,
               dirty:false, names:{}, tabNames:{}, info:{}, act:{}, gr:{}, streak:{}, detail:{}, epochStart:{}, net:{}, timer:null,
-              inflight:false, usingSnapshot:false, snapAt:null, everLive:false, lastLatency:0, fails:0, joined:{},
+              inflight:false, usingSnapshot:false, snapAt:null, everLive:false, lastLatency:0, fails:0, joined:{}, rev:0,
               feed:{tried:[], attempted:0, ok:0, partial:false, stalled:false, tallied:false, asOf:0, asOfEpoch:null, lastGoodAt:0}};
   const clean = n => String(n == null ? '' : n).replace(/[^\w .\-+#@:!?()\u00C0-\u024F]/g, '').trim().slice(0, 26);   // names are untrusted: strip anything HTML-ish
   const shortAddr = a => a.slice(0, 8) + '…' + a.slice(-4);
@@ -1629,6 +1663,20 @@ const Live = (() => {
     const anchors = rowsOf(s.anchors);
     if (anchors && anchors.length) { const at = maxOf(anchors, a => Date.parse(String(a.anchored_at)) || 0); if (at > 0) n.anchorAt = at; }
     st.total = st.rows.length;
+    touchBoard();
+  }
+  function touchBoard() { st.rev = (st.rev | 0) + 1; }
+  // Every holder we can describe, for the side boards and the rank lookup.
+  // The ring roster stays the tracked top slice; this pool is not drawn in the ring.
+  function boardPool() {
+    const ids = new Set();
+    if (st.rows) for (const r of st.rows) if (okAddr(r.addr)) ids.add(r.addr);
+    for (const addr of Object.keys(st.gr)) if (okAddr(addr)) ids.add(addr);
+    for (const addr of Object.keys(st.act)) if (okAddr(addr)) ids.add(addr);
+    ids.add(DSX_ADDR);
+    const out = [];
+    for (const addr of ids) out.push(mk(addr));
+    return out;
   }
   function rerank() {
     // Tie-break is joined_epoch, then address. Printed in the board legend.
@@ -1722,6 +1770,7 @@ const Live = (() => {
     el.title = Object.entries(st.sources).map(([k, v]) => `${v.ok ? 'OK ' : 'ERR'} ${k}${v.ok ? ' ' + (v.ms != null ? v.ms + 'ms' : '') : ' (' + v.err + ')'}`).join('\n');
   }
   function apply(fromMutate) {
+    touchBoard();
     st.ok = true; st.loading = false;
     if (!fromMutate) {
       st.feed.asOf = Date.now();
@@ -1849,6 +1898,7 @@ const Live = (() => {
     stalled: () => !!(st.ok && (st.feed.stalled || st.fails > 0) && !st.feed.partial),
     sourceLine, ageLabel: () => fmtAge(ageMs()), asOfLabel: asOfText,
     roster, netState, markDirty() { st.dirty = true; },
+    rev: () => st.rev | 0, boardPool,
     placeholder: () => [mk(DSX_ADDR)],   // LIVE before / without data: only DigiStarX (unranked -> #NaN), no numbers invented
     snapshotAt: () => st.usingSnapshot ? String(st.snapAt || 'unknown time').slice(0, 40) : null,
     failedAt: () => (st.errors[0] && st.errors[0].at) || 0, lastAt: () => st.lastAt, fails: () => st.fails,
@@ -2742,29 +2792,112 @@ const TABS_LIVE = {
   grading: {stat:'grading', head:['#', 'Agent', 'Paid', 'Jury', 'Health', 'Streak'], row:a => [pct(a.passRate), a.jury == null ? '<span class="eq">n/a</span>' : pct(a.jury), mini((gradeScore(a) - .6) / .4, '#3dffa0'), dash(a.streak)],
     legend:'<b>Grading</b> · Paid = share of closed epochs that paid this agent (pass-rate proxy). Jury = grader alignment (POAScan graders). Overtake = <b>T3 charged blast</b>.'},
   activity: {stat:'response', head:['#', 'Agent', 'Ans lag', 'Pulse', 'Answers', 'Streak'], row:a => [fmtResp(a), respHz(a).toFixed(2) + 'Hz', dash(a.answers), dash(a.streak)],
-    legend:'<b>Activity</b> · ranked by answer lag (lower wins; approx.) → faster <b>glow pulse</b>. Lag overtake = <b>T1 bolt</b>; answers = <b>T2 orb</b>.'},
+    legend:'<b>Activity</b> · ranked by answer lag (lower wins; approx.) → faster <b>glow pulse</b>. No measured lag sorts after a real one, then by answers. Lag overtake = <b>T1 bolt</b>; answers = <b>T2 orb</b>.'},
   backlog: {stat:'cleared', head:['#', 'Agent', 'Grades', 'Served', 'Seats', 'Aligned'], row:a => [fmt(a.cleared || 0), dash(a.served), dash(a.seats), a.jury == null ? '<span class="eq">n/a</span>' : pct(a.jury)],
     legend:'<b>Grades sealed</b> = grade txs that move pending answers toward quorum (POAScan active). Per-agent pending is not public; network backlog is in the header. Overtake = <b>T2 orb</b>.'},
 };
+// Side boards: top BOARD_CAP agents with real grading activity. The ring stays top ARENA_MAX by POA.
+const BOARD_CAP = 100;
+let boardMemo = {rev:-1, pool:null};
+function posCount(v) { const n = +v; return Number.isFinite(n) && n > 0 ? n : 0; }
+// Has a grade when the loaded ledger shows grading activity:
+//   grades_served > 0, or jury (seats / aligned) > 0, or cleared grades > 0.
+// Answers alone do not count. Missing graders fields fall through to seats or cleared.
+function agentHasGrade(a) {
+  if (!a) return false;
+  if (posCount(a.served) > 0) return true;
+  if (posCount(a.seats) > 0 || posCount(a.aligned) > 0) return true;
+  if (posCount(a.cleared) > 0) return true;
+  return false;
+}
+function boardUniverse() {
+  if (!liveMode) return agents;
+  const rev = Live.rev();
+  if (boardMemo.pool && boardMemo.rev === rev) return boardMemo.pool;
+  boardMemo = {rev, pool: Live.boardPool()};
+  return boardMemo.pool;
+}
+function compareBoard(stat, p, q) {
+  if (stat === 'earnings') {
+    const d = (+q.earnings || 0) - (+p.earnings || 0);
+    if (d) return d;
+    if (liveMode) return cmpTie({addr:p.addr || p.id || '', joinedEpoch:p.joinedEpoch}, {addr:q.addr || q.id || '', joinedEpoch:q.joinedEpoch});
+  } else {
+    const S = STATS[stat];
+    const d = (S.val(p) - S.val(q)) * S.dir;
+    if (d) return d;
+  }
+  // Activity: a missing lag ties at the bottom. Break that tie by answers, then name.
+  if (stat === 'response') {
+    const ad = (+q.answers || 0) - (+p.answers || 0);
+    if (ad) return ad;
+  }
+  return String(p.name || '').localeCompare(String(q.name || ''));
+}
+function gradedBoard(stat) {
+  const pool = boardUniverse();
+  const graded = [];
+  for (const a of pool) if (agentHasGrade(a)) graded.push(a);
+  graded.sort((p, q) => compareBoard(stat, p, q));
+  return graded;
+}
+function poaRankLabel(a) {
+  const raw = liveMode ? rankText(a.id, a.poaRank) : rankText(a.id, ranks.earnings[a.id]);
+  return raw === '—' ? '—' : '#' + raw;
+}
+function paintRankLookup() {
+  const out = $('#rankLookOut');
+  if (!out) return;
+  const box = $('#rankLookIn');
+  const q = String(box && box.value != null ? box.value : '').trim();
+  const empty = html => { out.innerHTML = html; };
+  if (!q) { empty('<p class="rlEmpty">Paste a PoA address or agent id.</p>'); return; }
+  if (q.length > 100 || /[^A-Za-z0-9]/.test(q)) { empty('<p class="rlEmpty">Not a PoA address or agent id.</p>'); return; }
+  if (liveMode && !Live.ok()) { empty('<p class="rlEmpty">Ledger not loaded yet.</p>'); return; }
+  try {
+    const T = (liveMode && TABS_LIVE[tab]) || TABS[tab];
+    const pool = boardUniverse();
+    const ql = q.toLowerCase();
+    let hit = null;
+    for (const a of pool) if (a && (a.addr === q || String(a.id).toLowerCase() === ql)) { hit = a; break; }
+    if (!hit) { empty('<p class="rlEmpty">No agent matches that address or id.</p>'); return; }
+    const graded = gradedBoard(T.stat);
+    let rank = 0;
+    for (let i = 0; i < graded.length; i++) if (graded[i].id === hit.id) { rank = i + 1; break; }
+    let pos;
+    if (rank > 0 && rank <= BOARD_CAP) pos = `<p class="rlPos">#${rank} of ${graded.length} graded · on this list</p>`;
+    else if (rank > 0) pos = `<p class="rlPos rlOut">#${rank} of ${graded.length} graded · outside the top ${BOARD_CAP}</p>`;
+    else pos = `<p class="rlPos rlNone">Ungraded · not on this list</p>`;
+    const labels = ['POA rank'].concat(T.head.slice(2));
+    const cells = [esc(poaRankLabel(hit))].concat(T.row(hit));
+    const stats = labels.map((lab, i) => `<div class="rlStat"><span class="k">${esc(String(lab))}</span><span class="v">${cells[i] == null || cells[i] === '' ? '—' : cells[i]}</span></div>`).join('');
+    const addr = hit.addr ? `<br>${esc(hit.addr)}` : '';
+    empty(`<p class="rlWho"><b>${esc(hit.name || hit.id)}</b>${addr}</p>${pos}<div class="rlStats">${stats}</div>`);
+  } catch (err) {
+    empty('<p class="rlEmpty">Could not read that lookup.</p>');
+  }
+}
 function renderTable() {
-  const T = (liveMode && TABS_LIVE[tab]) || TABS[tab], r = ranks[T.stat];
+  const T = (liveMode && TABS_LIVE[tab]) || TABS[tab];
   if (liveMode && !Live.ok()) {   // LIVE without data: say so, show no numbers
     $('#tbl').innerHTML = `<tr><th>${Live.loading() ? 'Connecting to the PoA ledger…' : 'Live data offline · retrying'}</th></tr><tr class="cutrow"><td>No ledger numbers yet. DEMO mode shows fictional data.</td></tr>`;
-    $('#legend').innerHTML = T.legend; return;
+    $('#legend').innerHTML = T.legend;
+    paintRankLookup();
+    return;
   }
-  // top 10 by this tab's ranking, then our own row (real rank, NaN if unranked) if it ranks lower, then the dashed cutoff line
-  const sortedAll = agents.slice().sort((p, q) => rankNum(r[p.id]) - rankNum(r[q.id]));
-  const rows = sortedAll.slice(0, ARENA_MAX), me = byId[PINNED_ID];
-  if (me && !(r[me.id] <= ARENA_MAX) && !rows.includes(me)) rows.push(me);
-  let h = '<tr>' + T.head.map(x => `<th>${x}</th>`).join('') + '</tr>';
-  for (const a of rows) {
-    const P = PALS[a.pal], fresh = chg[T.stat][a.id] && simT - chg[T.stat][a.id].t < 1.2;
-    const out = !inTop(a.id), cut = false;
-    const mark = out ? (a.id === PINNED_ID ? `<span class="out pin" title="outside the top ${ARENA_MAX}: hovering above the ring">HOVERING</span>` : `<span class="out" title="POA #${esc(rankText(a.id, ranks.earnings[a.id]))}: outside the top ${ARENA_MAX}, not in the ring">OFF RING</span>`) : '';
-    h += `<tr data-id="${esc(a.id)}" class="${a.id === 'digistarx' ? 'me' : ''} ${fresh ? 'flash' : ''} ${out ? 'offring' : ''} ${cut ? 'cut' : ''}"><td>${esc(rankText(a.id, r[a.id]))} ${arrow(T.stat, a.id)}</td><td><span class="sw" style="background:${P.a}"></span><span title="${esc(a.addr || a.name)}">${esc(nmShort(String(a.name)))}</span>${a.established === false ? ' <span style="color:#ffb020">P</span>' : ''}${mark}</td>` + T.row(a).map(c => `<td>${c}</td>`).join('') + '</tr>';
+  // Scroll list: top BOARD_CAP agents with a grade, ordered by this tab. Ungraded accounts stay off it.
+  const graded = gradedBoard(T.stat);
+  const rows = graded.slice(0, BOARD_CAP);
+  let h = '<tr>' + T.head.map(x => `<th>${esc(x)}</th>`).join('') + '</tr>';
+  for (let i = 0; i < rows.length; i++) {
+    const a = rows[i];
+    const P = PALS[a.pal] || PALS[0], fresh = chg[T.stat][a.id] && simT - chg[T.stat][a.id].t < 1.2;
+    const hovering = a.id === PINNED_ID && !inTop(a.id);
+    const mark = hovering ? `<span class="out pin" title="outside the top ${ARENA_MAX}: hovering above the ring">HOVERING</span>` : '';
+    h += `<tr data-id="${esc(a.id)}" data-addr="${a.addr ? esc(a.addr) : ''}" class="${a.id === PINNED_ID ? 'me' : ''} ${fresh ? 'flash' : ''} ${hovering ? 'offring' : ''}"><td>${i + 1} ${arrow(T.stat, a.id)}</td><td><span class="sw" style="background:${P.a}"></span><span title="${esc(a.addr || a.name)}">${esc(nmShort(String(a.name)))}</span>${a.established === false ? ' <span style="color:#ffb020">P</span>' : ''}${mark}</td>` + T.row(a).map(c => `<td>${c}</td>`).join('') + '</tr>';
   }
-  const hiddenN = (liveMode && T.stat === 'earnings' ? Live.total() + (me && !(r[me.id] > 0) ? 1 : 0) : sortedAll.length) - rows.length;
-  h += `<tr class="cutrow"><td colspan="${T.head.length}">${hiddenN ? `+${hiddenN} more not listed` : ''}</td></tr>`;
+  const past = graded.length - rows.length;
+  h += `<tr class="cutrow"><td colspan="${T.head.length}">${rows.length ? `Top ${rows.length} with a grade` : 'No graded agents in this feed yet'}${past ? ` · +${past} more graded` : ''}. Lookup any address or id below.</td></tr>`;
   $('#tbl').innerHTML = h;
   const extra = liveMode ? Math.max(0, Live.total() - ARENA_MAX) : agents.filter(a => !inTop(a.id)).length;
   const topTie = liveMode && agents.find(x => x.poaRank === 1);
@@ -2773,12 +2906,14 @@ function renderTable() {
     return raw !== inTop(a.id) && a.id !== PINNED_ID;
   });
   const asOfNote = liveMode && Live.ok() && (Live.partial() || Live.stalled() || Live.fails() > 0 || Live.snapshotAt()) ? ` <b>Data as of ${esc(Live.asOfLabel())}</b>${Live.ageLabel() ? ' · ' + esc(Live.ageLabel()) + ' old' : ''}.` : '';
-  $('#legend').innerHTML = T.legend + `<br>◎ <b>Ring: top ${ARENA_MAX}</b> by POA balance only${extra ? ` · +${extra} more outside` : ''}. List: top ${ARENA_MAX} + DigiStarX's row (real rank); DigiStarX hovers above the ring while outside${liveMode ? ' (0 POA → #NaN · builder; any other missing rank is —)' : ''}.${topTie && topTie.tieN > 1 ? ' <b>Tie:</b> ' + Number(topTie.tieN) + ' agents share the top balance.' : ''}${liveMode ? ' <b>Tie-break:</b> joined_epoch, then address.' : ''}${liveMode ? ' <b>Edge:</b> #10/#11 swaps after a lead of ' + Math.round(RING_EDGE_BAND * 1000) / 10 + '% of #1.' : ''}${edgeHeld ? ' Edge held inside that band.' : ''}${asOfNote}${liveMode && T.stat !== 'earnings' ? ' Non-POA tabs rank the tracked roster (top ' + Live.cfg.track + ' + DigiStarX).' : ''}`;
+  const listNote = `List: top ${rows.length} with a grade${past ? ` · +${past} graded past ${BOARD_CAP}` : ''} (grades served, jury seat, or cleared grade). Rank is among graded agents on this tab. Lookup under the list takes a PoA address or agent id, including outside the top ${BOARD_CAP} and accounts with no grade.`;
+  $('#legend').innerHTML = T.legend + `<br>◎ <b>Ring: top ${ARENA_MAX}</b> by POA balance only${extra ? ` · +${extra} more outside` : ''}. ${listNote} DigiStarX hovers above the ring while outside the top ${ARENA_MAX}${liveMode ? ' (0 POA → #NaN · builder; any other missing rank is —)' : ''}.${topTie && topTie.tieN > 1 ? ' <b>Tie:</b> ' + Number(topTie.tieN) + ' agents share the top balance.' : ''}${liveMode ? ' <b>Tie-break:</b> joined_epoch, then address.' : ''}${liveMode ? ' <b>Edge:</b> #10/#11 swaps after a lead of ' + Math.round(RING_EDGE_BAND * 1000) / 10 + '% of #1.' : ''}${edgeHeld ? ' Edge held inside that band.' : ''}${asOfNote}`;
+  paintRankLookup();
 }
 let cardFor = null;   // id the card is currently positioned for: position is computed ONCE per open and then stays fixed
 function renderCard() {
   const c = $('#card');
-  if (!selected) { c.style.display = 'none'; cardFor = null; return; }
+  if (!selected || !byId[selected] || !F[selected]) { if (selected) selected = null; c.style.display = 'none'; cardFor = null; return; }
   if (!c.querySelector('#cardBody')) c.innerHTML = '<button class="x" type="button" aria-label="Close card">✕</button><div id="cardBody"></div>';   // static shell: the close button is never recreated
   const a = byId[selected], f = F[selected], P = PALS[a.pal];
   const rk = k => `<span style="color:#8781b6">#${esc(rankText(a.id, ranks[k][a.id]))}</span>`;
@@ -2829,7 +2964,14 @@ function renderCard() {
 // close button via delegation on #card (pointerdown, so a re-render can never swallow the press)
 $('#card').addEventListener('pointerdown', e => { if (e.target.closest('.x')) { e.preventDefault(); e.stopPropagation(); select(null); } });
 function renderUI() { renderNet(); renderTable(); renderCard(); }
-function select(id) { if (selected && F[selected]) F[selected].sel = false; if (id !== selected) cardFor = null; selected = id; if (id) F[id].sel = true; renderCard(); }
+function select(id) {
+  if (id && (!byId[id] || !F[id])) return;
+  if (selected && F[selected]) F[selected].sel = false;
+  if (id !== selected) cardFor = null;
+  selected = id || null;
+  if (id && F[id]) F[id].sel = true;
+  renderCard();
+}
 
 cv.addEventListener('click', e => {
   const r = cv.getBoundingClientRect(), w = screenToWorld(e.clientX - r.left, e.clientY - r.top);
@@ -2837,7 +2979,17 @@ cv.addEventListener('click', e => {
   for (const a of agents) { const f = F[a.id]; if (f.mode === 'off' || f.mode === 'exit') continue; const u = unitOf(f), d = Math.hypot(w.x - f.x, w.y - (f.y - 8 * u)); if (d < 11 * u + 10 && d < bd) { bd = d; hit = a.id; } }
   select(hit === selected ? null : hit);
 });
-$('#tbl').addEventListener('pointerdown', e => { const tr = e.target.closest('tr[data-id]'); if (tr) select(tr.dataset.id); });
+$('#tbl').addEventListener('pointerdown', e => {
+  const tr = e.target.closest('tr[data-id]');
+  if (!tr) return;
+  const id = tr.dataset.id;
+  const box = $('#rankLookIn');
+  if (box) { box.value = tr.dataset.addr || id; paintRankLookup(); }
+  if (byId[id] && F[id]) select(id);
+});
+$('#rankLookBtn').addEventListener('click', () => paintRankLookup());
+$('#rankLookIn').addEventListener('input', () => paintRankLookup());
+$('#rankLookIn').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); paintRankLookup(); } });
 $('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; tab = b.dataset.t; document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('act', x === b)); renderTable(); });
 function setDemo(on) { demoOn = on; labelMode(); }
 function labelMode() {
