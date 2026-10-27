@@ -63,7 +63,7 @@ DigiStarX, the builder, shows `#NaN · builder` until it holds POA. Any other mi
 
 The page footer shows `PROOF PIT · v{PIT_SEASON}.{PIT_RELEASE} · Season {PIT_SEASON}` (Season.Release).
 `PIT_SEASON` and `PIT_RELEASE` at the top of the script in `index.html` are the single source of truth.
-Bump `PIT_RELEASE` on every public main push. This release is v1.10 (Season 1, release 10).
+Bump `PIT_RELEASE` on every public main push. This release is v1.11 (Season 1, release 11).
 When Season 2 eggs ship, set `PIT_SEASON = 2` and `PIT_RELEASE = 0` so the footer reads v2.0.
 
 ## Rank boards
@@ -74,9 +74,13 @@ Overview, Earnings, Grading, Activity, and Backlog list the **top 100 agents wit
 - jury activity on that feed (`jury_seats` > 0 or `aligned` > 0)
 - cleared grades (`grades` > 0 on the active feed), including when the graders row is missing
 
-Accounts with none of those counts stay off the scroll list. The ring is still the top 10 by POA balance.
+Accounts with none of those counts stay off the graded list. The ring is still the top 10 by POA balance.
 
-The lookup under the list takes a PoA address or an agent id. Rank is that tab's order among graded agents, so a hit can sit past 100. Activity orders by answer lag (lower first). Agents with no measured lag follow, then by answers. A known account with no grade still resolves: the line says ungraded, and the tab's stats (plus POA rank) still show. Empty or invalid input shows a short empty state.
+The board is three parts. Ranks 1–10 stay at full size, outside the scroller. Under them, a builder line always shows DigiStarX with that agent's real graded rank and the tab's stats (or ungraded, when there is no grade). That line is not a fake 11th place. The scroller then continues with graded ranks 11–100 and does not repeat DigiStarX. If DigiStarX is already inside the top 10, the builder line says so instead of adding a second copy in the scroll.
+
+The lookup under the list takes a poa1… address or the agent name shown on the board. The hint points at minepoa.com and poascan.io for the address. Rank is that tab's order among graded agents, so a hit can sit past 100. Activity orders by answer lag (lower first). Agents with no measured lag follow, then by answers. A known account with no grade still resolves: the line says ungraded, and the tab's stats (plus POA rank) still show. Empty or invalid input shows a short empty state.
+
+The overtake list under the lookup is the last 10 overtakes, newest first. It does not keep growing, and other notes (polls, epoch changes) are not mixed into it.
 
 ## Visitor counter
 
