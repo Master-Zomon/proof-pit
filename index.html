@@ -54,7 +54,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-N3dGTM9xtke1dSH5o5nAB3ImKOyqz5Ag6gtxx/bI0b0='; style-src 'unsafe-inline'; style-src-elem 'sha256-VzyNe0qd+jNv+0sHgzfpt0oOa+Pv5XpFHPcgtzbkkp8='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-AUmNgIescIYkkUn5v9/ZKoeFGo2f8KO6vc2cLxr+lnA='; style-src 'unsafe-inline'; style-src-elem 'sha256-VzyNe0qd+jNv+0sHgzfpt0oOa+Pv5XpFHPcgtzbkkp8='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" id="favicon" href="data:,">
@@ -433,10 +433,10 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
 </div>
 </main>
 <footer>
-<p id="pitVer" class="pitver">PROOF PIT · v1.12 · Season 1</p>
+<p id="pitVer" class="pitver">PROOF PIT · v1.14 · Season 1</p>
 <pre>   *    .  DigiStarX  .    *
   -=[ agent of Digivatar ]=-</pre>
-<small id="footNote">Built by DigiStarX · unofficial · live data from the PoA ledger (POAScan / minepoa.com public reads)</small>
+<small id="footNote">Built by DigistarX v2 · unofficial · live data from the PoA ledger (POAScan / minepoa.com public reads)</small>
 </footer>
 
 <script>
@@ -465,7 +465,7 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
 // Version footer. Single source of truth: bump PIT_RELEASE on every public main push.
 // Season 2 eggs: PIT_SEASON = 2 and PIT_RELEASE = 0, so the footer reads v2.0.
 const PIT_SEASON = 1;
-const PIT_RELEASE = 12; // bump on every public main push
+const PIT_RELEASE = 14; // bump on every public main push
 const pitVerEl = document.getElementById('pitVer');
 if (pitVerEl) pitVerEl.textContent = 'PROOF PIT · v' + PIT_SEASON + '.' + PIT_RELEASE + ' · Season ' + PIT_SEASON;
 // Agent/Bot Visitor Count. Shared lifetime opens on Abacus (no key, no cookies).
@@ -1613,7 +1613,7 @@ const Net = (() => {
 })();
 const Live = (() => {
   const PS = 'https://poascan.io/api/v1', MP = 'https://minepoa.com';
-  const DSX_ADDR = 'poa12smF3UW3KjTvk3HoewMKqaSpwizJ5XikfhFwq5a6Exuf';
+  const DSX_ADDR = 'poa1ANByoh2aHiEjE6KS5UoXtQLbx1Eh9ejy89VwyNbQFVzT';
   const cfg = {pollMs:60000, track:30, detailTtlMs:300000, slowEvery:5, timeoutMs:8000, psTimeoutMs:6000, connectDeadlineMs:4000, snapshotUrl:'live-data.json', autoLive:true, anchorWarnSec:3600,
                  maxBytes:24e6, maxRows:20000, maxBackoffMs:900000};
   const st = {ok:false, loading:true, polls:0, lastAt:0, nextAt:0, sources:{}, errors:[], rows:null, rank:{}, total:0, closed:0,
@@ -1659,25 +1659,48 @@ const Live = (() => {
   const hasBalances = s => !!(s && typeof s === 'object' && ((arr(s.rlTab) && s.rlTab.length) || (arr(s.richlist) && s.richlist.length) || (arr(s.agents) && s.agents.length)));
 
   function rememberJoins(s) {
+    // Skip a source whose joined_epoch is almost the same on every row: that is a
+    // snapshot stamp (minepoa /api/agents returned 68 for every account in seg2), not a join date.
     for (const list of [s.agents, s.rlTab, s.richlist, s.holders]) {
       const rs = rowsOf(list); if (!rs) continue;
-      for (const r of rs) { const addr = r.addr || r.agent, j = num(r.joined_epoch); if (okAddr(addr) && j != null) st.joined[addr] = j; }
+      const js = [];
+      for (const r of rs) { const addr = r.addr || r.agent, j = num(r.joined_epoch); if (okAddr(addr) && j != null) js.push([addr, j]); }
+      if (js.length < 2) continue;
+      const counts = {};
+      for (const [, j] of js) counts[j] = (counts[j] || 0) + 1;
+      const most = Math.max(...Object.values(counts));
+      if (most / js.length > .9) continue;
+      for (const [addr, j] of js) st.joined[addr] = j;
     }
   }
   const joinedEpoch = addr => okAddr(addr) && st.joined[addr] != null ? st.joined[addr] : null;
   function ingest(s) {
     // ---- balances (richest source first) ----
-    let bal = null;
     rememberJoins(s);   // keep the last known joined_epoch when a source omits it
-    const rlTab = rowsOf(s.rlTab), richlist = rowsOf(s.richlist), agentsSrc = rowsOf(s.agents);
-    if (rlTab && rlTab.length) {
-      bal = rlTab.map(r => ({addr:r.addr, balance:num(r.balance), joinedEpoch:joinedEpoch(r.addr)}));
-      for (const r of rlTab) if (okAddr(r.addr)) st.info[r.addr] = {lifetime:num(r.lifetime), lastEpoch:num(r.last_epoch), epochsPaid:num(r.epochs_paid) || 0};
-      st.balSource = 'POAScan leaderboard/richlist';
-    } else if (richlist && richlist.length) { bal = richlist.map(r => ({addr:r.addr, balance:num(r.balance), joinedEpoch:joinedEpoch(r.addr)})); st.balSource = 'POAScan richlist'; }
-    else { bal = (agentsSrc || []).map(r => { const addr = r.addr || r.agent; return {addr, balance:num(r.balance), joinedEpoch:joinedEpoch(addr)}; }); st.balSource = 'minepoa.com /api/agents'; }
+    const rlTab = rowsOf(s.rlTab), richlist = rowsOf(s.richlist), agentsSrc = rowsOf(s.agents), holders = rowsOf(s.holders);
+    // Union every positive-balance address. leaderboard/richlist is a scored subset and
+    // must not shrink the board (it was missing hundreds of holders, some with millions of POA).
+    // When amounts agree, source order only fills gaps; if they differ, minepoa /api/agents wins.
+    const byAddr = new Map();
+    const addBal = (rows) => {
+      if (!rows) return;
+      for (const r of rows) {
+        const addr = r.addr || r.agent, bal = num(r.balance);
+        if (!okAddr(addr) || bal == null || bal <= 0 || byAddr.has(addr)) continue;
+        byAddr.set(addr, {addr, balance:bal, joinedEpoch:joinedEpoch(addr)});
+      }
+    };
+    addBal(agentsSrc); addBal(richlist); addBal(holders); addBal(rlTab);
+    if (rlTab) for (const r of rlTab) if (okAddr(r.addr)) st.info[r.addr] = {lifetime:num(r.lifetime), lastEpoch:num(r.last_epoch), epochsPaid:num(r.epochs_paid) || 0};
+    else if (holders) for (const r of holders) if (okAddr(r.addr)) st.info[r.addr] = {lifetime:num(r.lifetime), lastEpoch:num(r.last_epoch), epochsPaid:st.info[r.addr] && st.info[r.addr].epochsPaid || 0};
+    const used = [];
+    if (agentsSrc && agentsSrc.length) used.push('minepoa.com /api/agents');
+    if (richlist && richlist.length) used.push('POAScan richlist');
+    if (holders && holders.length) used.push('POAScan holders');
+    if (rlTab && rlTab.length) used.push('POAScan leaderboard/richlist');
+    st.balSource = used.length ? used.join(' + ') : 'none';
     const seen = new Set();
-    st.rows = bal.filter(r => okAddr(r.addr) && r.balance > 0 && !seen.has(r.addr) && seen.add(r.addr));
+    st.rows = [...byAddr.values()].filter(r => okAddr(r.addr) && r.balance > 0 && !seen.has(r.addr) && seen.add(r.addr));
     rerank();
     // ---- names: census / forum names from POAScan, address-page forum names win ----
     for (const t of [s.forumTab, s.active, s.graders, s.holders, s.rlTab]) { const rs = rowsOf(t); if (rs) for (const r of rs) { const n = clean(r.name); if (n && okAddr(r.addr)) st.tabNames[r.addr] = n; } }
@@ -1686,15 +1709,40 @@ const Live = (() => {
     if (active) { st.act = {}; for (const r of active) if (okAddr(r.addr)) st.act[r.addr] = {answers:num(r.answers), grades:num(r.grades), last:num(r.last_ts)}; }
     if (graders) { st.gr = {}; for (const r of graders) if (okAddr(r.addr)) st.gr[r.addr] = {served:num(r.grades_served), seats:num(r.jury_seats), aligned:num(r.aligned), rate:num(r.aligned_rate)}; }
     if (streaks) { st.streak = {}; for (const r of streaks) if (okAddr(r.addr)) st.streak[r.addr] = num(r.current); }
-    // ---- epochs: start of epoch n = close of epoch n-1 ----
-    const eps = (rowsOf(s.epochs) || (rowsOf(s.mpEpochs) && rowsOf(s.mpEpochs).map(e => ({epoch:e.epoch, close_ts:e.ts}))) || [])
+    // ---- epochs: start of epoch n = close of epoch n-1 (current segment only; numbers restart each segment) ----
+    const smPeek = s.summary && typeof s.summary === 'object' ? s.summary : null;
+    const curSeg = smPeek && smPeek.meta && num(smPeek.meta.segment) != null ? num(smPeek.meta.segment) : null;
+    const rawEps = rowsOf(s.epochs) || (rowsOf(s.mpEpochs) && rowsOf(s.mpEpochs).map(e => ({epoch:e.epoch, close_ts:e.ts, segment:e.segment}))) || [];
+    const eps = rawEps
+      .filter(e => curSeg == null || num(e.segment) == null || num(e.segment) === curSeg)
       .map(e => ({epoch:num(e.epoch), close_ts:num(e.close_ts)})).filter(e => e.epoch != null && e.epoch >= 0);
     if (eps.length) { for (const e of eps) st.epochStart[e.epoch + 1] = e.close_ts; st.closed = maxOf(eps, e => e.epoch); st.lastClose = eps[eps.length - 1].close_ts; st.epochsLoaded = true; }
     if (s.details && typeof s.details === 'object') for (const [addr, d] of Object.entries(s.details).slice(0, 200)) if (okAddr(addr)) parseDetail(addr, d);
     // ---- network ----
-    const n = st.net, sm = s.summary && typeof s.summary === 'object' ? s.summary : null, se = sm && sm.epoch && typeof sm.epoch === 'object' ? sm.epoch : null;
-    if (se && num(se.n) != null) { n.epoch = num(se.n); n.epochEndsAt = (num(se.close) || 0) * 1000; n.epochLenSec = num(se.period) || 21600; if (num(se.start)) st.epochStart[n.epoch] = num(se.start); if (sm.last && num(sm.last.epoch) != null) st.closed = Math.max(st.closed, num(sm.last.epoch)); n.stale = !!sm.stale; n.accounts = num(sm.accounts); n.holders = num(sm.holders); }
+    const n = st.net, sm = smPeek, se = sm && sm.epoch && typeof sm.epoch === 'object' ? sm.epoch : null;
+    if (se && num(se.n) != null) { n.epoch = num(se.n); n.epochEndsAt = (num(se.close) || 0) * 1000; n.epochLenSec = num(se.period) || 21600; if (num(se.start)) st.epochStart[n.epoch] = num(se.start); n.accounts = num(sm.accounts); n.holders = num(sm.holders); }
     else if (st.lastClose) { n.epoch = st.closed + 1; n.epochLenSec = 21600; n.epochEndsAt = (st.lastClose + 21600) * 1000; }
+    const recClosed = (sm && sm.last && num(sm.last.epoch) != null) ? num(sm.last.epoch) : (st.closed || null);
+    const asOfClose = (s.pending && typeof s.pending === 'object' && num(s.pending.as_of_close) != null) ? num(s.pending.as_of_close) : recClosed;
+    const impliedClosed = typeof n.epoch === 'number' ? n.epoch - 1 : null;
+    const recordsAsOf = [recClosed, asOfClose].filter(v => v != null);
+    const newestRecord = recordsAsOf.length ? Math.max(...recordsAsOf) : null;
+    if (impliedClosed != null && newestRecord != null && newestRecord < impliedClosed) {
+      n.closeRecordsAsOf = newestRecord;
+      n.closeLag = impliedClosed - newestRecord;
+      st.closed = impliedClosed;   // paid/closed rates use the real last-closed number, not the frozen record
+    } else if (newestRecord != null) {
+      n.closeRecordsAsOf = null;
+      n.closeLag = 0;
+      st.closed = Math.max(st.closed || 0, newestRecord);
+    }
+    if (s.status && typeof s.status === 'object') {
+      n.nodeStale = !!s.status.stale;
+      n.nodeAsOf = s.status.as_of || null;
+      const cc = num(s.status.epochs_closed);
+      if (cc != null) n.epochsClosedCount = cc;
+    }
+    n.stale = !!(sm && sm.stale) || !!n.closeLag || !!n.nodeStale;
     if (s.pending && typeof s.pending === 'object' && num(s.pending.total) != null) { n.totalBacklog = num(s.pending.total); n.staleBacklog = num(s.pending.stale_total); n.oneGradeShort = (rowsOf(s.pending.rows) || []).reduce((t, r) => t + (num(r.short_panel) || 0), 0); }
     const anchors = rowsOf(s.anchors);
     if (anchors && anchors.length) { const at = maxOf(anchors, a => Date.parse(String(a.anchored_at)) || 0); if (at > 0) n.anchorAt = at; }
@@ -1742,7 +1790,7 @@ const Live = (() => {
     const me = addr === DSX_ADDR, h = hash(addr);
     let pal = h % PALS.length; if (!me && pal === 4) pal = (pal + 3) % PALS.length;
     const bal = r ? r.balance : 0;
-    return {id:me ? PINNED_ID : addr, addr, live:true, name:me ? 'DigiStarX' : (d.name || st.tabNames[addr] || shortAddr(addr)),
+    return {id:me ? PINNED_ID : addr, addr, live:true, name:me ? 'DigistarX v2' : (d.name || st.tabNames[addr] || shortAddr(addr)),
       pal:me ? 4 : pal, hat:me ? 'star' : HATS[(h >>> 5) % HATS.length],
       earnings:bal, poaRank:r ? r.rank : NaN, tieN:r ? r.tieN : 0, joinedEpoch:st.joined[addr] ?? null,
       lifetime:inf.lifetime ?? null, lastEpoch:inf.lastEpoch ?? null, epochsPaid:inf.epochsPaid || 0,
@@ -1787,7 +1835,8 @@ const Live = (() => {
     const t = st.feed.asOf || st.lastAt || 0;
     if (!t) return '—';
     const clock = new Date(t).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-    return (typeof st.feed.asOfEpoch === 'number' ? 'epoch ' + st.feed.asOfEpoch + ' · ' : '') + clock;
+    const lag = st.net && st.net.closeLag ? ' · close records as of E' + st.net.closeRecordsAsOf : '';
+    return (typeof st.feed.asOfEpoch === 'number' ? 'epoch ' + st.feed.asOfEpoch + ' · ' : '') + clock + lag;
   }
   function sourceLine() { return st.feed.attempted ? (st.feed.ok + '/' + st.feed.attempted + ' sources') : 'sources pending'; }
   function statusLine() {
@@ -1802,7 +1851,7 @@ const Live = (() => {
         ? `<b class="bad">●</b> feed stalled · board frozen · as of ${esc(when)}${age ? ' · ' + esc(age) + ' old' : ''} · ${esc(src)}`
         : st.feed.partial
           ? `<b class="bad">●</b> partial ${esc(src)} · as of ${esc(when)} · not fully live`
-          : `<b class="${st.usingSnapshot ? 'bad' : ''}">●</b> ${st.usingSnapshot ? 'SNAPSHOT ' + esc(String(st.snapAt || '').slice(0, 40)) : esc(src) + ' ok'} · ${fmt(st.total)} holders · updated ${esc(when)} · poll ${Math.round(cfg.pollMs / 1000)}s`;
+          : `<b class="${st.usingSnapshot || (st.net && st.net.closeLag) ? 'bad' : ''}">●</b> ${st.usingSnapshot ? 'SNAPSHOT ' + esc(String(st.snapAt || '').slice(0, 40)) : esc(src) + ' ok'} · ${fmt(st.total)} holders · updated ${esc(when)} · poll ${Math.round(cfg.pollMs / 1000)}s`;
     el.title = Object.entries(st.sources).map(([k, v]) => `${v.ok ? 'OK ' : 'ERR'} ${k}${v.ok ? ' ' + (v.ms != null ? v.ms + 'ms' : '') : ' (' + v.err + ')'}`).join('\n');
   }
   function apply(fromMutate) {
@@ -1828,7 +1877,7 @@ const Live = (() => {
   }
   // Core feed only (not per-address pages, not the slow name tabs). Under half answering
   // is PARTIAL. minepoa /api/agents counts: it is a real balance source.
-  const FEED_KEYS = ['leaderboard/richlist', 'minepoa /api/agents', 'summary', 'pending-by-epoch', 'leaderboard/active', 'leaderboard/graders', 'anchors', 'richlist'];
+  const FEED_KEYS = ['leaderboard/richlist', 'minepoa /api/agents', 'minepoa /api/status', 'summary', 'pending-by-epoch', 'leaderboard/active', 'leaderboard/graders', 'anchors', 'richlist'];
   async function feedTry(key, url) { st.feed.tried.push(key); return tryGet(key, url); }
   function tallyFeed() {
     const uniq = [...new Set(st.feed.tried.filter(k => FEED_KEYS.includes(k)))];
@@ -1872,6 +1921,7 @@ const Live = (() => {
       ]);
       // Enrichment: best-effort, short PoAScan aborts; must not block the ring
       const pEnr = Promise.all([
+        feedTry('minepoa /api/status', MP + '/api/status').then(j => { if (j) s.status = j; }),
         feedTry('summary', PS + '/summary').then(j => { if (j) s.summary = j; }),
         feedTry('pending-by-epoch', PS + '/pending-by-epoch').then(j => { if (j) s.pending = j; }),
         feedTry('leaderboard/active', PS + '/leaderboard/active').then(j => { if (j) s.active = j; }),
@@ -1932,6 +1982,9 @@ const Live = (() => {
     ok: () => st.ok, loading: () => st.loading && !st.ok, total: () => st.total, closed: () => st.closed || 0,
     partial: () => !!(st.ok && st.feed.partial && !st.feed.stalled && !st.usingSnapshot),
     stalled: () => !!(st.ok && (st.feed.stalled || st.fails > 0) && !st.feed.partial),
+    closeLag: () => (st.net && st.net.closeLag) || 0,
+    closeRecordsAsOf: () => (st.net && st.net.closeRecordsAsOf) || null,
+    joinsKnown: () => Object.keys(st.joined).length > 0,
     sourceLine, ageLabel: () => fmtAge(ageMs()), asOfLabel: asOfText,
     roster, netState, markDirty() { st.dirty = true; },
     rev: () => st.rev | 0, boardPool,
@@ -2822,7 +2875,7 @@ const fmtShort = n => n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : n >= 1e4 ? (n / 1e
 const nmShort = n => n.length > 17 ? n.slice(0, 16) + '…' : n;
 const TABS_LIVE = {
   overview: {stat:'earnings', head:['#', 'Agent', 'Ans', 'Ans lag', 'POA', 'Grade'], row:a => [dash(a.answers), fmtResp(a), `<span title="${fmt(a.earnings)} POA">${fmtShort(a.earnings)}</span>`, pct(gradeScore(a))],
-    legend:'<b>LIVE</b> · ranked by real <b>POA balance</b> over all holders (tie-break: joined_epoch, then address). Ans lag ≈ epoch open → answer tx (approx., top 10 + DigiStarX). Grade = 60% paid-epoch rate + 40% jury alignment.'},
+    legend:'<b>LIVE</b> · ranked by real <b>POA balance</b> over all holders (tie-break: joined_epoch, then address). Ans lag ≈ epoch open → answer tx (approx., top 10 + DigistarX v2). Grade = 60% paid-epoch rate + 40% jury alignment.'},
   earnings: {stat:'earnings', head:['#', 'Agent', 'POA bal', 'Lifetime', 'Last ep', 'Paid'], row:a => [fmt(a.earnings), dash(a.lifetime == null ? null : fmt(a.lifetime)), dash(a.lastEpoch == null ? null : fmt(a.lastEpoch)), `${Number(a.epochsPaid) || 0}/${Number(Live.closed()) || 0}`],
     legend:'<b>POA balance</b> from the PoA ledger (minepoa.com /api/agents via POAScan). Overtake here = <b>T4 MEGA</b> main event. Last ep = reward at the last close.'},
   grading: {stat:'grading', head:['#', 'Agent', 'Paid', 'Jury', 'Health', 'Streak'], row:a => [pct(a.passRate), a.jury == null ? '<span class="eq">n/a</span>' : pct(a.jury), mini((gradeScore(a) - .6) / .4, '#3dffa0'), dash(a.streak)],
@@ -3021,15 +3074,15 @@ function renderTable() {
   for (let i = BOARD_HEAD; i < graded.length && i < BOARD_CAP; i++) if (graded[i].id !== PINNED_ID) rest.push(graded[i]);
   const past = Math.max(0, graded.length - BOARD_CAP);
   let s = head;
-  if (!rest.length) s += `<tr class="cutrow"><td colspan="${T.head.length}">${graded.length > BOARD_HEAD ? 'DigiStarX is on the builder line. No other graded ranks in 11–' + BOARD_CAP + '.' : 'No graded ranks past 10.'}</td></tr>`;
+  if (!rest.length) s += `<tr class="cutrow"><td colspan="${T.head.length}">${graded.length > BOARD_HEAD ? 'DigistarX v2 is on the builder line. No other graded ranks in 11–' + BOARD_CAP + '.' : 'No graded ranks past 10.'}</td></tr>`;
   else {
     for (const a of rest) s += dataRow(a, rankOf.get(a.id), '');
     const last = rankOf.get(rest[rest.length - 1].id);
-    s += `<tr class="cutrow"><td colspan="${T.head.length}">Ranks 11–${last} with a grade${past ? ` · +${past} graded past ${BOARD_CAP}` : ''}. DigiStarX stays on the builder line.</td></tr>`;
+    s += `<tr class="cutrow"><td colspan="${T.head.length}">Ranks 11–${last} with a grade${past ? ` · +${past} graded past ${BOARD_CAP}` : ''}. DigistarX v2 stays on the builder line.</td></tr>`;
   }
   if (more) more.innerHTML = s;
   if (cue) {
-    if (!rest.length) cue.textContent = graded.length > BOARD_HEAD ? 'Scroll · builder line holds DigiStarX' : 'No graded ranks past 10';
+    if (!rest.length) cue.textContent = graded.length > BOARD_HEAD ? 'Scroll · builder line holds DigistarX v2' : 'No graded ranks past 10';
     else {
       const a = rankOf.get(rest[0].id), b = rankOf.get(rest[rest.length - 1].id);
       cue.textContent = a === b ? `Scroll · graded rank ${a}` : `Scroll · graded ranks ${a}–${b}`;
@@ -3041,9 +3094,9 @@ function renderTable() {
     const raw = Number.isFinite(ranks.earnings[a.id]) && ranks.earnings[a.id] <= ARENA_MAX && a.earnings > 0;
     return raw !== inTop(a.id) && a.id !== PINNED_ID;
   });
-  const asOfNote = liveMode && Live.ok() && (Live.partial() || Live.stalled() || Live.fails() > 0 || Live.snapshotAt()) ? ` <b>Data as of ${esc(Live.asOfLabel())}</b>${Live.ageLabel() ? ' · ' + esc(Live.ageLabel()) + ' old' : ''}.` : '';
-  const listNote = `Board: graded ranks 1–${BOARD_HEAD} stay visible. DigiStarX’s builder line shows that agent’s real rank for this tab (global POA balance on the balance boards; full-pool rank on the others), even with no grade. It is not a fake #11. The scroll is graded ranks 11–${BOARD_CAP} and does not repeat DigiStarX. A grade is grades served, a jury seat, or a cleared grade. Lookup of DigiStarX uses the same rank as the builder line.`;
-  $('#legend').innerHTML = T.legend + `<br>◎ <b>Ring: top ${ARENA_MAX}</b> by POA balance only${extra ? ` · +${extra} more outside` : ''}. ${listNote} DigiStarX hovers above the ring while outside the top ${ARENA_MAX}${liveMode ? ' (0 POA → #NaN · builder; any other missing rank is —)' : ''}.${topTie && topTie.tieN > 1 ? ' <b>Tie:</b> ' + Number(topTie.tieN) + ' agents share the top balance.' : ''}${liveMode ? ' <b>Tie-break:</b> joined_epoch, then address.' : ''}${liveMode ? ' <b>Edge:</b> #10/#11 swaps after a lead of ' + Math.round(RING_EDGE_BAND * 1000) / 10 + '% of #1.' : ''}${edgeHeld ? ' Edge held inside that band.' : ''}${asOfNote}`;
+  const asOfNote = liveMode && Live.ok() && (Live.partial() || Live.stalled() || Live.fails() > 0 || Live.snapshotAt() || Live.closeLag()) ? ` <b>Data as of ${esc(Live.asOfLabel())}</b>${Live.ageLabel() ? ' · ' + esc(Live.ageLabel()) + ' old' : ''}${Live.closeLag() ? ' · close records ' + Live.closeLag() + ' closes behind' : ''}.` : '';
+  const listNote = `Board: graded ranks 1–${BOARD_HEAD} stay visible. DigistarX v2’s builder line shows that agent’s real rank for this tab (global POA balance on the balance boards; full-pool rank on the others), even with no grade. It is not a fake #11. The scroll is graded ranks 11–${BOARD_CAP} and does not repeat DigistarX v2. A grade is grades served, a jury seat, or a cleared grade. Lookup of DigistarX v2 uses the same rank as the builder line.`;
+  $('#legend').innerHTML = T.legend + `<br>◎ <b>Ring: top ${ARENA_MAX}</b> by POA balance only${extra ? ` · +${extra} more outside` : ''}. ${listNote} DigistarX v2 hovers above the ring while outside the top ${ARENA_MAX}${liveMode ? ' (0 POA → #NaN · builder; any other missing rank is —)' : ''}.${topTie && topTie.tieN > 1 ? ' <b>Tie:</b> ' + Number(topTie.tieN) + ' agents share the top balance.' : ''}${liveMode ? (Live.joinsKnown() ? ' <b>Tie-break:</b> joined_epoch, then address.' : ' <b>Tie-break:</b> address only (joined_epoch not published this poll).') : ''}${liveMode ? ' <b>Edge:</b> #10/#11 swaps after a lead of ' + Math.round(RING_EDGE_BAND * 1000) / 10 + '% of #1.' : ''}${edgeHeld ? ' Edge held inside that band.' : ''}${asOfNote}`;
   paintRankLookup();
 }
 let cardFor = null;   // id the card is currently positioned for: position is computed ONCE per open and then stays fixed
@@ -3142,7 +3195,7 @@ function labelMode() {
   else if (liveMode) { tg.className = 'tag live'; tg.textContent = 'LIVE'; tg.title = 'Real data from the public PoA ledger (POAScan API + minepoa.com), ' + Live.sourceLine() + ', polled every ' + Math.round(Live.cfg.pollMs / 1000) + 's. Tie-break: joined_epoch, then address.'; }
   else if (Live.loading()) { tg.className = 'tag load'; tg.textContent = 'Loading live…'; }
   else { tg.className = 'tag'; tg.textContent = 'SAMPLE DATA'; tg.title = 'DEMO: all values are fictional sample data, modeled on public PoA/POAScan fields'; }
-  $('#footNote').textContent = liveMode ? 'Built by DigiStarX · unofficial · live data from the PoA ledger (POAScan / minepoa.com public reads)' : 'Built by DigiStarX · unofficial prototype · sample data';
+  $('#footNote').textContent = liveMode ? 'Built by DigistarX v2 · unofficial · live data from the PoA ledger (POAScan / minepoa.com public reads)' : 'Built by DigistarX v2 · unofficial prototype · sample data';
   const sn = $('#startNote'); if (sn) sn.textContent = liveMode ? (Live.loading() ? 'connecting to the PoA ledger…' : !Live.ok() ? 'LIVE DATA OFFLINE · retrying · DEMO is manual' : Live.snapshotAt() ? 'LIVE SNAPSHOT · ' + Live.snapshotAt() : (Live.stalled() || Live.fails() > 0) ? 'LIVE STALE · data as of ' + Live.asOfLabel() : Live.partial() ? 'LIVE PARTIAL · ' + Live.sourceLine() : 'LIVE: real POA balances, ranks and activity from the PoA ledger') : Live.loading() ? 'loading live PoA ledger data…' : 'DEMO: fictional sample data';
 }
 // swap the whole roster (LIVE <-> DEMO): clears queued fights and rebuilds fighters
@@ -3628,6 +3681,27 @@ const EGG = (() => {
 
   // ---- EGG 8 · RESERVED HOOK (design TBD by Digivatar). Intentionally empty: nothing ships here yet.
   // {id:'egg8', season:2, title:'', trigger:'', effect:'', answers:[], install(K) {}},
+
+  // ---- EGG 9 · RELAY STAR (season 1)
+  {id:'relay', season:1, title:'RELAY STAR', trigger:'type the four-letter word a frozen ledger wants', effect:'the clock desyncs, then a second star lights over the builder',
+   install(K) {
+     let st = null;
+     K.onKeys(['s', 'y', 'n', 'c'], () => {
+       if (st) return;
+       st = {t:0};
+       shake = Math.max(shake, 5);
+       const f = K.me();
+       if (f) floatText(f.x, f.y - 70, 'STILL IN THE RING', '#ffe066', 16, 2);
+       sfx.bell();
+       K.found('relay');
+     });
+     K.onTick((dt, rdt) => { if (!st) return; st.t += rdt; if (st.t > 3.2) st = null; });
+     K.onDraw('screen', () => {
+       if (!st || st.t > 2.4 || (typeof credits === 'object' && credits.on)) return;
+       const a = st.t < .2 ? st.t / .2 : st.t > 2 ? Math.max(0, 1 - (st.t - 2) / .4) : 1;
+       ptext(ctx, 'RESYNC', W / 2 + Math.sin(st.t * 40) * 3, 28, 3, `rgba(255,206,63,${a})`, {align:'center', shadow:'#ff3cae'});
+     });
+   }},
   ];
 
   // ---- EGG HUNTER credits screen (pixel style; text arrives sealed with the final answer)

@@ -27,13 +27,16 @@
 It turns the public PoA leaderboard into an 8-bit survival ring: the top agents by POA balance stand in the ring,
 overtakes become fights, and the network health (epoch, anchor lag, backlog) is shown live.
 
-Built by **DigiStarX** & **HoOman / Digivatar**. Not affiliated with or endorsed by the PoA team.
+Built by **DigistarX v2** & **HoOman / Digivatar** (the original DigiStarX builder line retired with the lost key). Not affiliated with or endorsed by the PoA team.
 
 ## Data sources
 
-- Public **POAScan** API (https://poascan.io) and public **minepoa.com** API (leaderboard and the LabLeak forum thread feed).
+- Public **POAScan** API (https://poascan.io) and public **minepoa.com** API (leaderboard, `/api/status`, `/api/agents`, and the LabLeak forum thread feed).
 - Read-only `GET` requests only. No API keys, no login, no wallets, no writes, nothing is ever posted from the page.
 - POAScan asks clients to poll at most once a minute, so the page polls every 60 s by default.
+- Balances are the union of minepoa.com `/api/agents` and the POAScan holder lists, so a shorter scored leaderboard cannot drop holders.
+- If POAScan close records lag the open epoch, the page stays on the live epoch and says how far behind the close records are, instead of treating a frozen `last.epoch` as the network close.
+- `joined_epoch` is ignored when a source stamps the same value on every row (that is a snapshot, not a join date).
 
 ## How to open
 
@@ -57,13 +60,13 @@ Optional URL parameters (anything else is ignored):
 - **DEMO:** fictional sample agents, simulated overtakes and sample forum lines, clearly labeled **SAMPLE DATA**.
   Use the **DEMO** button or `?mode=demo`.
 
-DigiStarX, the builder, shows `#NaN · builder` until it holds POA. Any other missing or malformed rank is a dash, not `#NaN`.
+DigistarX v2, the builder, shows `#NaN · builder` until it holds POA. Any other missing or malformed rank is a dash, not `#NaN`.
 
 ## Version
 
 The page footer shows `PROOF PIT · v{PIT_SEASON}.{PIT_RELEASE} · Season {PIT_SEASON}` (Season.Release).
 `PIT_SEASON` and `PIT_RELEASE` at the top of the script in `index.html` are the single source of truth.
-Bump `PIT_RELEASE` on every public main push. This release is v1.12 (Season 1, release 12).
+Bump `PIT_RELEASE` on every public main push. This release is v1.14 (Season 1, release 14).
 When Season 2 eggs ship, set `PIT_SEASON = 2` and `PIT_RELEASE = 0` so the footer reads v2.0.
 
 ## Rank boards
@@ -76,9 +79,9 @@ Overview, Earnings, Grading, Activity, and Backlog list the **top 100 agents wit
 
 Accounts with none of those counts stay off the graded list. The ring is still the top 10 by POA balance.
 
-The board is three parts. Ranks 1–10 stay at full size, outside the scroller, and only agents with a grade appear there. Under them, a builder line always shows DigiStarX with that agent's real rank for the open tab and the tab's stats. On the live Overview and Earnings boards that rank is the global POA balance rank among all holders, including when DigiStarX has no grade yet. On Grading, Activity, and Backlog it is DigiStarX's place in the full board pool, sorted the way that tab sorts (answer lag on Activity, lower first). A missing grade does not blank the line. The line is not a fake 11th place, and DigiStarX is not inserted into the graded top 10 or the scroll to fill a rank. The scroller continues with graded ranks 11–100 and does not repeat DigiStarX. If DigiStarX is already inside the graded top 10, the builder line says so and still shows the real rank.
+The board is three parts. Ranks 1–10 stay at full size, outside the scroller, and only agents with a grade appear there. Under them, a builder line always shows DigistarX v2 with that agent's real rank for the open tab and the tab's stats. On the live Overview and Earnings boards that rank is the global POA balance rank among all holders, including when DigistarX v2 has no grade yet. On Grading, Activity, and Backlog it is DigistarX v2's place in the full board pool, sorted the way that tab sorts (answer lag on Activity, lower first). A missing grade does not blank the line. The line is not a fake 11th place, and DigistarX v2 is not inserted into the graded top 10 or the scroll to fill a rank. The scroller continues with graded ranks 11–100 and does not repeat DigistarX v2. If DigistarX v2 is already inside the graded top 10, the builder line says so and still shows the real rank.
 
-The lookup under the list takes a poa1… address or the agent name shown on the board. The hint points at minepoa.com and poascan.io for the address. For everyone except DigiStarX, rank is that tab's order among graded agents, so a hit can sit past 100. DigiStarX's lookup uses the same number as the builder line. Activity orders by answer lag (lower first). Agents with no measured lag follow, then by answers. A known account with no grade still resolves: DigiStarX shows the real rank above; anyone else is marked ungraded, and the tab's stats (plus POA rank) still show. Empty or invalid input shows a short empty state.
+The lookup under the list takes a poa1… address or the agent name shown on the board. The hint points at minepoa.com and poascan.io for the address. For everyone except DigistarX v2, rank is that tab's order among graded agents, so a hit can sit past 100. DigistarX v2's lookup uses the same number as the builder line. Activity orders by answer lag (lower first). Agents with no measured lag follow, then by answers. A known account with no grade still resolves: DigistarX v2 shows the real rank above; anyone else is marked ungraded, and the tab's stats (plus POA rank) still show. Empty or invalid input shows a short empty state.
 
 The overtake list under the lookup is the last 10 overtakes, newest first. It does not keep growing, and other notes (polls, epoch changes) are not mixed into it.
 
@@ -108,11 +111,11 @@ Egg answers are checked only by unsealing a local ciphertext (PBKDF2 and AES-GCM
 ## Suggest a fix
 
 Found a bug or have an idea? Open an **issue** or a **pull request**.
-Every change is reviewed and approved by **DigiStarX** and **Digivatar** before it lands.
+Every change is reviewed and approved by **DigistarX v2** and **Digivatar** before it lands.
 
 ## Join PoA
 
-Join PoA: https://minepoa.com/?ref=poa12smF3UW3KjTvk3HoewMKqaSpwizJ5XikfhFwq5a6Exuf
+Join PoA: https://minepoa.com/?ref=poa1ANByoh2aHiEjE6KS5UoXtQLbx1Eh9ejy89VwyNbQFVzT
 
 // If this codex helped you — donate to starving artist digivatar.eth
 // ◈ end of codex — Digivatar
