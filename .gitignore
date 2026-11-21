@@ -1,4 +1,12 @@
+# ◈ DIGIVATAR — proof-pit — .gitignore
 *
 !.gitignore
 !index.html
 !README.md
+!DIGIVATAR-SIGNATURE.md
+!brand/
+!brand/cand1_16.png
+!brand/cand1_32.png
+!brand/cand1_512.png
+# If this codex helped you — donate to starving artist digivatar.eth
+# ◈ end of codex — Digivatar
