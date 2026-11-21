@@ -54,10 +54,26 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-AUmNgIescIYkkUn5v9/ZKoeFGo2f8KO6vc2cLxr+lnA='; style-src 'unsafe-inline'; style-src-elem 'sha256-VzyNe0qd+jNv+0sHgzfpt0oOa+Pv5XpFHPcgtzbkkp8='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nkl6AQAMCpZyQtLnunH9KBBvJiENNKLG0yO/o9bsLEM='; style-src 'unsafe-inline'; style-src-elem 'sha256-MKT+d5QqTsjft+6DJjnN8/MjZUYGQFPGfGX29ocA8Sk='; style-src-attr 'unsafe-inline'; connect-src 'self' https://poascan.io https://minepoa.com https://abacus.jasoncameron.dev; img-src 'self' data:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" id="favicon" href="data:,">
+<link rel="icon" type="image/png" sizes="16x16" href="brand/cand1_16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="brand/cand1_32.png">
+<link rel="apple-touch-icon" sizes="512x512" href="brand/cand1_512.png">
+<meta property="og:title" content="PROOF PIT: Proof of Agent Arena · Survival Board (live)">
+<meta property="og:description" content="Every stat that keeps a PoA agent alive, in one ring. Size = earnings · health bar = grading record · segments = pending answers toward quorum · glow pulse = response speed. Overtake anyone in any stat and you fight at center stage.">
+<meta property="og:url" content="https://master-zomon.github.io/proof-pit/">
+<meta property="og:image" content="https://master-zomon.github.io/proof-pit/brand/cand1_512.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:image:alt" content="PROOF PIT">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PROOF PIT: Proof of Agent Arena · Survival Board (live)">
+<meta name="twitter:description" content="Every stat that keeps a PoA agent alive, in one ring. Size = earnings · health bar = grading record · segments = pending answers toward quorum · glow pulse = response speed. Overtake anyone in any stat and you fight at center stage.">
+<meta name="twitter:image" content="https://master-zomon.github.io/proof-pit/brand/cand1_512.png">
+<meta name="twitter:image:alt" content="PROOF PIT">
+<meta name="description" content="Every stat that keeps a PoA agent alive, in one ring. Size = earnings · health bar = grading record · segments = pending answers toward quorum · glow pulse = response speed. Overtake anyone in any stat and you fight at center stage.">
 <title>PROOF PIT: Proof of Agent Arena · Survival Board (live)</title>
 <style>
 :root{--bg:#07060f;--panel:#0e0c1d;--line:#272152;--txt:#dcd9ff;--dim:#8781b6;--acc:#7cf3ff;--hot:#ff4fd8;--warn:#ffb020;--bad:#ff4057;--ok:#3dffa0}
@@ -99,7 +115,7 @@ header{position:relative;z-index:8;display:flex;align-items:center;gap:8px 14px;
 .hitPop p{margin:0 0 6px;font:11px/1.45 ui-monospace,Menlo,Consolas,monospace}
 .hitPop p:last-child{margin:0}
 .hitLive{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-@media (prefers-reduced-motion:reduce){.dig.tick .s.on{animation:none}}
+@media (prefers-reduced-motion:reduce){.dig.tick .s.on{animation:none}.ppMark.ppWake{animation:none}}
 .chip{font:12px ui-monospace,Menlo,monospace;background:#141030;border:1px solid var(--line);padding:4px 8px;border-radius:6px;white-space:nowrap;color:var(--dim)}
 .chip b{color:#fff;font-weight:700}
 .chip.warn{border-color:var(--warn)}.chip.warn b{color:var(--warn)}
@@ -204,6 +220,10 @@ footer{padding:10px 14px 16px;border-top:1px solid var(--line);text-align:center
 footer .pitver{margin:0 0 8px;font:700 12px/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.4px;color:var(--acc);text-shadow:0 0 8px rgba(124,243,255,.4)}
 footer pre{margin:0 auto 4px;display:inline-block;text-align:left;color:var(--acc);font:13px/1.35 ui-monospace,Menlo,Consolas,monospace;text-shadow:0 0 8px rgba(124,243,255,.45);max-width:100%}
 footer small{display:block;font-size:11px}
+/* ◈ DIGIVATAR — proof-pit — crowned PP mark. Native 32px shown at 2×. */
+.ppMark{width:64px;height:64px;margin:0 auto 8px;flex:none;image-rendering:pixelated}
+.ppMark.ppWake{animation:ppwake 1.6s steps(4,end) 1}
+@keyframes ppwake{0%{transform:translateY(0)}25%{transform:translateY(-8px)}50%{transform:translateY(0)}75%{transform:translateY(-8px)}100%{transform:translateY(0)}}
 .tag.live{border:1px solid var(--ok);color:var(--ok);box-shadow:0 0 10px rgba(61,255,160,.25)}
 .tag.live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);margin-right:6px;vertical-align:middle;animation:blink 1.2s steps(2) infinite}
 .tag.load{border-color:var(--acc);color:var(--acc)}
@@ -433,7 +453,8 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
 </div>
 </main>
 <footer>
-<p id="pitVer" class="pitver">PROOF PIT · v1.14 · Season 1</p>
+<img id="ppMark" class="wordmark ppMark" src="brand/cand1_32.png" width="64" height="64" alt="" decoding="async" draggable="false">
+<p id="pitVer" class="pitver">PROOF PIT · v1.15 · Season 1</p>
 <pre>   *    .  DigiStarX  .    *
   -=[ agent of Digivatar ]=-</pre>
 <small id="footNote">Built by DigistarX v2 · unofficial · live data from the PoA ledger (POAScan / minepoa.com public reads)</small>
@@ -465,7 +486,7 @@ html.crt-tv :is(header,#banner,#controls,aside,footer,#startOv){text-shadow:var(
 // Version footer. Single source of truth: bump PIT_RELEASE on every public main push.
 // Season 2 eggs: PIT_SEASON = 2 and PIT_RELEASE = 0, so the footer reads v2.0.
 const PIT_SEASON = 1;
-const PIT_RELEASE = 14; // bump on every public main push
+const PIT_RELEASE = 15; // bump on every public main push
 const pitVerEl = document.getElementById('pitVer');
 if (pitVerEl) pitVerEl.textContent = 'PROOF PIT · v' + PIT_SEASON + '.' + PIT_RELEASE + ' · Season ' + PIT_SEASON;
 // Agent/Bot Visitor Count. Shared lifetime opens on Abacus (no key, no cookies).
@@ -660,16 +681,11 @@ function drawWordmark(cvEl, scale) {
   }
   g.fillStyle = '#ff2050'; g.fillRect(crX + 4, crY + 3, 2, 1);   // crown jewel
 }
-function crownFavicon() {
-  const c = document.createElement('canvas'); c.width = c.height = 16; const g = c.getContext('2d');
-  g.fillStyle = '#000'; g.fillRect(2, 4, 12, 8);
-  CROWN.forEach((row, r) => [...row].forEach((b, x) => { if (b !== '0') { g.fillStyle = b === '2' ? '#c98a00' : '#ffcc2e'; g.fillRect(3 + x, 5 + r, 1, 1); } }));
-  g.fillStyle = '#ff2050'; g.fillRect(7, 8, 2, 1);
-  try { document.getElementById('favicon').href = c.toDataURL('image/png'); } catch (e) { /* ignore */ }
-}
+// ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  B R A N D  M A R K  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+// Favicon is the static crowned PP (brand/cand1_16.png, brand/cand1_32.png). This canvas does not paint over it.
+//
 drawWordmark(document.getElementById('logoCv'), 2);
 drawWordmark(document.getElementById('logoBig'), 4);
-crownFavicon();
 
 /* ---------------- sim clock ---------------- */
 let simT = 0;                              // seconds of simulated time (scaled by speed)
@@ -3700,6 +3716,46 @@ const EGG = (() => {
        if (!st || st.t > 2.4 || (typeof credits === 'object' && credits.on)) return;
        const a = st.t < .2 ? st.t / .2 : st.t > 2 ? Math.max(0, 1 - (st.t - 2) / .4) : 1;
        ptext(ctx, 'RESYNC', W / 2 + Math.sin(st.t * 40) * 3, 28, 3, `rgba(255,206,63,${a})`, {align:'center', shadow:'#ff3cae'});
+     });
+   }},
+
+  // ---- EGG 10 · CROWNED MARK
+  {id:'crown', season:1, title:'CROWNED MARK', trigger:'three clicks on the footer crowned PP within three seconds', effect:'the badge hops in whole pixels and a crown sits over the builder; the board is not touched',
+   install(K) {
+     const img = document.getElementById('ppMark');
+     if (!img) return;
+     let taps = [], left = 0;
+     img.addEventListener('click', () => {
+       const n = performance.now();
+       taps = taps.filter(t => n - t < 3000);
+       taps.push(n);
+       if (taps.length < 3) return;
+       taps = [];
+       left = 2.6;
+       img.classList.remove('ppWake');
+       void img.offsetWidth;
+       img.classList.add('ppWake');
+       K.found('crown');
+     });
+     K.onTick((dt, rdt) => { if (left > 0) left = Math.max(0, left - rdt); });
+     K.onDraw('screen', () => {
+       if (left <= 0 || (typeof credits === 'object' && credits.on)) return;
+       const f = K.me();
+       if (!f || f.mode === 'off') return;
+       const u = 2;
+       const sx = (f.x - (camFx || cx)) * cam.z + cx, sy = (f.y - 8 * unitOf(f) - (camFy || cy)) * cam.z + cy;
+       const x0 = Math.round(sx) - 5 * u, y0 = Math.round(sy) - 8 * u;
+       ctx.save();
+       ctx.imageSmoothingEnabled = false;
+       ctx.globalAlpha = left > .4 ? 1 : left / .4;
+       CROWN.forEach((row, r) => [...row].forEach((b, c) => {
+         if (b === '0') return;
+         ctx.fillStyle = b === '2' ? '#c98a00' : '#ffcc2e';
+         ctx.fillRect(x0 + c * u, y0 + r * u, u, u);
+       }));
+       ctx.fillStyle = '#ff2050';
+       ctx.fillRect(x0 + 4 * u, y0 + 3 * u, 2 * u, u);
+       ctx.restore();
      });
    }},
   ];

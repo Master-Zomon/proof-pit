@@ -66,8 +66,18 @@ DigistarX v2, the builder, shows `#NaN · builder` until it holds POA. Any other
 
 The page footer shows `PROOF PIT · v{PIT_SEASON}.{PIT_RELEASE} · Season {PIT_SEASON}` (Season.Release).
 `PIT_SEASON` and `PIT_RELEASE` at the top of the script in `index.html` are the single source of truth.
-Bump `PIT_RELEASE` on every public main push. This release is v1.14 (Season 1, release 14).
+Bump `PIT_RELEASE` on every public main push. This release is v1.15 (Season 1, release 15).
 When Season 2 eggs ship, set `PIT_SEASON = 2` and `PIT_RELEASE = 0` so the footer reads v2.0.
+
+## Mark
+
+The crowned PP is static pixel art in `brand/` (kept byte-identical; do not resample):
+
+- `cand1_16.png` — 16×16 favicon
+- `cand1_32.png` — 32×32 mark, also shown in the footer at 2× with `image-rendering: pixelated`
+- `cand1_512.png` — 512×512, a 16× nearest-neighbor export of the 32px mark, used for the apple touch icon and the link preview
+
+Open Graph and Twitter image URLs are the absolute address `https://master-zomon.github.io/proof-pit/brand/cand1_512.png`.
 
 ## Rank boards
 
